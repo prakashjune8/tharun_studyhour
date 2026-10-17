@@ -8258,11 +8258,11 @@ class DesktopApp:
         # Hero Circular Chakra Ring Timer Canvas with Character-Adaptive Outer Flame Glow
         self.timer_canvas = tk.Canvas(
             pad_frame,
-            height=134,
+            height=176,
             bg="#0b111e",
             highlightthickness=0
         )
-        self.timer_canvas.pack(fill=tk.X, pady=(0, 5))
+        self.timer_canvas.pack(fill=tk.X, pady=(0, 4))
         self.timer_canvas.bind("<Configure>", lambda e: self.update_timer_display())
 
         # 2-Row Control Button Deck (Zero Overflow!)
@@ -9139,7 +9139,7 @@ class DesktopApp:
             width = 385
         height = self.timer_canvas.winfo_height()
         if height <= 10:
-            height = 134
+            height = 176
 
         cx = width // 2
         cy = height // 2
@@ -9159,7 +9159,7 @@ class DesktopApp:
             scale = 3
             sw, sh = max(1, width * scale), max(1, height * scale)
             scx, scy = sw // 2, sh // 2
-            r = 46 * scale
+            r = 68 * scale
             thickness = 10 * scale
 
             ring_img = Image.new("RGBA", (sw, sh), (11, 17, 30, 255))
@@ -9173,11 +9173,11 @@ class DesktopApp:
             aura_draw = ImageDraw.Draw(aura_img)
             glow_color = (16, 185, 129, 150) if is_break else (*prim_rgb, 160)
             cyan_color = (*acc_rgb, 140)
-            aura_draw.ellipse([scx - (r + 18 * scale), scy - (r + 18 * scale), scx + (r + 18 * scale), scy + (r + 18 * scale)],
-                              outline=glow_color, width=12 * scale)
-            aura_draw.ellipse([scx - (r + 7 * scale), scy - (r + 7 * scale), scx + (r + 7 * scale), scy + (r + 7 * scale)],
-                              outline=cyan_color, width=8 * scale)
-            aura_blurred = aura_img.filter(ImageFilter.GaussianBlur(radius=8 * scale))
+            aura_draw.ellipse([scx - (r + 14 * scale), scy - (r + 14 * scale), scx + (r + 14 * scale), scy + (r + 14 * scale)],
+                              outline=glow_color, width=10 * scale)
+            aura_draw.ellipse([scx - (r + 6 * scale), scy - (r + 6 * scale), scx + (r + 6 * scale), scy + (r + 6 * scale)],
+                              outline=cyan_color, width=6 * scale)
+            aura_blurred = aura_img.filter(ImageFilter.GaussianBlur(radius=6 * scale))
             ring_img.paste(aura_blurred, (0, 0), aura_blurred)
 
             # 2. Dark Slate Track Ring
@@ -9214,20 +9214,20 @@ class DesktopApp:
             self.timer_canvas.create_image(0, 0, image=self._timer_ring_photo, anchor="nw")
         else:
             # Fallback Tkinter Canvas Arc
-            r = 46
+            r = 68
             self.timer_canvas.create_oval(cx - r, cy - r, cx + r, cy + r, fill="#080d19", outline="#1e293b", width=10)
             if frac > 0.005:
                 extent_deg = -max(2.0, min(359.8, 360.0 * frac))
                 self.timer_canvas.create_arc(cx - r, cy - r, cx + r, cy + r, start=90, extent=extent_deg,
                                              style=tk.ARC, outline=("#10b981" if is_break else "#f97316"), width=10)
 
-        # 6. Clean Hero Text inside Ring ("15:00" in 28pt bold white, "SPRINT 1 OF 2" in 8pt bold cyan)
+        # 6. Clean Hero Text inside Ring ("15:00" in 26pt bold white, "SPRINT 1 OF 2" in 8pt bold cyan)
         mins = getattr(self, "timer_seconds_left", 900) // 60
         secs = getattr(self, "timer_seconds_left", 900) % 60
         self.timer_canvas.create_text(
-            cx, cy - 10,
+            cx, cy - 9,
             text=f"{mins:02d}:{secs:02d}",
-            font=("Segoe UI", 28, "bold"),
+            font=("Segoe UI", 26, "bold"),
             fill="#ffffff"
         )
         if is_break:
