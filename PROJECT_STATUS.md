@@ -97,8 +97,12 @@ All 9 desktop sections are visually audited on Windows via Win32 print window ca
    - Synced to root `dist\ScholasticPulse_V2.exe`.
    - Desktop shortcut verified pointing to `VERSION_2_WORKPLACE`.
 
-7. **GitHub Public Repository Sync (Mandatory Post-Change Policy)**:
-   - **Repository URL**: `https://github.com/prakashjune8/tharun_studyhour`
-   - **Active Branch**: `main`
-   - **Policy**: Every subsequent change made to code, documentation, or assets is committed and pushed directly to `origin/main`.
+8. **Phase 1 & 2 High-DPI Visual Parity Upgrade (Desktop Application)**:
+   - **Per-Monitor v2 DPI Awareness & Windows 11 Dark Title Bar**: Enabled `ctypes.windll.shcore.SetProcessDpiAwareness(2)` and native dark immersive title bar across the root window and all HUD utility modals (`pywinstyles` / `DwmSetWindowAttribute`).
+   - **ShinobiGraphicsEngine (3x/4x SSAA + Gaussian Radial Auras + 3D Cylindrical Scrolls)**: Anti-aliased rounded glass cards (`create_rounded_glass_card`), silky smooth timer rings with dual-color radial auras, and true 3D mahogany-roller parchment scrolls (`create_3d_parchment_scroll`).
+   - **100% Elimination of Win32 `ttk.Combobox`**: Replaced all native comboboxes with custom `ShinobiPillSelector` (`#131c2e`, border `#334155`, amber hover `#f59e0b`, native dark popup menu) across Command Deck, Timeline header (date, exam subject, prep day), Timer audio voice selector, Tab 2 Diary date selector, Tab 2 Quick-Add inputs, and Tab 3 Term selector.
+   - **Anti-Aliased Rounded Pill Buttons (`ShinobiPillButton`)**: Converted all Chakra timer controls (`btn_timer_toggle`, `btn_timer_reset`, `btn_timer_next`, `btn_timer_early`, `btn_end_day`), extension chips (`+5m`, `+10m`, `+15m`, `Custom...`), audio controls, and the 2x4 Study Tools grid (`Tweaks`, `Doubt Slip`, `Parent X-Ray`, `60s Demo`, `Error Bank`, `Diksha QR`, `Vault`) to smooth rounded glass pill buttons. `btn_timer_toggle` styled with signature Amber-to-Cyan glowing gradient (`#fbbf24` -> `#38bdf8`, dark text `#0f172a`).
+   - **3D Glowing Scroll Tab Navigation Bar (`ShinobiTabBar`)**: Custom tab bar with active tab rendered as an unfurled 3D cylindrical parchment scroll with golden bottom glow bar, and inactive tabs as rounded dark-glass pills.
+   - **Tab 2 (Diary) & Tab 3 (Portions) 2-Column Cards**: Upgraded all homework slabs and syllabus cards to rounded dark-navy containers (`#0f172a`, border `#d97706`, 2px highlight) with 3D mini parchment badges.
+   - **Re-compiled & Verified Binary**: `dist\ScholasticPulse_V2.exe` rebuilt (63.1 MB) and live desktop screenshots verified for Tabs 1, 2, and 3.
 

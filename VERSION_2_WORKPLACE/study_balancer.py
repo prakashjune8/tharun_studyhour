@@ -2472,42 +2472,232 @@ class ShinobiGraphicsEngine:
         cls._cache[key] = photo
         return photo
 
+    @classmethod
+    def create_rounded_pill_button(cls, parent, text, width, height, bg_top="#1e293b", bg_bot="#0f172a",
+                                   border_color="#475569", fg_color="#f8fafc", font=("Segoe UI", 8, "bold"),
+                                   command=None, radius=10, **kwargs):
+        """Creates a supersampled anti-aliased rounded glass pill button."""
+        return ShinobiPillButton(parent, text=text, width=width, height=height, bg_top=bg_top, bg_bot=bg_bot,
+                                 border_color=border_color, fg_color=fg_color, font=font, command=command,
+                                 radius=radius, **kwargs)
+
+
+class ShinobiPillButton(tk.Canvas):
+    """
+    3x Supersampled Anti-Aliased Rounded Pill Button:
+    - Renders smooth rounded glass pills using ShinobiGraphicsEngine.
+    - Duck-typed drop-in replacement for tk.Button:
+      supports .config(text=..., bg=..., fg=..., state=..., command=...),
+      .cget(), and standard pack/grid/place geometry managers.
+    """
+    def __init__(self, parent, text="", width=100, height=32, bg_top="#1e293b", bg_bot="#0f172a",
+                 border_color="#475569", fg_color="#f8fafc", font=("Segoe UI", 8, "bold"),
+                 command=None, radius=10, active_bg="#f59e0b", active_fg="#0f172a", **kwargs):
+        self._btn_width = int(width)
+        self._btn_height = int(height)
+        self._radius = radius
+        self._text = text
+        self._bg_top = bg_top
+        self._bg_bot = bg_bot
+        self._border_color = border_color
+        self._fg_color = fg_color
+        self._active_bg = active_bg
+        self._active_fg = active_fg
+        self._font = font
+        self._command = command
+        self._state = "normal"
+        self._is_hovered = False
+
+        bg_parent = kwargs.pop("bg", None) or kwargs.pop("background", None)
+        if not bg_parent:
+            try:
+                bg_parent = parent.cget("bg")
+            except Exception:
+                bg_parent = "#0b1120"
+
+        # Pop any tk.Button specific kwargs
+        for k in ["padx", "pady", "relief", "bd", "highlightthickness", "activebackground", "activeforeground"]:
+            kwargs.pop(k, None)
+
+        super().__init__(parent, width=self._btn_width, height=self._btn_height, bg=bg_parent, bd=0, highlightthickness=0, cursor="hand2", **kwargs)
+
+        self._render_button()
+
+        self.bind("<Button-1>", self._on_click)
+        self.bind("<Enter>", self._on_enter)
+        self.bind("<Leave>", self._on_leave)
+        self.bind("<Configure>", self._on_configure)
+
+    def _render_button(self):
+        w = max(10, self.winfo_width() if self.winfo_width() > 10 else self._btn_width)
+        h = max(10, self.winfo_height() if self.winfo_height() > 10 else self._btn_height)
+
+        bg_t = self._bg_top
+        bg_b = self._bg_bot
+        b_col = self._border_color
+        fg = self._fg_color
+
+        if self._state == "disabled":
+            fg = "#64748b"
+            b_col = "#334155"
+        elif self._is_hovered:
+            b_col = "#f59e0b"
+
+        photo = ShinobiGraphicsEngine.create_rounded_glass_card(
+            w, h, radius=self._radius, bg_top=bg_t, bg_bot=bg_b, border_color=b_col, border_width=1
+        )
+        self.delete("all")
+        if photo:
+            self._cached_photo = photo
+            self.create_image(0, 0, image=photo, anchor="nw")
+        else:
+            self.create_rectangle(0, 0, w, h, fill=bg_t, outline=b_col)
+
+        self.create_text(w // 2, h // 2, text=self._text, font=self._font, fill=fg)
+
+    def _on_click(self, event=None):
+        if self._state != "disabled" and self._command:
+            self._command()
+
+    def _on_enter(self, event=None):
+        if self._state != "disabled":
+            self._is_hovered = True
+            self._render_button()
+
+    def _on_leave(self, event=None):
+        self._is_hovered = False
+        self._render_button()
+
+    def _on_configure(self, event=None):
+        self._render_button()
+
+    def config(self, **kwargs):
+        self.configure(**kwargs)
+
+    def configure(self, **kwargs):
+        redraw = False
+        if "text" in kwargs:
+            self._text = kwargs.pop("text")
+            redraw = True
+        if "command" in kwargs:
+            self._command = kwargs.pop("command")
+        if "state" in kwargs:
+            self._state = kwargs.pop("state")
+            if self._state == "disabled":
+                super().configure(cursor="")
+            else:
+                super().configure(cursor="hand2")
+            redraw = True
+        if "bg" in kwargs or "background" in kwargs:
+            bg_val = kwargs.pop("bg", None) or kwargs.pop("background", None)
+            self._bg_top = bg_val
+            self._bg_bot = bg_val
+            redraw = True
+        if "bg_top" in kwargs:
+            self._bg_top = kwargs.pop("bg_top")
+            redraw = True
+        if "bg_bot" in kwargs:
+            self._bg_bot = kwargs.pop("bg_bot")
+            redraw = True
+        if "fg" in kwargs or "foreground" in kwargs:
+            self._fg_color = kwargs.pop("fg", None) or kwargs.pop("foreground", None)
+            redraw = True
+        if "highlightbackground" in kwargs:
+            self._border_color = kwargs.pop("highlightbackground")
+            redraw = True
+        if "border_color" in kwargs:
+            self._border_color = kwargs.pop("border_color")
+            redraw = True
+        if "font" in kwargs:
+            self._font = kwargs.pop("font")
+            redraw = True
+        for k in ["padx", "pady", "relief", "bd", "highlightthickness", "activebackground", "activeforeground"]:
+            if k in kwargs:
+                kwargs.pop(k)
+
+        if kwargs:
+            super().configure(**kwargs)
+        if redraw and self.winfo_exists():
+            self._render_button()
+
+    def cget(self, key):
+        if key == "text":
+            return self._text
+        if key in ("bg", "background"):
+            return self._bg_top
+        if key in ("fg", "foreground"):
+            return self._fg_color
+        if key == "state":
+            return self._state
+        return super().cget(key)
+
+    def __getitem__(self, item):
+        return self.cget(item)
+
+    def __setitem__(self, item, value):
+        self.configure(**{item: value})
+
 
 class ShinobiPillSelector(tk.Frame):
     """
     Custom Rounded Dark-Glass Selector Card with Native Dark Popup Menu:
     Replaces clunky Win32 ttk.Combobox with high-polish dark card (radius=12, bg=#131c2e, border=#334155).
+    Fully compatible with ttk.Combobox methods: ['values'], .current(), .set(), .get(), .configure().
     """
-    def __init__(self, parent, title, values, initial_value, on_select_callback, width=120, height=48, **kwargs):
-        super().__init__(parent, bg="#131c2e", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, cursor="hand2", **kwargs)
-        self.title = title
-        self.values = values
+    def __init__(self, parent, title="", values=None, initial_value="", on_select_callback=None, textvariable=None, width=120, height=40, **kwargs):
+        self.title = title or ""
+        self.values = list(values) if values else []
         self.current_value = initial_value
         self.on_select_callback = on_select_callback
+        self.textvariable = textvariable
 
-        self.lbl_title = tk.Label(self, text=title, font=("Segoe UI", 7, "bold"), fg="#fb923c", bg="#131c2e", anchor="w")
-        self.lbl_title.pack(anchor="w", padx=6, pady=(3, 0))
+        if "state" in kwargs:
+            kwargs.pop("state")
+        if "width" in kwargs:
+            kwargs.pop("width")
 
-        val_row = tk.Frame(self, bg="#131c2e")
-        val_row.pack(fill=tk.X, padx=6, pady=(0, 3))
+        bg_col = "#131c2e"
+        super().__init__(parent, bg=bg_col, bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, cursor="hand2", **kwargs)
+
+        if self.title:
+            self.lbl_title = tk.Label(self, text=self.title, font=("Segoe UI", 7, "bold"), fg="#fb923c", bg=bg_col, anchor="w")
+            self.lbl_title.pack(anchor="w", padx=6, pady=(2, 0))
+        else:
+            self.lbl_title = None
+
+        val_row = tk.Frame(self, bg=bg_col)
+        val_row.pack(fill=tk.X, padx=6, pady=(1 if self.title else 3, 2))
         self.val_row = val_row
 
-        disp_txt = str(initial_value)
-        if len(disp_txt) > 17:
-            disp_txt = disp_txt[:16] + "…"
-        self.lbl_val = tk.Label(val_row, text=disp_txt, font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg="#131c2e", anchor="w")
+        disp_txt = str(initial_value) if initial_value else (self.values[0] if self.values else "")
+        self.current_value = disp_txt
+        if len(disp_txt) > 22:
+            disp_txt = disp_txt[:21] + "…"
+        self.lbl_val = tk.Label(val_row, text=disp_txt, font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg=bg_col, anchor="w")
         self.lbl_val.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        self.lbl_chev = tk.Label(val_row, text="▾", font=("Segoe UI", 8, "bold"), fg="#fb923c", bg="#131c2e")
+        self.lbl_chev = tk.Label(val_row, text="▾", font=("Segoe UI", 8, "bold"), fg="#fb923c", bg=bg_col)
         self.lbl_chev.pack(side=tk.RIGHT)
 
         self.menu = tk.Menu(self, tearoff=0, bg="#0f172a", fg="#f8fafc", activebackground="#d97706", activeforeground="#0f172a", font=("Segoe UI", 9))
         self._rebuild_menu()
 
-        for w in (self, self.lbl_title, self.val_row, self.lbl_val, self.lbl_chev):
+        widgets = [self, self.val_row, self.lbl_val, self.lbl_chev]
+        if self.lbl_title:
+            widgets.append(self.lbl_title)
+        for w in widgets:
             w.bind("<Button-1>", self._popup_menu)
             w.bind("<Enter>", lambda e: self.configure(highlightbackground="#f59e0b"))
             w.bind("<Leave>", lambda e: self.configure(highlightbackground="#334155"))
+
+        if self.textvariable:
+            def _on_var_write(*args):
+                val = self.textvariable.get()
+                if val != self.current_value:
+                    self.set(val)
+            self.textvariable.trace_add("write", _on_var_write)
+            if self.textvariable.get():
+                self.set(self.textvariable.get())
 
     def _rebuild_menu(self):
         self.menu.delete(0, tk.END)
@@ -2523,27 +2713,73 @@ class ShinobiPillSelector(tk.Frame):
             pass
 
     def _select_val(self, val):
-        self.current_value = val
-        disp_txt = str(val)
-        if len(disp_txt) > 17:
-            disp_txt = disp_txt[:16] + "…"
-        self.lbl_val.configure(text=disp_txt)
+        self.set(val)
         if self.on_select_callback:
             self.on_select_callback(val)
 
     def set(self, val):
-        self.current_value = val
+        self.current_value = str(val)
+        if self.textvariable and self.textvariable.get() != self.current_value:
+            self.textvariable.set(self.current_value)
         disp_txt = str(val)
-        if len(disp_txt) > 17:
-            disp_txt = disp_txt[:16] + "…"
+        if len(disp_txt) > 22:
+            disp_txt = disp_txt[:21] + "…"
         self.lbl_val.configure(text=disp_txt)
 
     def get(self):
         return self.current_value
 
     def configure_values(self, values):
-        self.values = values
+        self.values = list(values)
         self._rebuild_menu()
+
+    def current(self, newindex=None):
+        if newindex is None:
+            try:
+                return self.values.index(self.current_value)
+            except ValueError:
+                return -1
+        else:
+            if 0 <= newindex < len(self.values):
+                self.set(self.values[newindex])
+                if self.on_select_callback:
+                    self.on_select_callback(self.values[newindex])
+
+    def __getitem__(self, item):
+        if item == "values":
+            return self.values
+        return super().cget(item)
+
+    def __setitem__(self, item, value):
+        if item == "values":
+            self.configure_values(value)
+        else:
+            self.configure(**{item: value})
+
+    def configure(self, **kwargs):
+        if "values" in kwargs:
+            self.configure_values(kwargs.pop("values"))
+        if "state" in kwargs:
+            kwargs.pop("state")
+        if "width" in kwargs:
+            kwargs.pop("width")
+        if kwargs:
+            super().configure(**kwargs)
+
+    def config(self, **kwargs):
+        self.configure(**kwargs)
+
+    def bind(self, sequence=None, func=None, add=None):
+        if sequence == "<<ComboboxSelected>>":
+            orig_cb = self.on_select_callback
+            def _combo_sel_wrapper(v):
+                if orig_cb:
+                    orig_cb(v)
+                if func:
+                    func(None)
+            self.on_select_callback = _combo_sel_wrapper
+        else:
+            super().bind(sequence, func, add)
 
 class TharunScheduleBalancer:
     """
@@ -3646,6 +3882,115 @@ class TharunScheduleBalancer:
             }
 
 
+class ShinobiTabBar(tk.Frame):
+    """
+    3D Glowing Scroll & Rounded Dark-Glass Tab Navigation Bar:
+    - Active Tab: True 3D cylindrical parchment scroll (create_3d_parchment_scroll) with dark ink text (#1f1206) and golden bottom indicator glow.
+    - Inactive Tabs: Rounded dark-glass pills (radius=10, bg=#131c2e, border=#334155, fg=#94a3b8, hover=#f59e0b).
+    """
+    def __init__(self, parent, notebook, on_tab_changed=None, **kwargs):
+        super().__init__(parent, bg="#0b1120", height=42, **kwargs)
+        self.notebook = notebook
+        self.on_tab_changed = on_tab_changed
+        self.pack_propagate(False)
+
+        self.tab_defs = []
+        self.tab_widgets = {}
+        self.active_tab_id = None
+
+    def set_tabs(self, tabs_info):
+        """
+        tabs_info: list of (tab_id, tab_frame, icon, title)
+        """
+        self.tab_defs = tabs_info
+        for w in self.winfo_children():
+            w.destroy()
+        self.tab_widgets.clear()
+
+        for tab_id, tab_frame, icon, title in tabs_info:
+            tab_card = tk.Canvas(self, height=36, bg="#0b1120", bd=0, highlightthickness=0, cursor="hand2")
+            tab_card.pack(side=tk.LEFT, padx=(0, 10))
+            self.tab_widgets[tab_id] = {
+                "canvas": tab_card,
+                "frame": tab_frame,
+                "icon": icon,
+                "title": title,
+                "hover": False
+            }
+
+            def _bind_tab(t_id=tab_id, c=tab_card):
+                c.bind("<Button-1>", lambda e: self.select_tab(t_id))
+                c.bind("<Enter>", lambda e: self._on_hover(t_id, True))
+                c.bind("<Leave>", lambda e: self._on_hover(t_id, False))
+                c.bind("<Configure>", lambda e: self._draw_tab(t_id))
+
+            _bind_tab(tab_id, tab_card)
+
+        self._refresh_all_tabs()
+
+    def select_tab(self, tab_id):
+        self.active_tab_id = tab_id
+        if tab_id in self.tab_widgets:
+            target_frame = self.tab_widgets[tab_id]["frame"]
+            try:
+                self.notebook.select(target_frame)
+            except Exception:
+                pass
+        self._refresh_all_tabs()
+        if self.on_tab_changed:
+            self.on_tab_changed(tab_id)
+
+    def _on_hover(self, tab_id, is_hover):
+        if tab_id in self.tab_widgets:
+            self.tab_widgets[tab_id]["hover"] = is_hover
+            self._draw_tab(tab_id)
+
+    def _draw_tab(self, tab_id):
+        info = self.tab_widgets.get(tab_id)
+        if not info:
+            return
+        c = info["canvas"]
+        title_text = f"{info['icon']}  {info['title']}"
+        is_active = (self.active_tab_id == tab_id)
+        
+        tw = len(title_text) * 8 + 48
+        w = max(tw, c.winfo_width() if c.winfo_width() > 10 else tw)
+        h = 36
+        c.configure(width=w, height=h)
+        c.delete("all")
+
+        if is_active:
+            # 3D Shaded Cylindrical Parchment Scroll
+            photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=16)
+            if photo:
+                c._active_photo = photo
+                c.create_image(0, 0, image=photo, anchor="nw")
+            else:
+                c.create_rectangle(0, 0, w, h, fill="#fdf3dc", outline="#d97706")
+            
+            c.create_text(w // 2, h // 2, text=title_text, font=("Segoe UI", 9, "bold"), fill="#1f1206")
+            # Golden amber bottom glow bar
+            c.create_line(12, h - 2, w - 12, h - 2, fill="#f59e0b", width=3)
+        else:
+            # Rounded Dark Glass Pill
+            b_col = "#f59e0b" if info.get("hover") else "#334155"
+            photo = ShinobiGraphicsEngine.create_rounded_glass_card(
+                w, h, radius=10, bg_top="#131c2e", bg_bot="#0b1120", border_color=b_col, border_width=1
+            )
+            if photo:
+                c._inactive_photo = photo
+                c.create_image(0, 0, image=photo, anchor="nw")
+            else:
+                c.create_rectangle(0, 0, w, h, fill="#131c2e", outline=b_col)
+
+            fg_col = "#ffffff" if info.get("hover") else "#94a3b8"
+            c.create_text(w // 2, h // 2, text=title_text, font=("Segoe UI", 8, "bold"), fill=fg_col)
+
+    def _refresh_all_tabs(self):
+        for tab_id in self.tab_widgets:
+            self._draw_tab(tab_id)
+
+
 class DesktopApp:
     def __init__(self, root):
         self.root = root
@@ -4572,13 +4917,33 @@ class DesktopApp:
             lambda: self.notebook.select(self.tab_schedule) if hasattr(self, "notebook") else None,
             is_gold_cta=True
         )
-        # Notebook tabs
+        # 3D Glowing Scroll Tab Navigation Bar & Modern Notebook Container
         style = ttk.Style()
         style.theme_use("default")
         self.configure_notebook_styles(style)
 
+        # Hide native ttk tabs so our custom 3D glowing parchment scroll bar shines
+        style.layout("TNotebook.Tab", [])
+
+        self.custom_tab_bar = ShinobiTabBar(self.root, None)
+        self.custom_tab_bar.pack(fill=tk.X, padx=14, pady=(2, 0))
+
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=14, pady=10)
+        self.notebook.pack(fill=tk.BOTH, expand=True, padx=14, pady=(6, 10))
+        self.custom_tab_bar.notebook = self.notebook
+
+        # Synchronize custom tab bar on any programmatic notebook tab selection
+        def _on_notebook_tab_changed(event):
+            try:
+                selected_tab = self.notebook.select()
+                for t_id, info in self.custom_tab_bar.tab_widgets.items():
+                    if str(info["frame"]) == str(selected_tab):
+                        self.custom_tab_bar.active_tab_id = t_id
+                        self.custom_tab_bar._refresh_all_tabs()
+                        break
+            except Exception:
+                pass
+        self.notebook.bind("<<NotebookTabChanged>>", _on_notebook_tab_changed)
 
         # Mode-specific operational tabs
         self.tab_schedule = tk.Frame(self.notebook, bg=self.colors["bg"])
@@ -4596,20 +4961,24 @@ class DesktopApp:
         for tab_id in self.notebook.tabs():
             self.notebook.forget(tab_id)
 
-        # Always add Daily Schedule as Tab 1 (Option B: Ninja Scroll Tabs)
-        self.notebook.add(self.tab_schedule, text="  📜  📅 Daily Schedule  📜  ")
+        visible_tabs = [
+            ("tab_schedule", self.tab_schedule, "📜", "Daily Schedule")
+        ]
+        self.notebook.add(self.tab_schedule, text="Daily Schedule")
 
         if self.is_exam_mode:
-            # Exam Eve Sprint: Only Timetable & Focus Timer is needed
             pass
         elif self.is_pre_exam_mode:
-            # Pre-Exam Planner: Timetable & Focus Timer + Exam Portions & Pre-Exam Tracker
-            self.notebook.add(self.tab_portions, text="  📜  📚 Exam Portions & Pre-Exam Tracker  📜  ")
+            visible_tabs.append(("tab_portions", self.tab_portions, "📚", "Exam Portions & Pre-Exam Tracker"))
+            self.notebook.add(self.tab_portions, text="Exam Portions & Pre-Exam Tracker")
         else:
-            # Balanced Daily: Timetable & Focus Timer + School Diary & Subject Slabs
-            self.notebook.add(self.tab_diary, text="  📜  📖 School Diary & Subject Slabs  📜  ")
+            visible_tabs.append(("tab_diary", self.tab_diary, "📖", "School Diary & Subject Slabs"))
+            self.notebook.add(self.tab_diary, text="School Diary & Subject Slabs")
 
-        # Give immediate priority focus to Timetable tab on mode switch
+        if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
+            self.custom_tab_bar.set_tabs(visible_tabs)
+            self.custom_tab_bar.select_tab("tab_schedule")
+
         self.notebook.select(self.tab_schedule)
 
     def _create_hud_toplevel(self, title, subtitle="", width=850, height=600, min_width=720, min_height=500):
@@ -7626,60 +7995,49 @@ class DesktopApp:
         for ci in range(3):
             ctrl_row1.grid_columnconfigure(ci, weight=(2 if ci == 0 else 1))
 
-        self.btn_timer_toggle = tk.Button(
+        # Primary Action: Start/Resume Focus with Web UI Signature Amber-to-Cyan Glowing Gradient
+        self.btn_timer_toggle = ShinobiGraphicsEngine.create_rounded_pill_button(
             ctrl_row1,
             text="▶ Start Focus",
+            width=130,
+            height=32,
+            bg_top="#fbbf24",
+            bg_bot="#38bdf8",
+            border_color="#fde047",
+            fg_color="#0f172a",
             font=("Segoe UI", 9, "bold"),
-            bg="#f97316",
-            fg="#0f172a",
-            activebackground="#fbbf24",
-            activeforeground="#0f172a",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#fde047",
-            highlightthickness=1,
-            padx=10,
-            pady=3,
-            cursor="hand2",
-            command=self.toggle_timer
+            command=self.toggle_timer,
+            radius=10
         )
         self.btn_timer_toggle.grid(row=0, column=0, sticky="nsew", padx=(0, 3))
 
-        self.btn_timer_reset = tk.Button(
+        self.btn_timer_reset = ShinobiGraphicsEngine.create_rounded_pill_button(
             ctrl_row1,
             text="🔄 Reset",
+            width=90,
+            height=32,
+            bg_top="#1e293b",
+            bg_bot="#0f172a",
+            border_color="#334155",
+            fg_color="#f8fafc",
             font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            activebackground="#1e293b",
-            activeforeground="#f8fafc",
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.reset_timer
+            command=self.reset_timer,
+            radius=10
         )
         self.btn_timer_reset.grid(row=0, column=1, sticky="nsew", padx=2)
 
-        self.btn_timer_next = tk.Button(
+        self.btn_timer_next = ShinobiGraphicsEngine.create_rounded_pill_button(
             ctrl_row1,
             text="⏭ Next Slot",
+            width=90,
+            height=32,
+            bg_top="#1e293b",
+            bg_bot="#0f172a",
+            border_color="#334155",
+            fg_color="#f8fafc",
             font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            activebackground="#1e293b",
-            activeforeground="#f8fafc",
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.skip_to_next_slot
+            command=self.skip_to_next_slot,
+            radius=10
         )
         self.btn_timer_next.grid(row=0, column=2, sticky="nsew", padx=(3, 0))
 
@@ -7688,45 +8046,37 @@ class DesktopApp:
         ctrl_row2.grid_columnconfigure(0, weight=1, uniform="cr2")
         ctrl_row2.grid_columnconfigure(1, weight=1, uniform="cr2")
 
-        self.btn_timer_early = tk.Button(
+        self.btn_timer_early = ShinobiGraphicsEngine.create_rounded_pill_button(
             ctrl_row2,
             text="⚡ Done Early!",
+            width=140,
+            height=30,
+            bg_top="#1e293b",
+            bg_bot="#0f172a",
+            border_color="#eab308",
+            fg_color="#facc15",
             font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#facc15",
-            activebackground="#f59e0b",
-            activeforeground="#0f172a",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#eab308",
-            highlightthickness=1,
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.handle_finished_early
+            command=self.handle_finished_early,
+            radius=10
         )
         self.btn_timer_early.grid(row=0, column=0, sticky="nsew", padx=(0, 3))
 
-        self.btn_end_day = tk.Button(
+        self.btn_end_day = ShinobiGraphicsEngine.create_rounded_pill_button(
             ctrl_row2,
             text="🏆 Day Complete",
+            width=140,
+            height=30,
+            bg_top="#1e293b",
+            bg_bot="#0f172a",
+            border_color="#10b981",
+            fg_color="#34d399",
             font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#34d399",
-            activebackground="#10b981",
-            activeforeground="#0f172a",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#10b981",
-            highlightthickness=1,
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.show_daily_completion_scroll
+            command=self.show_daily_completion_scroll,
+            radius=10
         )
         self.btn_end_day.grid(row=0, column=1, sticky="nsew", padx=(3, 0))
 
-        # Extra Time Extension Bar (Readable Dark Glass Pills)
+        # Extra Time Extension Bar (Readable Rounded Dark Glass Pills)
         ext_bar = tk.Frame(
             pad_frame,
             bg="#131c2e",
@@ -7753,22 +8103,18 @@ class DesktopApp:
         quick_btns.pack(side=tk.RIGHT)
 
         def _make_ext_pill(txt, mins_val):
-            b = tk.Button(
+            b = ShinobiGraphicsEngine.create_rounded_pill_button(
                 quick_btns,
                 text=txt,
+                width=48 if len(txt) <= 4 else 68,
+                height=24,
+                bg_top="#1e293b",
+                bg_bot="#0f172a",
+                border_color="#475569",
+                fg_color="#f8fafc",
                 font=("Segoe UI", 7, "bold"),
-                bg="#1e293b",
-                fg="#f8fafc",
-                relief=tk.SOLID,
-                bd=1,
-                highlightbackground="#475569",
-                highlightthickness=1,
-                padx=6,
-                pady=1,
-                activebackground="#f97316",
-                activeforeground="#0f172a",
-                cursor="hand2",
-                command=lambda m=mins_val: self.request_slot_extension(m)
+                command=lambda m=mins_val: self.request_slot_extension(m),
+                radius=8
             )
             b.pack(side=tk.LEFT, padx=2)
             return b
@@ -7779,7 +8125,7 @@ class DesktopApp:
         bcust = _make_ext_pill("Custom...", None)
         self.timer_ext_buttons = [b5, b10, b15, bcust]
 
-        # Compact Audio & Voice Bar
+        # Compact Audio & Voice Bar with ShinobiPillSelector
         opt_box = tk.Frame(
             pad_frame,
             bg="#131c2e",
@@ -7814,18 +8160,8 @@ class DesktopApp:
         if init_preset == "naruto_voice" or init_preset not in SOUND_PRESET_DISPLAY:
             init_preset = "naruto_all"
         self.sound_preset_var = tk.StringVar(value=init_preset)
-        self.combo_sound_preset = ttk.Combobox(
-            s_head_row,
-            values=list(SOUND_PRESET_DISPLAY.values()),
-            state="readonly",
-            font=("Segoe UI", 7),
-            width=18
-        )
-        self.combo_sound_preset.set(SOUND_PRESET_DISPLAY.get(init_preset, SOUND_PRESET_DISPLAY["naruto_all"]))
-        self.combo_sound_preset.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=3)
-
-        def on_sound_preset_changed(event=None):
-            val = self.combo_sound_preset.get()
+        
+        def on_sound_preset_changed(val):
             for k, v in SOUND_PRESET_DISPLAY.items():
                 if v == val:
                     self.sound_preset_var.set(k)
@@ -7833,43 +8169,43 @@ class DesktopApp:
                     self.save_data()
                     break
 
-        self.combo_sound_preset.bind("<<ComboboxSelected>>", on_sound_preset_changed)
+        self.combo_sound_preset = ShinobiPillSelector(
+            s_head_row,
+            title="",
+            values=list(SOUND_PRESET_DISPLAY.values()),
+            initial_value=SOUND_PRESET_DISPLAY.get(init_preset, SOUND_PRESET_DISPLAY["naruto_all"]),
+            on_select_callback=on_sound_preset_changed,
+            width=160
+        )
+        self.combo_sound_preset.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=3)
 
-        self.btn_test_sound = tk.Button(
+        self.btn_test_sound = ShinobiGraphicsEngine.create_rounded_pill_button(
             s_head_row,
             text="🔊 Test",
+            width=58,
+            height=26,
+            bg_top="#1e293b",
+            bg_bot="#0f172a",
+            border_color="#475569",
+            fg_color="#f8fafc",
             font=("Segoe UI", 7, "bold"),
-            bg="#1e293b",
-            fg="#f8fafc",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#475569",
-            highlightthickness=1,
-            activebackground="#f97316",
-            activeforeground="#0f172a",
-            padx=5,
-            pady=1,
-            cursor="hand2",
-            command=self.test_sound_cue
+            command=self.test_sound_cue,
+            radius=8
         )
         self.btn_test_sound.pack(side=tk.LEFT, padx=(0, 3))
 
-        self.btn_browse_wisdom = tk.Button(
+        self.btn_browse_wisdom = ShinobiGraphicsEngine.create_rounded_pill_button(
             s_head_row,
             text="🎙️ 43 Tracks",
+            width=76,
+            height=26,
+            bg_top="#1e293b",
+            bg_bot="#0f172a",
+            border_color="#475569",
+            fg_color="#facc15",
             font=("Segoe UI", 7, "bold"),
-            bg="#1e293b",
-            fg="#facc15",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#475569",
-            highlightthickness=1,
-            activebackground="#f97316",
-            activeforeground="#0f172a",
-            padx=5,
-            pady=1,
-            cursor="hand2",
-            command=self.open_shinobi_wisdom_modal
+            command=self.open_shinobi_wisdom_modal,
+            radius=8
         )
         self.btn_browse_wisdom.pack(side=tk.RIGHT)
 
@@ -7898,68 +8234,60 @@ class DesktopApp:
             bg="#131c2e"
         ).pack(side=tk.LEFT)
 
-        self.btn_subject_playbook = tk.Button(
+        self.btn_subject_playbook = ShinobiGraphicsEngine.create_rounded_pill_button(
             h_top,
-            text="📘 Study Playbook",
+            text="📘 Playbook",
+            width=76,
+            height=24,
+            bg_top="#1e293b",
+            bg_bot="#0f172a",
+            border_color="#475569",
+            fg_color="#38bdf8",
             font=("Segoe UI", 7, "bold"),
-            bg="#1e293b",
-            fg="#38bdf8",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#475569",
-            highlightthickness=1,
-            padx=5,
-            pady=1,
-            cursor="hand2",
-            command=self.open_subject_study_playbook_modal
+            command=self.open_subject_study_playbook_modal,
+            radius=8
         )
         self.btn_subject_playbook.pack(side=tk.RIGHT)
 
-        self.btn_active_sub_guide = tk.Button(
+        self.btn_active_sub_guide = ShinobiGraphicsEngine.create_rounded_pill_button(
             h_top,
             text="💡 How to Study",
+            width=84,
+            height=24,
+            bg_top="#1e293b",
+            bg_bot="#0f172a",
+            border_color="#475569",
+            fg_color="#fb923c",
             font=("Segoe UI", 7, "bold"),
-            bg="#1e293b",
-            fg="#fb923c",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#475569",
-            highlightthickness=1,
-            padx=5,
-            pady=1,
-            cursor="hand2",
-            command=self.open_active_subject_guide
+            command=self.open_active_subject_guide,
+            radius=8
         )
         self.btn_active_sub_guide.pack(side=tk.RIGHT, padx=(0, 4))
 
-        # Anchor Tidy 2-Row x 4-Column Grid of Uniform Dark Glass Study Tools at the BOTTOM so it never clips!
+        # Anchor Tidy 2-Row x 4-Column Grid of Uniform Rounded Dark Glass Study Tools
         tools_grid = tk.Frame(habit_box, bg="#131c2e")
         tools_grid.pack(side=tk.BOTTOM, fill=tk.X, pady=(2, 0))
         for tc in range(4):
             tools_grid.grid_columnconfigure(tc, weight=1, uniform="t_col")
 
         def _make_tool_btn(r_i, c_i, txt, cmd, fg_col="#f8fafc", colspan=1):
-            b = tk.Button(
+            b = ShinobiGraphicsEngine.create_rounded_pill_button(
                 tools_grid,
                 text=txt,
+                width=72 * colspan,
+                height=26,
+                bg_top="#1e293b",
+                bg_bot="#0f172a",
+                border_color="#334155",
+                fg_color=fg_col,
                 font=("Segoe UI", 7, "bold"),
-                bg="#1e293b",
-                fg=fg_col,
-                relief=tk.SOLID,
-                bd=1,
-                highlightbackground="#334155",
-                highlightthickness=1,
-                activebackground="#f97316",
-                activeforeground="#0f172a",
-                padx=4,
-                pady=2,
-                cursor="hand2",
-                command=cmd
+                command=cmd,
+                radius=8
             )
             b.grid(row=r_i, column=c_i, columnspan=colspan, sticky="nsew", padx=2, pady=2)
             return b
 
-        b_tweaker = _make_tool_btn(0, 0, "🎯 Topic Tweaks", self.open_active_subject_tweaker, "#38bdf8")
+        b_tweaker = _make_tool_btn(0, 0, "🎯 Tweaks", self.open_active_subject_tweaker, "#38bdf8")
         b_cog = _make_tool_btn(0, 1, "🆘 Doubt Slip", self.open_cognitive_rescue_modal, "#f87171")
         b_xray = _make_tool_btn(0, 2, "🔍 Parent X-Ray", self.open_parent_diagnostic_modal, "#e2e8f0")
         b_demo = _make_tool_btn(0, 3, "🎥 60s Demo", self.open_active_method_demo_modal, "#fb923c")
@@ -8012,19 +8340,22 @@ class DesktopApp:
 
         date_list = [f"{e['date']} ({e.get('display_date', e['date'])})" for e in self.diary_data.get("diary_entries", [])]
         self.timeline_date_var = tk.StringVar()
+        init_date_val = ""
         if date_list:
             matching = [d for d in date_list if self.active_diary_date in d]
-            self.timeline_date_var.set(matching[0] if matching else date_list[-1])
+            init_date_val = matching[0] if matching else date_list[-1]
+            self.timeline_date_var.set(init_date_val)
 
-        self.timeline_date_combo = ttk.Combobox(
+        self.timeline_date_combo = ShinobiPillSelector(
             self.balanced_controls_frame,
-            textvariable=self.timeline_date_var,
+            title="",
             values=date_list,
-            state="readonly",
-            width=22
+            initial_value=init_date_val,
+            textvariable=self.timeline_date_var,
+            on_select_callback=lambda v: self.on_timeline_date_selected(),
+            width=180
         )
         self.timeline_date_combo.pack(side=tk.LEFT, padx=(0, 6))
-        self.timeline_date_combo.bind("<<ComboboxSelected>>", self.on_timeline_date_selected)
 
         # 2. Exam Sprint Container (Target Exam Subject selector)
         self.exam_controls_frame = tk.Frame(self.mode_controls_frame, bg=self.colors["bg"])
@@ -8036,15 +8367,16 @@ class DesktopApp:
             bg=self.colors["bg"]
         )
         self.lbl_timeline_exam_prefix.pack(side=tk.LEFT, padx=(4, 4))
-        self.timeline_exam_combo = ttk.Combobox(
+        self.timeline_exam_combo = ShinobiPillSelector(
             self.exam_controls_frame,
-            textvariable=self.exam_sub_var,
+            title="",
             values=["Tamil", "Mathematics", "Physical Science", "Social Science", "Hindi", "Biological Science", "English"],
-            state="readonly",
-            width=18
+            initial_value=self.selected_exam_subject,
+            textvariable=self.exam_sub_var,
+            on_select_callback=lambda v: self.on_exam_subject_changed(),
+            width=150
         )
         self.timeline_exam_combo.pack(side=tk.LEFT, padx=(0, 6))
-        self.timeline_exam_combo.bind("<<ComboboxSelected>>", self.on_exam_subject_changed)
 
         # 3. Pre-Exam Planner Container (Prep Day selector + Horizon modal button)
         self.pre_exam_controls_frame = tk.Frame(self.mode_controls_frame, bg=self.colors["bg"])
@@ -8057,15 +8389,17 @@ class DesktopApp:
         )
         self.lbl_timeline_prep_prefix.pack(side=tk.LEFT, padx=(4, 4))
         roadmap_init = self.get_pre_exam_roadmap_for_duration()
-        self.timeline_prep_combo = ttk.Combobox(
+        init_prep_val = f"Day {self.pre_exam_day}/{len(roadmap_init)}: {roadmap_init[max(0, min(len(roadmap_init)-1, self.pre_exam_day-1))]['title']}" if roadmap_init else ""
+        self.timeline_prep_combo = ShinobiPillSelector(
             self.pre_exam_controls_frame,
-            textvariable=self.pre_exam_day_var,
+            title="",
             values=[f"Day {d['day']}/{len(roadmap_init)}: {d['title']}" for d in roadmap_init],
-            state="readonly",
-            width=26
+            initial_value=init_prep_val,
+            textvariable=self.pre_exam_day_var,
+            on_select_callback=lambda v: self.on_pre_exam_day_changed(),
+            width=210
         )
         self.timeline_prep_combo.pack(side=tk.LEFT, padx=(0, 6))
-        self.timeline_prep_combo.bind("<<ComboboxSelected>>", self.on_pre_exam_day_changed)
 
         self.btn_timeline_roadmap = tk.Button(
             self.pre_exam_controls_frame,
@@ -9395,10 +9729,15 @@ class DesktopApp:
 
         tk.Label(term_pill, text="🎯 Term:", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#131c2e").pack(side=tk.LEFT, padx=(0, 4))
         available_terms = list(terms_map.keys()) if terms_map else ["Term-I", "Term-II", "Periodic Test-2", "Annual Exam"]
-        self.cmb_term_selector = ttk.Combobox(term_pill, values=available_terms, state="readonly", width=14, font=("Segoe UI", 8, "bold"))
-        self.cmb_term_selector.set(active_t)
+        self.cmb_term_selector = ShinobiPillSelector(
+            term_pill,
+            title="",
+            values=available_terms,
+            initial_value=active_t,
+            on_select_callback=self.on_term_selected,
+            width=140
+        )
         self.cmb_term_selector.pack(side=tk.LEFT)
-        self.cmb_term_selector.bind("<<ComboboxSelected>>", self.on_term_selected)
 
         self.lbl_portion_header_school = tk.Label(
             title_row,
@@ -9874,10 +10213,11 @@ class DesktopApp:
 
             card = tk.Frame(
                 grid_frame,
-                bg="#0e172a",
-                bd=0,
-                highlightthickness=1,
-                highlightbackground="#d4af5a",
+                bg="#0f172a",
+                bd=1,
+                relief=tk.SOLID,
+                highlightthickness=2,
+                highlightbackground="#d97706",
                 padx=12,
                 pady=10
             )
@@ -9923,23 +10263,17 @@ class DesktopApp:
 
             grav = sub.get("gravity", 2)
             grav_stars = "★" * grav + "☆" * (3 - grav)
-            scroll_badge = tk.Frame(
-                top_row,
-                bg="#f5e4c3",
-                bd=0,
-                highlightthickness=1,
-                highlightbackground="#991b1b",
-                padx=7,
-                pady=1
-            )
-            scroll_badge.pack(side=tk.RIGHT)
-            tk.Label(
-                scroll_badge,
-                text=f"{done_sub}/{tot_sub} DONE • {grav_stars}",
-                font=("Segoe UI", 7, "bold"),
-                fg="#7c2d12",
-                bg="#f5e4c3"
-            ).pack()
+            # 3D Mini Parchment Mastery Seal
+            seal_w, seal_h = 124, 24
+            seal_canvas = tk.Canvas(top_row, width=seal_w, height=seal_h, bg="#0f172a", bd=0, highlightthickness=0)
+            seal_canvas.pack(side=tk.RIGHT)
+            seal_photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(seal_w, seal_h, roller_width=10, is_mini_badge=True)
+            if seal_photo:
+                seal_canvas.seal_photo = seal_photo
+                seal_canvas.create_image(0, 0, image=seal_photo, anchor="nw")
+            else:
+                seal_canvas.create_rectangle(0, 0, seal_w, seal_h, fill="#fdf3dc", outline="#d97706")
+            seal_canvas.create_text(seal_w // 2, seal_h // 2, text=f"📜 {done_sub}/{tot_sub} • {grav_stars}", font=("Segoe UI", 7, "bold"), fill="#1f1206")
 
             # High-Weight Focus Strip
             hw_focus = sub.get("high_weightage_focus", "")
@@ -10801,15 +11135,16 @@ class DesktopApp:
             matching = [d for d in date_list if self.active_diary_date in d]
             self.diary_date_var.set(matching[0] if matching else date_list[-1])
 
-        self.diary_date_combo = ttk.Combobox(
+        self.diary_date_combo = ShinobiPillSelector(
             act_row,
-            textvariable=self.diary_date_var,
+            title="",
             values=date_list,
-            state="readonly",
-            width=22
+            initial_value=self.diary_date_var.get() if hasattr(self, "diary_date_var") and self.diary_date_var.get() else (date_list[0] if date_list else ""),
+            textvariable=self.diary_date_var,
+            on_select_callback=lambda v: self.on_diary_date_selected(),
+            width=180
         )
         self.diary_date_combo.pack(side=tk.LEFT, padx=(0, 8))
-        self.diary_date_combo.bind("<<ComboboxSelected>>", self.on_diary_date_selected)
 
         self.btn_apply = tk.Button(
             act_row,
@@ -10956,12 +11291,13 @@ class DesktopApp:
 
         tk.Label(form_row, text="Subject:", font=("Segoe UI", 8, "bold"), fg="#cbd5e1", bg="#0e172a").pack(side=tk.LEFT, padx=(0, 4))
         self.entry_sub_var = tk.StringVar(value="Mathematics")
-        self.combo_entry_sub = ttk.Combobox(
+        self.combo_entry_sub = ShinobiPillSelector(
             form_row,
-            textvariable=self.entry_sub_var,
+            title="",
             values=["Mathematics", "Science", "Physics", "Chemistry", "Biology", "Social Science", "History", "Geography", "Tamil", "English", "Hindi"],
-            state="readonly",
-            width=14
+            initial_value="Mathematics",
+            textvariable=self.entry_sub_var,
+            width=130
         )
         self.combo_entry_sub.pack(side=tk.LEFT, padx=(0, 8))
 
@@ -10976,12 +11312,13 @@ class DesktopApp:
 
         tk.Label(form_row, text="Type:", font=("Segoe UI", 8, "bold"), fg="#cbd5e1", bg="#0e172a").pack(side=tk.LEFT, padx=(0, 4))
         self.entry_type_var = tk.StringVar(value="written")
-        self.combo_entry_type = ttk.Combobox(
+        self.combo_entry_type = ShinobiPillSelector(
             form_row,
-            textvariable=self.entry_type_var,
+            title="",
             values=["written", "reading", "memorize", "activity", "bag_pack"],
-            state="readonly",
-            width=10
+            initial_value="written",
+            textvariable=self.entry_type_var,
+            width=100
         )
         self.combo_entry_type.pack(side=tk.LEFT, padx=(0, 8))
 
@@ -11090,8 +11427,8 @@ class DesktopApp:
             c_idx = idx % 2
             is_done = it.get("completed", False)
 
-            card_bg = "#111a2e" if is_done else "#0e172a"
-            card_border = "#10b981" if is_done else "#d4af5a"
+            card_bg = "#0f172a"
+            card_border = "#10b981" if is_done else "#d97706"
 
             card = tk.Frame(
                 grid_frame,
@@ -11099,7 +11436,7 @@ class DesktopApp:
                 bd=1,
                 relief=tk.SOLID,
                 highlightbackground=card_border,
-                highlightthickness=1,
+                highlightthickness=2,
                 padx=10,
                 pady=8
             )
@@ -11165,26 +11502,16 @@ class DesktopApp:
             )
             btn_del.pack(side=tk.RIGHT, padx=(6, 0))
 
-            scroll_badge = tk.Frame(
-                card,
-                bg="#f5e4c3",
-                bd=1,
-                relief=tk.SOLID,
-                highlightbackground="#991b1b",
-                highlightthickness=1
-            )
-            scroll_badge.pack(side=tk.RIGHT, padx=(6, 0))
-            tk.Frame(scroll_badge, bg="#881b1b", width=3).pack(side=tk.LEFT, fill=tk.Y)
-            tk.Frame(scroll_badge, bg="#881b1b", width=3).pack(side=tk.RIGHT, fill=tk.Y)
-            tk.Label(
-                scroll_badge,
-                text=f"{it.get('task_type', 'written').upper()} • ⏱ {it.get('est_mins', 20)}m",
-                font=("Segoe UI", 7, "bold"),
-                fg="#1f1206",
-                bg="#f5e4c3",
-                padx=6,
-                pady=2
-            ).pack(side=tk.LEFT)
+            badge_w, badge_h = 130, 24
+            badge_canvas = tk.Canvas(card, width=badge_w, height=badge_h, bg=card_bg, bd=0, highlightthickness=0)
+            badge_canvas.pack(side=tk.RIGHT, padx=(6, 0))
+            badge_photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(badge_w, badge_h, roller_width=10, is_mini_badge=True)
+            if badge_photo:
+                badge_canvas.badge_photo = badge_photo
+                badge_canvas.create_image(0, 0, image=badge_photo, anchor="nw")
+            else:
+                badge_canvas.create_rectangle(0, 0, badge_w, badge_h, fill="#fdf3dc", outline="#d97706")
+            badge_canvas.create_text(badge_w // 2, badge_h // 2, text=f"📜 {it.get('task_type', 'written').upper()} • {it.get('est_mins', 20)}m", font=("Segoe UI", 7, "bold"), fill="#1f1206")
 
             # 3. Center Homework Activity Description
             task_font = ("Segoe UI", 9, "overstrike" if is_done else "bold")
