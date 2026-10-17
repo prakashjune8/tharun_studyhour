@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tharun's Habit & Time Management Architect (Class 8)</title>
   <style>
-    :root, [data-theme="naruto_sage"] {
+        :root, [data-theme="naruto_sage"] {
       --bg: #0a0e17;
       --card-bg: #151c2e;
       --card-border: #f97316;
@@ -16,12 +16,16 @@
       --primary-fg: #0a0e17;
       --accent: #facc15;
       --accent-fg: #0a0e17;
+      --glow: rgba(249, 115, 22, 0.45);
+      --glow-sm: rgba(249, 115, 22, 0.22);
+      --glow-lg: rgba(249, 115, 22, 0.65);
+      --name-color: #fde047;
       --success: #22c55e;
       --warning: #f59e0b;
       --danger: #ef4444;
       --break-color: #10b981;
       --input-bg: #0a101d;
-      --highlight: rgba(249, 115, 22, 0.18);
+      --highlight: rgba(249, 115, 22, 0.16);
       --banner-bg: var(--card-bg);
       --banner-border: var(--card-border);
       --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -38,12 +42,16 @@
       --primary-fg: #0a0e17;
       --accent: #a855f7;
       --accent-fg: #ffffff;
+      --glow: rgba(56, 189, 248, 0.45);
+      --glow-sm: rgba(56, 189, 248, 0.22);
+      --glow-lg: rgba(56, 189, 248, 0.65);
+      --name-color: #a5b4fc;
       --success: #34d399;
       --warning: #fbbf24;
       --danger: #ef4444;
       --break-color: #06b6d4;
       --input-bg: #0a1122;
-      --highlight: rgba(56, 189, 248, 0.18);
+      --highlight: rgba(56, 189, 248, 0.16);
       --banner-bg: var(--card-bg);
       --banner-border: var(--card-border);
     }
@@ -59,12 +67,16 @@
       --primary-fg: #0a0e17;
       --accent: #64748b;
       --accent-fg: #ffffff;
+      --glow: rgba(6, 182, 212, 0.45);
+      --glow-sm: rgba(6, 182, 212, 0.22);
+      --glow-lg: rgba(6, 182, 212, 0.65);
+      --name-color: #7dd3fc;
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #f43f5e;
       --break-color: #14b8a6;
       --input-bg: #0a111a;
-      --highlight: rgba(6, 182, 212, 0.18);
+      --highlight: rgba(6, 182, 212, 0.16);
       --banner-bg: var(--card-bg);
       --banner-border: var(--card-border);
     }
@@ -80,12 +92,16 @@
       --primary-fg: #0a0e17;
       --accent: #38bdf8;
       --accent-fg: #0a0e17;
+      --glow: rgba(250, 204, 21, 0.45);
+      --glow-sm: rgba(250, 204, 21, 0.22);
+      --glow-lg: rgba(250, 204, 21, 0.65);
+      --name-color: #fef08a;
       --success: #22c55e;
       --warning: #f97316;
       --danger: #ef4444;
       --break-color: #0284c7;
       --input-bg: #15120a;
-      --highlight: rgba(250, 204, 21, 0.18);
+      --highlight: rgba(250, 204, 21, 0.16);
       --banner-bg: var(--card-bg);
       --banner-border: var(--card-border);
     }
@@ -101,12 +117,16 @@
       --primary-fg: #ffffff;
       --accent: #c084fc;
       --accent-fg: #0a0e17;
+      --glow: rgba(239, 68, 68, 0.45);
+      --glow-sm: rgba(239, 68, 68, 0.22);
+      --glow-lg: rgba(239, 68, 68, 0.65);
+      --name-color: #fda4af;
       --success: #34d399;
       --warning: #fbbf24;
       --danger: #b91c1c;
       --break-color: #9333ea;
       --input-bg: #111113;
-      --highlight: rgba(239, 68, 68, 0.18);
+      --highlight: rgba(239, 68, 68, 0.16);
       --banner-bg: var(--card-bg);
       --banner-border: var(--card-border);
     }
@@ -122,12 +142,16 @@
       --primary-fg: #0a0e17;
       --accent: #f59e0b;
       --accent-fg: #0a0e17;
+      --glow: rgba(16, 185, 129, 0.45);
+      --glow-sm: rgba(16, 185, 129, 0.22);
+      --glow-lg: rgba(16, 185, 129, 0.65);
+      --name-color: #86efac;
       --success: #34d399;
       --warning: #fbbf24;
       --danger: #f87171;
       --break-color: #059669;
       --input-bg: #062319;
-      --highlight: rgba(16, 185, 129, 0.18);
+      --highlight: rgba(16, 185, 129, 0.16);
       --banner-bg: var(--card-bg);
       --banner-border: var(--card-border);
     }
@@ -143,6 +167,10 @@
       --primary-fg: #0a0e17;
       --accent: #818cf8;
       --accent-fg: #ffffff;
+      --glow: rgba(56, 189, 248, 0.4);
+      --glow-sm: rgba(56, 189, 248, 0.2);
+      --glow-lg: rgba(56, 189, 248, 0.6);
+      --name-color: #7dd3fc;
       --success: #34d399;
       --warning: #fbbf24;
       --danger: #f87171;
@@ -164,6 +192,10 @@
       --primary-fg: #ffffff;
       --accent: #6366f1;
       --accent-fg: #ffffff;
+      --glow: rgba(2, 132, 199, 0.4);
+      --glow-sm: rgba(2, 132, 199, 0.2);
+      --glow-lg: rgba(2, 132, 199, 0.6);
+      --name-color: #b45309;
       --success: #059669;
       --warning: #d97706;
       --danger: #dc2626;
@@ -189,7 +221,7 @@
     header {
       background:
         linear-gradient(135deg, rgba(20, 28, 48, 0.94), rgba(11, 16, 30, 0.94)) padding-box,
-        linear-gradient(90deg, #f97316 0%, #facc15 55%, #f97316 100%) border-box;
+        linear-gradient(90deg, var(--primary) 0%, var(--accent) 55%, var(--primary) 100%) border-box;
       border: 1.5px solid transparent;
       border-radius: 14px;
       margin: 10px 12px 6px;
@@ -203,7 +235,7 @@
       flex-wrap: wrap;
       gap: 12px;
       backdrop-filter: blur(10px);
-      box-shadow: 0 0 22px rgba(249, 115, 22, 0.35), 0 6px 24px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 22px var(--glow), 0 6px 24px rgba(0, 0, 0, 0.6);
     }
 
     header::before { display: none; }
@@ -216,15 +248,15 @@
       height: 54px;
       border-radius: 50%;
       background: radial-gradient(circle, #1f1409 0%, #0b101e 80%);
-      border: 2.5px solid #f97316;
+      border: 2.5px solid var(--primary);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1.3rem;
-      box-shadow: 0 0 14px rgba(249, 115, 22, 0.6), inset 0 0 10px rgba(249, 115, 22, 0.25);
+      box-shadow: 0 0 14px var(--glow), inset 0 0 10px var(--glow-sm);
       flex-shrink: 0;
     }
-    .brand-crest svg { filter: drop-shadow(0 0 4px rgba(251, 146, 60, 0.9)); }
+    .brand-crest svg { stroke: var(--primary) !important; filter: drop-shadow(0 0 5px var(--glow)); }
     .brand-text { display: flex; flex-direction: column; gap: 3px; }
     .brand-title {
       font-size: 1.2rem;
@@ -237,8 +269,8 @@
       flex-wrap: wrap;
     }
     .brand-title .highlight {
-      color: #facc15;
-      text-shadow: 0 0 8px rgba(250, 204, 21, 0.45);
+      color: var(--primary);
+      text-shadow: 0 0 10px var(--glow);
     }
     .brand-title .class-tag {
       font-size: 0.72rem;
@@ -286,9 +318,9 @@
       border: 1px solid rgba(100, 116, 139, 0.5);
     }
     .streak-dots .sdot.on {
-      background: #f97316;
-      border-color: #fb923c;
-      box-shadow: 0 0 8px rgba(249, 115, 22, 0.85);
+      background: var(--primary);
+      border-color: var(--accent);
+      box-shadow: 0 0 8px var(--glow);
     }
     /* ==============================================================
        SINGLE MONTH TAB & DRAG-DOWN CHAKRA CALENDAR BOX (SAVES SPACE)
@@ -572,12 +604,12 @@
       gap: 20px;
       min-width: 0;
       background:
-        radial-gradient(circle at 12% 50%, rgba(249, 115, 22, 0.12), transparent 45%),
+        radial-gradient(circle at 12% 50%, var(--highlight), transparent 45%),
         linear-gradient(135deg, var(--card-bg), rgba(10, 15, 28, 0.96));
-      border: 1.5px solid var(--primary, #f97316);
+      border: 1.5px solid var(--primary);
       border-radius: 14px;
       padding: 14px 18px;
-      box-shadow: 0 0 18px rgba(249, 115, 22, 0.22), inset 0 0 24px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 0 18px var(--glow-sm), inset 0 0 24px rgba(0, 0, 0, 0.35);
     }
 
     /* Hero portrait: tall frame with chakra aura glow */
@@ -585,8 +617,8 @@
       width: 124px;
       height: 176px;
       border-radius: 14px;
-      border: 3px solid var(--accent, #f59e0b);
-      box-shadow: 0 0 24px rgba(249, 115, 22, 0.6), 0 0 8px rgba(250, 204, 21, 0.5);
+      border: 3px solid var(--accent);
+      box-shadow: 0 0 24px var(--glow), 0 0 8px var(--accent);
       overflow: hidden;
       flex-shrink: 0;
       background: var(--card-bg);
@@ -636,7 +668,7 @@
     .scroll-label {
       font-size: 0.82rem;
       font-weight: 800;
-      color: #facc15;
+      color: var(--accent);
       letter-spacing: 1.2px;
       text-transform: uppercase;
     }
@@ -644,10 +676,10 @@
     .naruto-char-name {
       font-size: 1.22rem;
       font-weight: 900;
-      color: #facc15;
+      color: var(--name-color, var(--accent));
       letter-spacing: 0.4px;
       line-height: 1.2;
-      text-shadow: 0 0 10px rgba(250, 204, 21, 0.35);
+      text-shadow: 0 0 10px var(--glow);
     }
 
     .mentor-moral-row {
@@ -696,8 +728,8 @@
     /* Glowing jutsu chip */
     .jutsu-badge {
       background: rgba(8, 12, 24, 0.85);
-      border: 1.5px solid var(--primary, #f97316);
-      color: #fde68a;
+      border: 1.5px solid var(--primary);
+      color: var(--text);
       font-size: 0.82rem;
       font-weight: 800;
       padding: 6px 14px;
@@ -705,7 +737,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      box-shadow: 0 0 12px rgba(249, 115, 22, 0.4);
+      box-shadow: 0 0 12px var(--glow-sm);
     }
 
     /* Metallic Hokage-style rank plate */
@@ -742,12 +774,12 @@
       justify-content: space-between;
       gap: 12px;
       background:
-        radial-gradient(circle at 88% 8%, rgba(249, 115, 22, 0.1), transparent 45%),
+        radial-gradient(circle at 88% 8%, var(--highlight), transparent 45%),
         linear-gradient(135deg, var(--card-bg), rgba(10, 15, 28, 0.96));
-      border: 1.5px solid var(--primary, #f97316);
+      border: 1.5px solid var(--primary);
       border-radius: 14px;
       padding: 14px 16px;
-      box-shadow: 0 0 18px rgba(249, 115, 22, 0.22), inset 0 0 24px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 0 18px var(--glow-sm), inset 0 0 24px rgba(0, 0, 0, 0.35);
     }
 
     .matrix-settings-zone, .matrix-actions-zone {
@@ -790,7 +822,7 @@
       gap: 5px;
       font-size: 0.66rem;
       font-weight: 800;
-      color: #fb923c;
+      color: var(--primary);
       text-transform: uppercase;
       letter-spacing: 0.8px;
       margin: 0;
@@ -839,12 +871,12 @@
       width: 100%;
       backdrop-filter: blur(6px);
     }
-    .matrix-btn .ic { width: 22px; height: 22px; color: #fb923c; stroke-width: 1.8; }
+    .matrix-btn .ic { width: 22px; height: 22px; color: var(--primary); stroke-width: 1.8; }
     .matrix-btn:hover {
-      border-color: var(--primary, #f97316);
+      border-color: var(--primary);
       color: #fff;
-      background: rgba(249, 115, 22, 0.14);
-      box-shadow: 0 0 12px rgba(249, 115, 22, 0.45);
+      background: var(--highlight);
+      box-shadow: 0 0 12px var(--glow);
       transform: translateY(-1px);
     }
     .guide-dropdown { display: flex; }
@@ -863,19 +895,20 @@
     }
     #fieldBalancedStandard.status-ok .ic { width: 22px; height: 22px; color: #fb923c; stroke-width: 1.8; }
 
-    /* Primary action: the only solid orange-to-gold button */
+    /* Primary action: dynamic theme gradient Schedule CTA */
     .matrix-btn.btn-focus {
-      background: linear-gradient(135deg, #f97316, #facc15);
-      border-color: #fbbf24;
-      color: #1b1205;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-color: var(--accent);
+      color: var(--primary-fg, #0a0e17);
       font-weight: 900;
-      box-shadow: 0 0 14px rgba(249, 115, 22, 0.5);
+      box-shadow: 0 0 16px var(--glow);
     }
-    .matrix-btn.btn-focus .ic { color: #1b1205; }
+    .matrix-btn.btn-focus .ic { color: var(--primary-fg, #0a0e17); }
     .matrix-btn.btn-focus:hover {
       filter: brightness(1.08);
-      color: #1b1205;
-      background: linear-gradient(135deg, #f97316, #facc15);
+      color: var(--primary-fg, #0a0e17);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      box-shadow: 0 0 20px var(--glow-lg);
     }
 
     .guide-dropdown-menu {
@@ -933,7 +966,7 @@
     .tabs-bar {
       background: transparent;
       border-bottom: 2px solid transparent;
-      border-image: linear-gradient(90deg, transparent 0%, #facc15 20%, #f59e0b 50%, #facc15 80%, transparent 100%) 1;
+      border-image: linear-gradient(90deg, transparent 0%, var(--accent) 20%, var(--primary) 50%, var(--accent) 80%, transparent 100%) 1;
       padding: 12px 24px 14px;
       display: flex;
       align-items: center;
@@ -971,9 +1004,9 @@
       background:
         linear-gradient(90deg, #b99660 0, #f3e2b4 7px, #d9bf86 14px, transparent 14px calc(100% - 14px), #d9bf86 calc(100% - 14px), #f3e2b4 calc(100% - 7px), #b99660 100%),
         linear-gradient(180deg, #f8ebc8 0%, #ecd7a3 100%);
-      box-shadow: 0 0 18px rgba(249, 115, 22, 0.65), inset 0 0 12px rgba(150, 95, 30, 0.35);
+      box-shadow: 0 0 18px var(--glow), inset 0 0 12px rgba(150, 95, 30, 0.35);
     }
-    /* orange ink-brush underline */
+    /* dynamic theme ink-brush underline */
     .tab-btn.active::before {
       content: "";
       position: absolute;
@@ -982,8 +1015,8 @@
       bottom: -9px;
       height: 5px;
       border-radius: 5px 12px 5px 12px;
-      background: linear-gradient(90deg, #f97316, #fb923c 60%, #facc15);
-      box-shadow: 0 0 10px rgba(249, 115, 22, 0.85);
+      background: linear-gradient(90deg, var(--primary), var(--accent) 60%, var(--primary));
+      box-shadow: 0 0 10px var(--glow);
     }
     /* Leaf spiral emblem on the active tab */
     .tab-btn.active::after {
@@ -1582,27 +1615,27 @@
     }
 
     .slot-item:hover {
-      border-color: var(--accent, #facc15);
+      border-color: var(--accent);
       transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(249, 115, 22, 0.28);
+      box-shadow: 0 4px 14px var(--glow-sm);
     }
 
     /* Active Study Card: Fiery Chakra Aura */
     .slot-item.active:not(.break) {
       background:
-        radial-gradient(ellipse 140px 120% at 0% 50%, color-mix(in srgb, var(--primary, #f97316) 42%, transparent), transparent 70%),
-        radial-gradient(ellipse 140px 120% at 100% 50%, color-mix(in srgb, var(--primary, #f97316) 42%, transparent), transparent 70%),
+        radial-gradient(ellipse 140px 120% at 0% 50%, color-mix(in srgb, var(--primary) 42%, transparent), transparent 70%),
+        radial-gradient(ellipse 140px 120% at 100% 50%, color-mix(in srgb, var(--primary) 42%, transparent), transparent 70%),
         linear-gradient(90deg,
-          color-mix(in srgb, var(--primary, #f97316) 28%, rgba(30, 22, 18, 0.96)) 0%,
+          color-mix(in srgb, var(--primary) 28%, rgba(30, 22, 18, 0.96)) 0%,
           rgba(26, 28, 44, 0.96) 48%,
-          color-mix(in srgb, var(--primary, #f97316) 28%, rgba(30, 22, 18, 0.96)) 100%);
-      border: 2px solid var(--accent, #facc15);
+          color-mix(in srgb, var(--primary) 28%, rgba(30, 22, 18, 0.96)) 100%);
+      border: 2px solid var(--accent);
       box-shadow:
-        0 0 18px color-mix(in srgb, var(--primary, #f97316) 85%, transparent),
-        -8px 0 22px -2px color-mix(in srgb, var(--primary, #f97316) 75%, transparent),
-        8px 0 22px -2px color-mix(in srgb, var(--primary, #f97316) 75%, transparent),
-        0 0 34px color-mix(in srgb, var(--accent, #facc15) 45%, transparent),
-        inset 0 0 20px color-mix(in srgb, var(--primary, #f97316) 32%, transparent);
+        0 0 18px var(--glow),
+        -8px 0 22px -2px var(--glow),
+        8px 0 22px -2px var(--glow),
+        0 0 34px color-mix(in srgb, var(--accent) 45%, transparent),
+        inset 0 0 20px color-mix(in srgb, var(--primary) 32%, transparent);
     }
 
     /* Left Gold-Framed Time Plaque */
@@ -8495,20 +8528,101 @@
     function applyNarutoTheme(themeKey) {
       const theme = NARUTO_THEMES_LIST.find(t => t.key === themeKey) || NARUTO_THEMES_LIST[0];
       currentNarutoTheme = theme.key;
+
+      // 1. Synchronize data-theme on html & body
       document.documentElement.setAttribute("data-theme", theme.key);
       document.body.setAttribute("data-theme", theme.key);
 
+      // 2. Comprehensive theme palette definition for dynamic variable injection
+      const themeColors = {
+        naruto_sage: {
+          primary: "#f97316",
+          primaryHover: "#ea580c",
+          accent: "#facc15",
+          glow: "rgba(249, 115, 22, 0.45)",
+          nameColor: "#fde047"
+        },
+        sasuke_chidori: {
+          primary: "#38bdf8",
+          primaryHover: "#0284c7",
+          accent: "#a855f7",
+          glow: "rgba(56, 189, 248, 0.45)",
+          nameColor: "#a5b4fc"
+        },
+        kakashi_hatake: {
+          primary: "#06b6d4",
+          primaryHover: "#0891b2",
+          accent: "#64748b",
+          glow: "rgba(6, 182, 212, 0.45)",
+          nameColor: "#7dd3fc"
+        },
+        minato_flash: {
+          primary: "#facc15",
+          primaryHover: "#eab308",
+          accent: "#38bdf8",
+          glow: "rgba(250, 204, 21, 0.45)",
+          nameColor: "#fef08a"
+        },
+        itachi_uchiha: {
+          primary: "#ef4444",
+          primaryHover: "#dc2626",
+          accent: "#c084fc",
+          glow: "rgba(239, 68, 68, 0.45)",
+          nameColor: "#fda4af"
+        },
+        leaf_village: {
+          primary: "#10b981",
+          primaryHover: "#059669",
+          accent: "#f59e0b",
+          glow: "rgba(16, 185, 129, 0.45)",
+          nameColor: "#86efac"
+        },
+        dark: {
+          primary: "#38bdf8",
+          primaryHover: "#0284c7",
+          accent: "#818cf8",
+          glow: "rgba(56, 189, 248, 0.4)",
+          nameColor: "#7dd3fc"
+        },
+        light: {
+          primary: "#0284c7",
+          primaryHover: "#0369a1",
+          accent: "#6366f1",
+          glow: "rgba(2, 132, 199, 0.4)",
+          nameColor: "#b45309"
+        }
+      };
+
+      const colors = themeColors[theme.key] || themeColors.naruto_sage;
+
+      // 3. Inject CSS custom properties globally on :root (document.documentElement)
+      const rootStyle = document.documentElement.style;
+      rootStyle.setProperty("--primary", colors.primary);
+      rootStyle.setProperty("--primary-hover", colors.primaryHover);
+      rootStyle.setProperty("--accent", colors.accent);
+      rootStyle.setProperty("--glow", colors.glow);
+      rootStyle.setProperty("--glow-sm", colors.glow.replace(/[\d\.]+\)$/, '0.22)'));
+      rootStyle.setProperty("--glow-lg", colors.glow.replace(/[\d\.]+\)$/, '0.65)'));
+      rootStyle.setProperty("--highlight", colors.glow.replace(/[\d\.]+\)$/, '0.16)'));
+      rootStyle.setProperty("--card-border", colors.primary);
+      rootStyle.setProperty("--name-color", colors.nameColor);
+
+      // 4. Update dropdown selector value
       const sel = document.getElementById("narutoThemeSelect");
       if (sel) sel.value = theme.key;
 
-      const avatar = document.getElementById("bannerAvatar");
-      if (avatar) avatar.textContent = theme.icon;
+      // 5. Update brand crest SVG stroke & glowing aura
+      const crestSvg = document.querySelector("#deckCrest svg");
+      if (crestSvg) {
+        crestSvg.setAttribute("stroke", colors.primary);
+      }
 
-      const crest = document.getElementById("deckCrest");
-      // Header crest now shows a fixed Konoha emblem (SVG) - not overwritten by theme icon
-
+      // 6. Section 2: Shinobi Character Card
       const nameEl = document.getElementById("bannerCharName");
-      if (nameEl) nameEl.textContent = `${theme.character.toUpperCase()} • ${theme.title.toUpperCase()}`;
+      if (nameEl) {
+        nameEl.textContent = `${theme.character.toUpperCase()} • ${theme.title.toUpperCase()}`;
+        nameEl.style.color = colors.nameColor;
+      }
 
       const jutsuBadge = document.getElementById("bannerJutsuBadge");
       if (jutsuBadge) jutsuBadge.textContent = `⚡ Jutsu: ${theme.jutsu}`;
@@ -8523,12 +8637,7 @@
       const rankPill = document.getElementById("bannerRankPill");
       if (rankPill) rankPill.textContent = `RANK: ${theme.rank.toUpperCase()}`;
 
-      const timerHead = document.getElementById("timerHeader");
-      if (timerHead) timerHead.textContent = `⏱️ Tharun's Chakra Focus Timer (${theme.character})`;
-
-      const brandIcon = document.getElementById("brandIcon");
-      if (brandIcon) brandIcon.textContent = theme.icon;
-
+      // Mentor character art
       const artMap = {
         naruto_sage: "naruto_sage.jpg",
         sasuke_chidori: "sasuke_chidori.jpg",
@@ -8545,38 +8654,26 @@
         bannerImg.src = `assets/naruto/${imgFile}`;
         bannerImg.style.display = "inline-block";
       }
+
+      // 7. Section 5B: Timer Header & Companion Art
+      const timerHead = document.getElementById("timerHeader");
+      if (timerHead) timerHead.textContent = `⏱️ Tharun's Chakra Focus Timer (${theme.character})`;
+
       const timerArt = document.getElementById("timerShinobiArt");
       if (timerArt) {
         timerArt.src = `assets/naruto/${imgFile}`;
         timerArt.style.display = "inline-block";
       }
 
-      // Dynamic chakra color accents based on active mentor
-      const themeColors = {
-        kakashi_hatake: { primary: "#06b6d4", accent: "#64748b", glow: "rgba(6, 182, 212, 0.45)", nameColor: "#7dd3fc" },
-        naruto_sage: { primary: "#f97316", accent: "#facc15", glow: "rgba(249, 115, 22, 0.45)", nameColor: "#fde047" },
-        minato_flash: { primary: "#facc15", accent: "#38bdf8", glow: "rgba(250, 204, 21, 0.45)", nameColor: "#fef08a" },
-        sasuke_chidori: { primary: "#38bdf8", accent: "#a855f7", glow: "rgba(56, 189, 248, 0.45)", nameColor: "#a5b4fc" },
-        itachi_uchiha: { primary: "#ef4444", accent: "#c084fc", glow: "rgba(239, 68, 68, 0.45)", nameColor: "#fda4af" },
-        leaf_village: { primary: "#10b981", accent: "#f59e0b", glow: "rgba(16, 185, 129, 0.45)", nameColor: "#86efac" },
-        dark: { primary: "#38bdf8", accent: "#818cf8", glow: "rgba(56, 189, 248, 0.4)", nameColor: "#7dd3fc" },
-        light: { primary: "#0284c7", accent: "#6366f1", glow: "rgba(217, 119, 6, 0.4)", nameColor: "#b45309" }
-      };
-      const colors = themeColors[theme.key] || themeColors.naruto_sage;
-      const portraitBox = document.getElementById("portraitBox");
-      if (portraitBox) {
-        portraitBox.style.borderColor = colors.accent;
-        portraitBox.style.boxShadow = `0 0 14px ${colors.glow}`;
-      }
-      if (rankPill) {
-        rankPill.style.borderColor = colors.accent;
-        rankPill.style.boxShadow = `0 0 10px ${colors.glow}`;
-      }
-      if (nameEl) {
-        nameEl.style.color = colors.nameColor;
+      // Section 3: Schedule Primary CTA Button dynamic gradient
+      const focusBtn = document.querySelector(".matrix-btn.btn-focus");
+      if (focusBtn) {
+        focusBtn.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`;
+        focusBtn.style.borderColor = colors.accent;
+        focusBtn.style.boxShadow = `0 0 16px ${colors.glow}`;
       }
 
-      // Ensure Chromium immediately repaints all timer chakra glow & button borders on dynamic theme switch
+      // Section 5B: Timer Widget dynamic properties & button repaint
       const timerWidget = document.querySelector(".timer-widget");
       if (timerWidget) {
         timerWidget.style.setProperty("--primary", colors.primary);
@@ -8587,13 +8684,21 @@
         });
         const mainToggle = document.getElementById("btnTimerToggle");
         if (mainToggle) {
+          mainToggle.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`;
           mainToggle.style.borderColor = colors.accent;
           mainToggle.style.boxShadow = `0 0 16px ${colors.glow}`;
         }
       }
 
+      // Persist active theme in localStorage
       localStorage.setItem("tharun_current_naruto_theme", theme.key);
+
+      // Audit console logging
+      console.log(`[Theme Audit] Activated Theme: ${theme.key} (${theme.display_name}) - Primary: ${colors.primary}, Accent: ${colors.accent}`);
     }
+
+    // Master setTheme alias for global programmatic control
+    window.setTheme = applyNarutoTheme;
 
     function rotateNarutoTheme() {
       const narutoOnly = NARUTO_THEMES_LIST.filter(t => t.key !== "dark" && t.key !== "light");
@@ -8604,12 +8709,49 @@
     }
 
     function initNarutoThemeRotation() {
-      const narutoOnly = NARUTO_THEMES_LIST.filter(t => t.key !== "dark" && t.key !== "light");
-      let storedIdx = localStorage.getItem("tharun_naruto_theme_index");
-      let lastIdx = storedIdx !== null ? parseInt(storedIdx, 10) : -1;
-      let nextIdx = (lastIdx + 1) % narutoOnly.length;
-      localStorage.setItem("tharun_naruto_theme_index", nextIdx);
-      applyNarutoTheme(narutoOnly[nextIdx].key);
+      // 1. Check URL query params & hash for automated test harnesses
+      const urlParams = new URLSearchParams(window.location.search);
+      const hashTheme = window.location.hash ? window.location.hash.replace("#", "") : null;
+      const paramTheme = urlParams.get("theme") || hashTheme;
+
+      if (paramTheme && NARUTO_THEMES_LIST.some(t => t.key === paramTheme)) {
+        applyNarutoTheme(paramTheme);
+      } else {
+        const savedTheme = localStorage.getItem("tharun_current_naruto_theme");
+        if (savedTheme && NARUTO_THEMES_LIST.some(t => t.key === savedTheme)) {
+          applyNarutoTheme(savedTheme);
+        } else {
+          const narutoOnly = NARUTO_THEMES_LIST.filter(t => t.key !== "dark" && t.key !== "light");
+          let storedIdx = localStorage.getItem("tharun_naruto_theme_index");
+          let lastIdx = storedIdx !== null ? parseInt(storedIdx, 10) : -1;
+          let nextIdx = (lastIdx + 1) % narutoOnly.length;
+          localStorage.setItem("tharun_naruto_theme_index", nextIdx);
+          applyNarutoTheme(narutoOnly[nextIdx].key);
+        }
+      }
+
+      // Optional URL-driven Tab switching for automated screenshots
+      const paramTab = urlParams.get("tab");
+      if (paramTab) {
+        setTimeout(() => {
+          const tabBtn = document.getElementById(paramTab === "tab-diary" ? "tabBtnDiary" : (paramTab === "tab-portions" ? "tabBtnPortions" : "tabBtnSchedule"));
+          if (tabBtn && typeof switchTab === "function") {
+            switchTab(paramTab, tabBtn);
+          }
+        }, 50);
+      }
+
+      // Optional URL-driven Modal opening for automated testing
+      const paramModal = urlParams.get("modal");
+      if (paramModal) {
+        setTimeout(() => {
+          if (paramModal === "guide" && typeof openGuideModal === "function") {
+            openGuideModal("gravity");
+          } else if (paramModal === "playbook" && typeof openSubjectStudyPlaybookModal === "function") {
+            openSubjectStudyPlaybookModal("Mathematics");
+          }
+        }, 80);
+      }
     }
 
     function updateTimelineControls() {

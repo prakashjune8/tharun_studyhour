@@ -18,6 +18,7 @@
 | **Phase 5: Precision Hardening** | JSON Dual-Path & Unified HUD Shell | ✅ 100% Complete | Verified Dual-Path Persistence & Option C HUD Modals |
 | **Phase 8: Forensic Parity Upgrade** | Pixel, Typography, 16 Flare Nodules, Metallic Plaque & 3D Scrolls | ✅ 100% Complete | `desktop_step1_to_6_tab1.png` & `desktop_step8_portions.png` |
 | **Phase 9: Theme Synchronization** | Dynamic Canvas Re-Rendering & Engine Cache Clearing | ✅ 100% Complete | `desktop_theme_rotated.png` & `desktop_itachi_theme.png` Verified |
+| **Phase 10: Web Theme Parity** | Exhaustive Audit & 8-Theme Dynamic Synchronization | ✅ 100% Complete | Automated Headless Chrome Regression (8/8 Themes Verified) |
 
 ---
 
@@ -123,3 +124,10 @@ All 9 desktop sections are visually audited on Windows via Win32 print window ca
     - **Live Re-Configuration Loop**: Replaced all hardcoded container borders in `apply_theme()` (`header_outer`, `shinobi_banner_frame`, `matrix_command_frame`, `tab_separator`) with dynamic theme colors. Added hover background tracking across `self.action_tiles` and dynamically re-rendered `lbl_header_emblem`, `lbl_shinobi_rank_badge`, and `lbl_timer_art`.
     - **Centralized `refresh_all_views()`**: Integrated full view refreshes across schedule cards, diary tables, portions cards, gravity list, and audit tabs upon rotation or dropdown selection. Verified live desktop switching with screenshots (`desktop_theme_rotated.png` for Kakashi cyan and `desktop_itachi_theme.png` for Itachi crimson).
     - **Re-compiled & Synchronized Production Binary**: Re-compiled `dist\ScholasticPulse_V2.exe` (63.1 MB) and synced to both `VERSION_2_WORKPLACE\dist` and root `dist`.
+
+11. **Phase 10: Web Application Exhaustive Theme Audit, Implementation Fix & Cross-Theme Regression Verification**:
+    - **Step 1 (Theme Enumeration & Mapping)**: Audited all 8 themes (`naruto_sage`, `sasuke_chidori`, `kakashi_hatake`, `minato_flash`, `itachi_uchiha`, `leaf_village`, `dark`, `light`) with complete primary/accent/glow/nameColor mapping.
+    - **Step 2 (Global Synchronization Engine)**: Refactored `applyNarutoTheme(themeKey)` into master `setTheme(themeKey)` injecting `--primary`, `--accent`, `--glow`, `--glow-sm`, `--glow-lg`, `--highlight`, `--card-border`, and `--name-color` dynamically on `document.documentElement.style`. Dynamically repaints brand crest SVG stroke, character portrait, quote typography, Jutsu badge, Schedule CTA button gradient, and timer ring aura.
+    - **Step 3 (Elimination of Hardcoded Styles)**: Upgraded Header, Brand Crest, Title Highlight, Will of Fire Streak dots, Character Card, Command Grid Deck tiles, Tab Navigation ink-brush underline, and Active Study Card aura to use CSS custom properties.
+    - **Step 4 (Automated Headless Test Harness)**: Built automated test harness (`test_cross_theme_regression.py`) executing headless Chrome across all 8 themes and auxiliary views (`tab-diary`, `tab-portions`, `modal-guide`). All 11 automated screenshots generated and verified with 100% structural fidelity.
+    - **Documentation & Report Artifact**: Generated `theme_audit_and_visual_parity_report.md` artifact detailing verification results for all 8 themes across all 9 UI sections. Synchronized across `VERSION_2_WORKPLACE\index.html` and root `index.html`.
