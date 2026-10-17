@@ -3457,6 +3457,25 @@ class TharunScheduleBalancer:
                 })
                 cur_time = c3_end
 
+        # Special 15-Minute Dedicated Drawing Practice Slot
+        draw_dur = 15
+        end_draw = cur_time + timedelta(minutes=draw_dur)
+        evening_slots.append({
+            "phase": f"{phase_label}: Drawing & Art",
+            "start": cur_time.strftime("%I:%M %p"),
+            "end": end_draw.strftime("%I:%M %p"),
+            "duration_mins": draw_dur,
+            "title": "Special Drawing Practice: Science Diagrams & Visual Recall",
+            "subject": "Drawing Practice",
+            "type": "study",
+            "badge": "🎨 Drawing (15m)",
+            "guidance": (
+                "Special Drawing Practice (15m): Dedicated sketching & drawing block. Practice neat pencil line work, scientific diagrams (e.g. eye, ray diagrams, cells), map sketching, or freeform artistic drawing to relax and sharpen fine-motor precision."
+            ),
+            "is_completed": False
+        })
+        cur_time = end_draw
+
         # Wind-down & Bag Pack
         winddown_guidance = "Pack school bag according to tomorrow's timetable. Put morning revision copy on desk."
         if bag_reminders:
@@ -3966,6 +3985,25 @@ class TharunScheduleBalancer:
             "guidance": "Close the book! Redraw diagrams or write key formula steps on blank rough paper. Solve 3 textbook exercise questions from memory."
         })
         cur_time = s3_end
+
+        # Special 15-Minute Dedicated Drawing Practice Slot
+        draw_dur = 15
+        end_draw = cur_time + timedelta(minutes=draw_dur)
+        evening_slots.append({
+            "phase": f"{phase_prefix}: Drawing & Art",
+            "start": cur_time.strftime("%I:%M %p"),
+            "end": end_draw.strftime("%I:%M %p"),
+            "duration_mins": draw_dur,
+            "title": "Special Drawing Practice: Science Diagrams & Visual Recall",
+            "subject": "Drawing Practice",
+            "type": "study",
+            "badge": "🎨 Drawing (15m)",
+            "guidance": (
+                "Special Drawing Practice (15m): Dedicated sketching & drawing block. Practice neat pencil line work, scientific diagrams (e.g. eye, ray diagrams, cells), map sketching, or freeform artistic drawing to relax and sharpen fine-motor precision."
+            ),
+            "is_completed": False
+        })
+        cur_time = end_draw
 
         # Slot 4: Portion Tracker Update, Desk Audit & Sleep Lock (15 mins)
         s4_end = cur_time + timedelta(minutes=15)
@@ -8967,47 +9005,19 @@ class DesktopApp:
                 highlightthickness=1,
                 padx=8,
                 pady=4,
-                cursor="hand2"
+                cursor="default"
             )
             card.pack(fill=tk.X, pady=2)
             self.slot_frames.append(card)
 
-            # Left Drag Grip & Quick-Shift Buttons
-            drag_f = tk.Frame(card, bg="#114232")
-            drag_f.pack(side=tk.LEFT, padx=(0, 6))
-
-            btn_u = tk.Label(drag_f, text="▲", font=("Segoe UI", 6, "bold"), fg="#6ee7b7", bg="#114232", cursor="hand2")
-            btn_u.pack(side=tk.LEFT, padx=(0, 2))
-            btn_u.bind("<Button-1>", lambda e, idx=global_idx: self.move_slot_up(idx))
-
-            grip = tk.Label(drag_f, text="⠿", font=("Segoe UI", 8, "bold"), fg="#a7f3d0", bg="#114232", cursor="fleur")
-            grip.pack(side=tk.LEFT, padx=(0, 2))
-
-            btn_d = tk.Label(drag_f, text="▼", font=("Segoe UI", 6, "bold"), fg="#6ee7b7", bg="#114232", cursor="hand2")
-            btn_d.pack(side=tk.LEFT, padx=(0, 4))
-            btn_d.bind("<Button-1>", lambda e, idx=global_idx: self.move_slot_down(idx))
-
             tk.Label(
                 card,
-                text=f"🍃 {slot['start']} – {slot['end']} ({slot['duration_mins']}m) • {slot['title']} • Chakra Recharge",
+                text=f"🍃 {slot['start']} – {slot['end']} ({slot['duration_mins']}m) • {slot['title']} • Chakra Recharge (Fixed Rest)",
                 font=("Segoe UI", 8, "bold"),
                 fg="#a7f3d0",
                 bg="#114232",
                 anchor="w"
             ).pack(side=tk.LEFT, fill=tk.X, expand=True)
-
-            def _bind_drag_recursive_brk(w_node):
-                if w_node not in (btn_u, btn_d):
-                    try:
-                        w_node.bind("<Button-1>", lambda e, idx=global_idx: self._on_slot_drag_start(e, idx))
-                        w_node.bind("<B1-Motion>", lambda e, idx=global_idx: self._on_slot_drag_motion(e, idx))
-                        w_node.bind("<ButtonRelease-1>", lambda e, idx=global_idx: self._on_slot_drag_release(e, idx))
-                    except Exception:
-                        pass
-                for ch in w_node.winfo_children():
-                    _bind_drag_recursive_brk(ch)
-
-            _bind_drag_recursive_brk(card)
             return
 
         # Study / Homework Ledger Card (Standard: #0f172a, border #785c28; Active: glowing cyan-gold halo + • ACTIVE SPRINT • in gold #facc15)
@@ -9164,6 +9174,8 @@ class DesktopApp:
         _bind_drag_recursive(card)
 
     def _on_slot_drag_start(self, event, global_idx):
+        if global_idx < len(self.all_schedule_slots) and self.all_schedule_slots[global_idx].get("type") == "break":
+            return
         self._drag_data = {
             "source_idx": global_idx,
             "start_y": event.y_root,
@@ -9195,6 +9207,9 @@ class DesktopApp:
             for i, f in enumerate(self.slot_frames):
                 try:
                     if f.winfo_exists():
+                        # Breaks are fixed and cannot be drop targets
+                        if i < len(self.all_schedule_slots) and self.all_schedule_slots[i].get("type") == "break":
+                            continue
                         fy = f.winfo_rooty()
                         fh = f.winfo_height()
                         if fy <= mouse_y <= fy + fh:
@@ -9271,28 +9286,50 @@ class DesktopApp:
         is_tgt_eve = (tgt_idx < n_eve)
 
         if is_src_eve and is_tgt_eve:
-            tgt = max(0, min(n_eve - 1, tgt_idx))
-            item = self.evening_schedule.pop(src_idx)
-            self.evening_schedule.insert(tgt, item)
-            self.recalculate_evening_schedule_times()
+            schedule = self.evening_schedule
+            s_i = src_idx
+            t_i = tgt_idx
         elif not is_src_eve and not is_tgt_eve:
-            m_src = src_idx - n_eve
-            m_tgt = max(0, min(len(self.morning_schedule) - 1, tgt_idx - n_eve))
-            item = self.morning_schedule.pop(m_src)
-            self.morning_schedule.insert(m_tgt, item)
-            self.recalculate_morning_schedule_times()
+            schedule = self.morning_schedule
+            s_i = src_idx - n_eve
+            t_i = tgt_idx - n_eve
         else:
             return
+
+        # Ensure breaks are fixed: only non-break slots are movable
+        movable_indices = [i for i, s in enumerate(schedule) if s.get("type") != "break"]
+        if s_i not in movable_indices:
+            return  # Breaks are fixed and cannot be moved
+
+        # If target falls on a break, snap to closest movable slot
+        if t_i not in movable_indices:
+            t_i = min(movable_indices, key=lambda idx: abs(idx - t_i))
+
+        from_m_pos = movable_indices.index(s_i)
+        to_m_pos = movable_indices.index(t_i)
+        if from_m_pos == to_m_pos:
+            return
+
+        # Extract movable items only
+        movable_items = [schedule[i] for i in movable_indices]
+        item = movable_items.pop(from_m_pos)
+        movable_items.insert(to_m_pos, item)
+
+        # Re-assign movable items back into their fixed slot positions
+        for idx, item in zip(movable_indices, movable_items):
+            schedule[idx] = item
+
+        if is_src_eve:
+            self.recalculate_evening_schedule_times()
+        else:
+            self.recalculate_morning_schedule_times()
 
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
 
         # Keep active timer slot pointer synchronized
+        final_target_global = t_i if is_src_eve else (t_i + n_eve)
         if self.timer_active_slot_index == src_idx:
-            self.timer_active_slot_index = tgt_idx
-        elif src_idx < self.timer_active_slot_index <= tgt_idx:
-            self.timer_active_slot_index -= 1
-        elif tgt_idx <= self.timer_active_slot_index < src_idx:
-            self.timer_active_slot_index += 1
+            self.timer_active_slot_index = final_target_global
 
         self.render_timetable_cards()
         self.update_timer_display()
@@ -9333,23 +9370,33 @@ class DesktopApp:
 
     def move_slot_up(self, idx):
         n_eve = len(self.evening_schedule)
-        if idx < n_eve:
-            has_prep = (self.evening_schedule and self.evening_schedule[0].get("type") == "prep")
-            min_i = 1 if has_prep else 0
-            if idx > min_i:
-                self.reorder_schedule_slots(idx, idx - 1)
-        else:
-            if idx > n_eve:
-                self.reorder_schedule_slots(idx, idx - 1)
+        is_eve = (idx < n_eve)
+        schedule = self.evening_schedule if is_eve else self.morning_schedule
+        local_idx = idx if is_eve else (idx - n_eve)
+
+        movable_indices = [i for i, s in enumerate(schedule) if s.get("type") != "break"]
+        if local_idx not in movable_indices:
+            return
+        m_pos = movable_indices.index(local_idx)
+        if m_pos > 0:
+            target_local = movable_indices[m_pos - 1]
+            target_global = target_local if is_eve else (target_local + n_eve)
+            self.reorder_schedule_slots(idx, target_global)
 
     def move_slot_down(self, idx):
         n_eve = len(self.evening_schedule)
-        if idx < n_eve:
-            if idx < n_eve - 1:
-                self.reorder_schedule_slots(idx, idx + 1)
-        else:
-            if idx < len(self.all_schedule_slots) - 1:
-                self.reorder_schedule_slots(idx, idx + 1)
+        is_eve = (idx < n_eve)
+        schedule = self.evening_schedule if is_eve else self.morning_schedule
+        local_idx = idx if is_eve else (idx - n_eve)
+
+        movable_indices = [i for i, s in enumerate(schedule) if s.get("type") != "break"]
+        if local_idx not in movable_indices:
+            return
+        m_pos = movable_indices.index(local_idx)
+        if m_pos < len(movable_indices) - 1:
+            target_local = movable_indices[m_pos + 1]
+            target_global = target_local if is_eve else (target_local + n_eve)
+            self.reorder_schedule_slots(idx, target_global)
 
     def get_initial_timer_slot_index(self):
         if not self.all_schedule_slots:
