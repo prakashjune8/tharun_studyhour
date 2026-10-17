@@ -4867,6 +4867,7 @@ class DesktopApp:
             title="🌿 MODE",
             values=["🌿 Balanced Daily", "🔥 Exam Sprint", f"📅 Pre-Exam Planner ({self.pre_exam_duration_days}d)"],
             initial_value=init_mode,
+            textvariable=self.mode_var,
             on_select_callback=_on_pill_mode_selected
         )
         self.pill_mode.grid(row=0, column=0, padx=3, pady=(0, 4), sticky="nsew")
@@ -4884,6 +4885,7 @@ class DesktopApp:
             title="⚡ LEVEL",
             values=["Level 1: 🔰 Genin", "Level 2: ⚡ Chunin", "Level 3: 🔥 Jonin"],
             initial_value=init_lvl,
+            textvariable=self.level_var,
             on_select_callback=_on_pill_level_selected
         )
         self.pill_level.grid(row=0, column=1, padx=3, pady=(0, 4), sticky="nsew")
@@ -4907,6 +4909,7 @@ class DesktopApp:
             title="🕒 START",
             values=["7:00 PM", "5:00 PM", "10:00 AM", "2:00 PM", "⚡ Start Now"],
             initial_value=init_start_disp,
+            textvariable=self.start_time_var,
             on_select_callback=_on_pill_start_selected
         )
         self.pill_start.grid(row=0, column=2, padx=3, pady=(0, 4), sticky="nsew")
@@ -4923,6 +4926,7 @@ class DesktopApp:
             title="🍥 SHINOBI",
             values=[v["display_name"] for v in NARUTO_METADATA.values()],
             initial_value=current_disp,
+            textvariable=self.theme_var,
             on_select_callback=_on_pill_theme_selected
         )
         self.pill_theme.grid(row=0, column=3, padx=3, pady=(0, 4), sticky="nsew")
@@ -5044,6 +5048,7 @@ class DesktopApp:
             title="Exam:",
             values=["Tamil", "Mathematics", "Physical Science", "Social Science", "Hindi", "Biological Science", "English"],
             initial_value=self.selected_exam_subject,
+            textvariable=self.exam_sub_var,
             on_select_callback=_on_pill_exam_sub_selected
         )
 
@@ -5059,6 +5064,7 @@ class DesktopApp:
             title="Prep:",
             values=[f"Day {d['day']}/{len(roadmap_init)}: {d['title']}" for d in roadmap_init],
             initial_value=f"Day {self.pre_exam_day}/{self.pre_exam_duration_days}: {roadmap_init[init_day_idx]['title']}",
+            textvariable=self.pre_exam_day_var,
             on_select_callback=_on_pill_pre_day_selected
         )
 
@@ -5135,19 +5141,34 @@ class DesktopApp:
         for tab_id in self.notebook.tabs():
             self.notebook.forget(tab_id)
 
-        visible_tabs = [
-            ("tab_schedule", self.tab_schedule, "📅", "Daily Schedule"),
-            ("tab_diary", self.tab_diary, "📖", "School Diary"),
-            ("tab_portions", self.tab_portions, "📑", "Exam Portions")
-        ]
-        self.notebook.add(self.tab_schedule, text="Daily Schedule")
-        self.notebook.add(self.tab_diary, text="School Diary")
-        self.notebook.add(self.tab_portions, text="Exam Portions")
+        # Always add Timetable & Focus Timer as Tab 1
+        self.notebook.add(self.tab_schedule, text="  📅 Daily Schedule  ")
+
+        if self.is_exam_mode:
+            # Exam Eve Sprint: Only Timetable & Focus Timer is needed
+            visible_tabs = [
+                ("tab_schedule", self.tab_schedule, "⏱️", "Daily Schedule")
+            ]
+        elif self.is_pre_exam_mode:
+            # Pre-Exam Planner: Timetable & Focus Timer + Exam Portions & Pre-Exam Tracker
+            self.notebook.add(self.tab_portions, text="  📑 Exam Portions  ")
+            visible_tabs = [
+                ("tab_schedule", self.tab_schedule, "⏱️", "Daily Schedule"),
+                ("tab_portions", self.tab_portions, "📑", "Exam Portions")
+            ]
+        else:
+            # Balanced Daily: Timetable & Focus Timer + School Diary & Subject Slabs
+            self.notebook.add(self.tab_diary, text="  📖 School Diary  ")
+            visible_tabs = [
+                ("tab_schedule", self.tab_schedule, "⏱️", "Daily Schedule"),
+                ("tab_diary", self.tab_diary, "📖", "School Diary")
+            ]
 
         if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
             self.custom_tab_bar.set_tabs(visible_tabs)
             self.custom_tab_bar.select_tab("tab_schedule")
 
+        # Give immediate priority focus to Timetable tab on mode switch
         self.notebook.select(self.tab_schedule)
 
     def _create_hud_toplevel(self, title, subtitle="", width=850, height=600, min_width=720, min_height=500):
