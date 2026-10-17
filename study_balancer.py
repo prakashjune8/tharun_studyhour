@@ -3524,18 +3524,54 @@ class TharunScheduleBalancer:
                 })
                 m_cur = ro_end
 
+        # Smart Morning Secondary Core Selection (Mathematics is NOT mandatory in morning):
+        # Place any of the secondary core subjects (Physical Science, Biological Science, Social Science):
+        if hw_has_sci and not hw_has_sst:
+            sec_core_sub = sub_sst
+            sec_core_name = sub_sst["name"]
+            sec_core_title = f"Active Recall: {sub_sst['name']} Maps, Timelines & Key Events"
+            sec_core_badge = "🌍 Social Core Recall"
+            sec_core_guidance = (
+                f"Active Retrieval ({sub_sst['name']}): Close all textbooks! Sketch key timelines (dates, causes, consequences) and redraw map locations from memory."
+            )
+        elif hw_has_sst and not hw_has_sci:
+            sec_core_sub = sub_bio_sci if hw_has_phy else sub_phy_sci
+            sec_core_name = sec_core_sub["name"]
+            sec_core_title = f"Active Recall: {sec_core_sub['name']} Diagrams & Core Laws"
+            sec_core_badge = "🔬 Science Core Recall"
+            sec_core_guidance = (
+                f"Feynman Blind Diagram Technique ({sec_core_sub['name']}): Close all books! Redraw and label key diagrams and recite core scientific laws/definitions from memory."
+            )
+        elif hw_has_phy:
+            sec_core_sub = sub_bio_sci
+            sec_core_name = sub_bio_sci["name"]
+            sec_core_title = f"Active Recall: {sub_bio_sci['name']} Diagrams & Life Concepts"
+            sec_core_badge = "🔬 Biology Core Recall"
+            sec_core_guidance = (
+                f"Feynman Diagram Technique ({sub_bio_sci['name']}): Redraw biological diagrams (cell structures, organ systems, plant tissues) and recite key terms from memory."
+            )
+        else:
+            sec_core_sub = sub_phy_sci
+            sec_core_name = sub_phy_sci["name"]
+            sec_core_title = f"Active Recall: {sub_phy_sci['name']} Diagrams & Concepts"
+            sec_core_badge = "🔬 Science Core Recall"
+            sec_core_guidance = (
+                f"Feynman Technique ({sub_phy_sci['name']}): Without opening textbook, redraw and label key diagrams and write core definitions from memory!"
+            )
+
         core_morn_mins = 25 if current_level == 1 else 35
         cm_end = m_cur + timedelta(minutes=core_morn_mins)
         morning_slots.append({
-            "phase": "Morning Core Recall",
+            "phase": "Morning Secondary Core Recall",
             "start": m_cur.strftime("%I:%M %p"),
             "end": cm_end.strftime("%I:%M %p"),
             "duration_mins": core_morn_mins,
-            "title": f"Active Recall: {sub_math['name']} & {sub_sci['name']} Concepts",
-            "subject": "Core Retention",
+            "title": sec_core_title,
+            "subject": sec_core_name,
             "type": "revision",
-            "badge": "🧠 Active Recall",
-            "guidance": "Feynman Technique: Without opening textbook, recite or write down yesterday's key formulas and diagram labels from memory!"
+            "badge": sec_core_badge,
+            "guidance": sec_core_guidance,
+            "is_completed": False
         })
         m_cur = cm_end
 

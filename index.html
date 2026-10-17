@@ -9573,10 +9573,34 @@
         title: "Alertness Activation & Hydration", subject: "Morning Warmup", type: "prep", badge: "🌅 Wake-up",
         guidance: "Splash cool water on face, drink 2 glasses of water, gentle stretching. Zero devices."
       });
+      // Determine Morning Secondary Core Subject (Maths is not mandatory in morning):
+      // Smart rotation between secondary core subjects (Physical Science, Biological Science, Social Science):
+      let mornCoreSub = "Physical Science";
+      let mornCoreTitle = "Active Recall: Physical Science Diagrams & Core Concepts";
+      let mornCoreBadge = "🔬 Science Recall";
+      let mornCoreGuidance = "Feynman Technique: Without opening textbook, redraw and label key scientific diagrams and recite core definitions and laws from memory!";
+
+      if (hwHasSci && !hwHasSst) {
+        mornCoreSub = "Social Science";
+        mornCoreTitle = "Active Recall: Social Science Maps, Timelines & Concepts";
+        mornCoreBadge = "🌍 Social Science Recall";
+        mornCoreGuidance = "Active Retrieval: Without looking at textbook, sketch historical timelines (dates, causes, consequences) and recall key geographical map locations!";
+      } else if (hwHasSst && !hwHasSci) {
+        mornCoreSub = hwHasPhy ? "Biological Science" : "Physical Science";
+        mornCoreTitle = `Active Recall: ${mornCoreSub} Diagrams & Key Terms`;
+        mornCoreBadge = hwHasPhy ? "🔬 Biology Recall" : "🔬 Science Recall";
+        mornCoreGuidance = "Feynman Technique: Without opening textbook, redraw key scientific diagrams and recite core formulas and laws from memory!";
+      } else if (hwHasPhy) {
+        mornCoreSub = "Biological Science";
+        mornCoreTitle = "Active Recall: Biological Science Diagrams & Life Concepts";
+        mornCoreBadge = "🔬 Biology Recall";
+        mornCoreGuidance = "Feynman Diagram Technique: Redraw biological diagrams (cell structures, organ systems, plant tissues) and recite key terms from memory.";
+      }
+
       morningSlots.push({
-        phase: "Morning Core Recall", start: "6:10 AM", end: "6:45 AM", durationMins: 35,
-        title: "Active Recall: Yesterday's Maths Formulas & Diagrams", subject: "Core Revision", type: "revision", badge: "🧠 Active Recall",
-        guidance: "Recite or write formulas and diagrams from memory without looking at notes. Overnight sleep has locked them in!"
+        phase: "Morning Secondary Core Recall", start: "6:10 AM", end: "6:45 AM", durationMins: 35,
+        title: mornCoreTitle, subject: mornCoreSub, type: "revision", badge: mornCoreBadge,
+        guidance: mornCoreGuidance
       });
       morningSlots.push({
         phase: "Morning Rest", start: "6:45 AM", end: "6:50 AM", durationMins: 5,
