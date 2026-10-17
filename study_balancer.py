@@ -8868,21 +8868,15 @@ class DesktopApp:
         if self.is_pre_exam_mode:
             day_data = self.get_active_pre_exam_day_data()
             eve_line1 = f"PRE-EXAM FOCUS PLAN: {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')}"
-            eve_line2 = f"Day {self.pre_exam_day}/{self.pre_exam_duration_days} • {day_data['title']}"
             morn_line1 = "🌅 MORNING RETENTION PRIMING: 06:00 AM – 07:30 AM"
-            morn_line2 = f"({day_data['morning_task']})"
         elif self.is_exam_mode:
             eve_line1 = f"EXAM EVE FOCUS PLAN: {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')}"
-            eve_line2 = f"({self.selected_exam_subject.upper()} ➔ Formula Blitz ➔ 3-Stage Mastery)"
             morn_line1 = "🌅 MORNING EXAM RETENTION PRIMING: 06:00 AM – 07:30 AM"
-            morn_line2 = "(High-Yield Retention & Calm Mindset)"
         else:
             eve_line1 = f"EVENING FOCUS PLAN: {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')}"
-            eve_line2 = "(Core Efficiency Slabs ➔ Daily Maths ➔ Diagrams)"
             morn_line1 = f"🌅 MORNING RETENTION PLAN: {lvl['morn_start']} – {lvl['morn_end']}"
-            morn_line2 = f"(Active Concept Recall ➔ {self.selected_language} Language Clinic)"
 
-        self._create_parchment_scroll_banner(self.sched_inner, eve_line1, sub_line2=eve_line2, pady=(2, 6), height=52)
+        self._create_parchment_scroll_banner(self.sched_inner, eve_line1, pady=(2, 6), height=42)
 
         for idx, slot in enumerate(self.evening_schedule):
             self.create_slot_card(idx, slot)
@@ -8890,9 +8884,8 @@ class DesktopApp:
         self._create_parchment_scroll_banner(
             self.sched_inner,
             morn_line1,
-            sub_line2=morn_line2,
             pady=(10, 6),
-            height=52
+            height=42
         )
 
         offset = len(self.evening_schedule)

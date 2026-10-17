@@ -1511,7 +1511,7 @@
     .timeline-section-title {
       position: relative;
       margin: 18px 14px 16px;
-      padding: 12px 34px;
+      padding: 9px 34px;
       text-align: center;
       background:
         radial-gradient(ellipse at 50% 50%, rgba(255, 253, 244, 0.55), transparent 72%),
@@ -3278,13 +3278,11 @@
 
           <div class="timeline-section-title" id="eveningHeader">
             <span class="scroll-banner-main">EVENING FOCUS PLAN: 05:40 PM – 10:00 PM</span>
-            <span class="scroll-banner-sub">(Core Efficiency Slabs ➔ Daily Maths ➔ Diagrams)</span>
           </div>
           <div id="eveningSlotsContainer"></div>
 
           <div class="timeline-section-title" style="margin-top: 26px;" id="morningHeader">
             <span class="scroll-banner-main">MORNING RETENTION PLAN: 6:00 AM – 7:30 AM</span>
-            <span class="scroll-banner-sub">(Core Recall ➔ Language Clinic)</span>
           </div>
           <div id="morningSlotsContainer"></div>
         </div>
@@ -9926,26 +9924,25 @@
       const periodLabel = startH < 12 * 60 ? "HOLIDAY MORNING" : (startH < 17 * 60 ? "AFTERNOON" : "EVENING");
 
       if (isPreExamMode) {
-        const pData = getActivePreExamDayData();
         if (evHeader) {
-          evHeader.innerHTML = `<span class="scroll-banner-main">PRE-EXAM SPRINT (DAY ${preExamDay}/${preExamDurationDays}): ${timeSpan}</span><span class="scroll-banner-sub">(${pData.title} • ${pData.focus_core} &amp; ${pData.focus_second})</span>`;
+          evHeader.innerHTML = `<span class="scroll-banner-main">PRE-EXAM SPRINT (DAY ${preExamDay}/${preExamDurationDays}): ${timeSpan}</span>`;
         }
         if (mornHeader) {
-          mornHeader.innerHTML = `<span class="scroll-banner-main">PRE-EXAM MORNING RETENTION (DAY ${preExamDay}/${preExamDurationDays}): 6:00 AM – 7:30 AM</span><span class="scroll-banner-sub">(${pData.title} • Active Priming ➔ Language Clinic)</span>`;
+          mornHeader.innerHTML = `<span class="scroll-banner-main">PRE-EXAM MORNING RETENTION (DAY ${preExamDay}/${preExamDurationDays}): 6:00 AM – 7:30 AM</span>`;
         }
       } else if (isExamMode) {
         if (evHeader) {
-          evHeader.innerHTML = `<span class="scroll-banner-main">${periodLabel} EXAM SPRINT: ${timeSpan}</span><span class="scroll-banner-sub">(100% Focus on ${selectedExamSubject} • Solving ➔ Blind Diagrams ➔ Drill ➔ Kit Audit)</span>`;
+          evHeader.innerHTML = `<span class="scroll-banner-main">${periodLabel} EXAM SPRINT: ${timeSpan}</span>`;
         }
         if (mornHeader) {
-          mornHeader.innerHTML = `<span class="scroll-banner-main">EXAM MORNING PRIMING: 6:00 AM – 7:30 AM</span><span class="scroll-banner-sub">(${selectedExamSubject} Formula &amp; Diagram Retention ➔ Confident Departure)</span>`;
+          mornHeader.innerHTML = `<span class="scroll-banner-main">EXAM MORNING PRIMING: 6:00 AM – 7:30 AM</span>`;
         }
       } else {
         if (evHeader) {
-          evHeader.innerHTML = `<span class="scroll-banner-main">${periodLabel} FOCUS PLAN: ${timeSpan}</span><span class="scroll-banner-sub">(Core Efficiency Slabs ➔ Daily Maths ➔ Diagrams)</span>`;
+          evHeader.innerHTML = `<span class="scroll-banner-main">${periodLabel} FOCUS PLAN: ${timeSpan}</span>`;
         }
         if (mornHeader) {
-          mornHeader.innerHTML = `<span class="scroll-banner-main">MORNING RETENTION PLAN: 6:00 AM – 7:30 AM</span><span class="scroll-banner-sub">(Core Recall ➔ ${selectedLang} Clinic)</span>`;
+          mornHeader.innerHTML = `<span class="scroll-banner-main">MORNING RETENTION PLAN: 6:00 AM – 7:30 AM</span>`;
         }
       }
 
