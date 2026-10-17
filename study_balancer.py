@@ -4226,6 +4226,7 @@ class DesktopApp:
         self.sound_enabled = True
         self.sound_preset = "naruto_voice"
         self._naruto_art_cache = {}
+        self._drag_data = {"source_idx": None, "start_y": 0, "is_dragging": False, "target_idx": None}
 
         self.load_data()
         self.load_diary_data()
@@ -8904,21 +8905,13 @@ class DesktopApp:
             self.create_slot_card(offset + idx, slot)
 
     def create_slot_card(self, global_idx, slot):
-        # ---------------- STEP 6: DAILY SCHEDULE LIST (HIGH-DPI ROUNDED CARDS & NEON HALO) ----------------
+        # ---------------- STEP 6: DAILY SCHEDULE LIST (HIGH-DPI ROUNDED CARDS & DRAG-AND-DROP REORDER) ----------------
         is_break = slot["type"] == "break"
         is_active = (global_idx == self.timer_active_slot_index)
         is_completed = slot.get("is_completed", False)
 
-        def _bind_click_recursive(w_node):
-            try:
-                w_node.bind("<Button-1>", lambda e, idx=global_idx: self.select_timer_slot(idx))
-            except Exception:
-                pass
-            for ch in w_node.winfo_children():
-                _bind_click_recursive(ch)
-
         if is_break:
-            # Micro-Break Pill: Full-width rounded emerald-green pill (#114232 bg, #10b981 border, height=32, NO right button)
+            # Micro-Break Pill: Full-width rounded emerald-green pill (#114232 bg, #10b981 border, height=32)
             card = tk.Frame(
                 self.sched_inner,
                 bg="#114232",
@@ -8926,12 +8919,27 @@ class DesktopApp:
                 relief=tk.SOLID,
                 highlightbackground="#10b981",
                 highlightthickness=1,
-                padx=12,
-                pady=5,
+                padx=8,
+                pady=4,
                 cursor="hand2"
             )
             card.pack(fill=tk.X, pady=2)
             self.slot_frames.append(card)
+
+            # Left Drag Grip & Quick-Shift Buttons
+            drag_f = tk.Frame(card, bg="#114232")
+            drag_f.pack(side=tk.LEFT, padx=(0, 6))
+
+            btn_u = tk.Label(drag_f, text="▲", font=("Segoe UI", 6, "bold"), fg="#6ee7b7", bg="#114232", cursor="hand2")
+            btn_u.pack(side=tk.LEFT, padx=(0, 2))
+            btn_u.bind("<Button-1>", lambda e, idx=global_idx: self.move_slot_up(idx))
+
+            grip = tk.Label(drag_f, text="⠿", font=("Segoe UI", 8, "bold"), fg="#a7f3d0", bg="#114232", cursor="fleur")
+            grip.pack(side=tk.LEFT, padx=(0, 2))
+
+            btn_d = tk.Label(drag_f, text="▼", font=("Segoe UI", 6, "bold"), fg="#6ee7b7", bg="#114232", cursor="hand2")
+            btn_d.pack(side=tk.LEFT, padx=(0, 4))
+            btn_d.bind("<Button-1>", lambda e, idx=global_idx: self.move_slot_down(idx))
 
             tk.Label(
                 card,
@@ -8942,7 +8950,18 @@ class DesktopApp:
                 anchor="w"
             ).pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-            _bind_click_recursive(card)
+            def _bind_drag_recursive_brk(w_node):
+                if w_node not in (btn_u, btn_d):
+                    try:
+                        w_node.bind("<Button-1>", lambda e, idx=global_idx: self._on_slot_drag_start(e, idx))
+                        w_node.bind("<B1-Motion>", lambda e, idx=global_idx: self._on_slot_drag_motion(e, idx))
+                        w_node.bind("<ButtonRelease-1>", lambda e, idx=global_idx: self._on_slot_drag_release(e, idx))
+                    except Exception:
+                        pass
+                for ch in w_node.winfo_children():
+                    _bind_drag_recursive_brk(ch)
+
+            _bind_drag_recursive_brk(card)
             return
 
         # Study / Homework Ledger Card (Standard: #0f172a, border #785c28; Active: glowing cyan-gold halo + • ACTIVE SPRINT • in gold #facc15)
@@ -8956,12 +8975,31 @@ class DesktopApp:
             relief=tk.SOLID,
             highlightbackground=card_border,
             highlightthickness=1,
-            padx=10,
+            padx=8,
             pady=6,
             cursor="hand2"
         )
         card.pack(fill=tk.X, pady=3)
         self.slot_frames.append(card)
+
+        # Drag handle & Quick Shift Controls Column
+        drag_col = tk.Frame(card, bg=card_bg, width=20)
+        drag_col.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 6))
+
+        btn_up = tk.Label(drag_col, text="▲", font=("Segoe UI", 6, "bold"), fg="#64748b", bg=card_bg, cursor="hand2")
+        btn_up.pack(side=tk.TOP, pady=(0, 1))
+        btn_up.bind("<Button-1>", lambda e, idx=global_idx: self.move_slot_up(idx))
+        btn_up.bind("<Enter>", lambda e, w=btn_up: w.configure(fg="#f59e0b"))
+        btn_up.bind("<Leave>", lambda e, w=btn_up: w.configure(fg="#64748b"))
+
+        grip_lbl = tk.Label(drag_col, text="⠿", font=("Segoe UI", 9, "bold"), fg="#94a3b8", bg=card_bg, cursor="fleur")
+        grip_lbl.pack(side=tk.TOP, pady=(0, 1))
+
+        btn_dn = tk.Label(drag_col, text="▼", font=("Segoe UI", 6, "bold"), fg="#64748b", bg=card_bg, cursor="hand2")
+        btn_dn.pack(side=tk.BOTTOM, pady=(1, 0))
+        btn_dn.bind("<Button-1>", lambda e, idx=global_idx: self.move_slot_down(idx))
+        btn_dn.bind("<Enter>", lambda e, w=btn_dn: w.configure(fg="#f59e0b"))
+        btn_dn.bind("<Leave>", lambda e, w=btn_dn: w.configure(fg="#64748b"))
 
         # Fixed 4px accent indicator strip so time plaque never shifts horizontally
         strip_col = "#38bdf8" if is_active else card_bg
@@ -9060,7 +9098,206 @@ class DesktopApp:
             anchor="w"
         ).pack(fill=tk.X, pady=(1, 0))
 
-        _bind_click_recursive(card)
+        def _bind_drag_recursive(w_node):
+            if w_node not in (btn_up, btn_dn):
+                try:
+                    w_node.bind("<Button-1>", lambda e, idx=global_idx: self._on_slot_drag_start(e, idx))
+                    w_node.bind("<B1-Motion>", lambda e, idx=global_idx: self._on_slot_drag_motion(e, idx))
+                    w_node.bind("<ButtonRelease-1>", lambda e, idx=global_idx: self._on_slot_drag_release(e, idx))
+                except Exception:
+                    pass
+            for ch in w_node.winfo_children():
+                _bind_drag_recursive(ch)
+
+        _bind_drag_recursive(card)
+
+    def _on_slot_drag_start(self, event, global_idx):
+        self._drag_data = {
+            "source_idx": global_idx,
+            "start_y": event.y_root,
+            "is_dragging": False,
+            "target_idx": global_idx
+        }
+
+    def _on_slot_drag_motion(self, event, global_idx):
+        if not hasattr(self, "_drag_data") or self._drag_data.get("source_idx") is None:
+            return
+        dy = abs(event.y_root - self._drag_data["start_y"])
+        if dy > 6:
+            self._drag_data["is_dragging"] = True
+            src_idx = self._drag_data["source_idx"]
+            mouse_y = event.y_root
+
+            # Auto-scroll if near top/bottom edges of sched_canvas
+            try:
+                canv_y = self.sched_canvas.winfo_rooty()
+                canv_h = self.sched_canvas.winfo_height()
+                if mouse_y < canv_y + 35:
+                    self.sched_canvas.yview_scroll(-1, "units")
+                elif mouse_y > canv_y + canv_h - 35:
+                    self.sched_canvas.yview_scroll(1, "units")
+            except Exception:
+                pass
+
+            target_idx = src_idx
+            for i, f in enumerate(self.slot_frames):
+                try:
+                    if f.winfo_exists():
+                        fy = f.winfo_rooty()
+                        fh = f.winfo_height()
+                        if fy <= mouse_y <= fy + fh:
+                            target_idx = i
+                            break
+                        elif i == 0 and mouse_y < fy:
+                            target_idx = 0
+                            break
+                        elif i == len(self.slot_frames) - 1 and mouse_y > fy + fh:
+                            target_idx = i
+                            break
+                except Exception:
+                    pass
+
+            prev_tgt = self._drag_data.get("target_idx")
+            if prev_tgt is not None and prev_tgt != target_idx and prev_tgt != src_idx:
+                self._reset_card_border(prev_tgt)
+
+            self._drag_data["target_idx"] = target_idx
+
+            # Highlight source card (dragging) in vibrant cyan #38bdf8
+            try:
+                if src_idx < len(self.slot_frames) and self.slot_frames[src_idx].winfo_exists():
+                    self.slot_frames[src_idx].configure(highlightbackground="#38bdf8", highlightthickness=2)
+            except Exception:
+                pass
+
+            # Highlight target card (drop position) in amber #f59e0b
+            try:
+                if target_idx != src_idx and target_idx < len(self.slot_frames) and self.slot_frames[target_idx].winfo_exists():
+                    self.slot_frames[target_idx].configure(highlightbackground="#f59e0b", highlightthickness=2)
+            except Exception:
+                pass
+
+    def _on_slot_drag_release(self, event, global_idx):
+        if not hasattr(self, "_drag_data") or self._drag_data.get("source_idx") is None:
+            return
+        src_idx = self._drag_data["source_idx"]
+        tgt_idx = self._drag_data.get("target_idx")
+        is_dragging = self._drag_data.get("is_dragging", False)
+
+        self._drag_data["source_idx"] = None
+
+        if is_dragging and tgt_idx is not None and tgt_idx != src_idx:
+            self._reset_card_border(src_idx)
+            self._reset_card_border(tgt_idx)
+            self.reorder_schedule_slots(src_idx, tgt_idx)
+        else:
+            self._reset_card_border(src_idx)
+            if tgt_idx is not None and tgt_idx != src_idx:
+                self._reset_card_border(tgt_idx)
+            self.select_timer_slot(src_idx)
+
+    def _reset_card_border(self, idx):
+        try:
+            if idx < len(self.slot_frames) and self.slot_frames[idx].winfo_exists():
+                slot = self.all_schedule_slots[idx]
+                is_act = (idx == self.timer_active_slot_index)
+                is_done = slot.get("is_completed", False)
+                is_brk = (slot.get("type") == "break")
+                if is_brk:
+                    bd = "#10b981"
+                else:
+                    bd = "#facc15" if is_act else ("#10b981" if is_done else "#785c28")
+                self.slot_frames[idx].configure(highlightbackground=bd, highlightthickness=1)
+        except Exception:
+            pass
+
+    def reorder_schedule_slots(self, src_idx, tgt_idx):
+        if src_idx == tgt_idx:
+            return
+        n_eve = len(self.evening_schedule)
+        is_src_eve = (src_idx < n_eve)
+        is_tgt_eve = (tgt_idx < n_eve)
+
+        if is_src_eve and is_tgt_eve:
+            tgt = max(0, min(n_eve - 1, tgt_idx))
+            item = self.evening_schedule.pop(src_idx)
+            self.evening_schedule.insert(tgt, item)
+            self.recalculate_evening_schedule_times()
+        elif not is_src_eve and not is_tgt_eve:
+            m_src = src_idx - n_eve
+            m_tgt = max(0, min(len(self.morning_schedule) - 1, tgt_idx - n_eve))
+            item = self.morning_schedule.pop(m_src)
+            self.morning_schedule.insert(m_tgt, item)
+            self.recalculate_morning_schedule_times()
+        else:
+            return
+
+        self.all_schedule_slots = self.evening_schedule + self.morning_schedule
+
+        # Keep active timer slot pointer synchronized
+        if self.timer_active_slot_index == src_idx:
+            self.timer_active_slot_index = tgt_idx
+        elif src_idx < self.timer_active_slot_index <= tgt_idx:
+            self.timer_active_slot_index -= 1
+        elif tgt_idx <= self.timer_active_slot_index < src_idx:
+            self.timer_active_slot_index += 1
+
+        self.render_timetable_cards()
+        self.update_timer_display()
+
+    def recalculate_evening_schedule_times(self):
+        if not self.evening_schedule:
+            return
+        has_prep = (self.evening_schedule[0].get("type") == "prep")
+        start_idx = 1 if has_prep else 0
+        try:
+            cur_dt = datetime.strptime(self.schedule_start_time, "%H:%M")
+        except Exception:
+            cur_dt = datetime.strptime("19:00", "%H:%M")
+
+        for i in range(start_idx, len(self.evening_schedule)):
+            slot = self.evening_schedule[i]
+            dur = max(5, int(slot.get("duration_mins", 15)))
+            end_dt = cur_dt + timedelta(minutes=dur)
+            slot["start"] = cur_dt.strftime("%I:%M %p")
+            slot["end"] = end_dt.strftime("%I:%M %p")
+            cur_dt = end_dt
+
+    def recalculate_morning_schedule_times(self):
+        if not self.morning_schedule:
+            return
+        lvl = EXECUTION_LEVELS.get(self.current_level, EXECUTION_LEVELS[2])
+        try:
+            cur_dt = datetime.strptime(lvl.get("morn_start", "06:00 AM"), "%I:%M %p")
+        except Exception:
+            cur_dt = datetime.strptime("06:00 AM", "%I:%M %p")
+
+        for slot in self.morning_schedule:
+            dur = max(5, int(slot.get("duration_mins", 15)))
+            end_dt = cur_dt + timedelta(minutes=dur)
+            slot["start"] = cur_dt.strftime("%I:%M %p")
+            slot["end"] = end_dt.strftime("%I:%M %p")
+            cur_dt = end_dt
+
+    def move_slot_up(self, idx):
+        n_eve = len(self.evening_schedule)
+        if idx < n_eve:
+            has_prep = (self.evening_schedule and self.evening_schedule[0].get("type") == "prep")
+            min_i = 1 if has_prep else 0
+            if idx > min_i:
+                self.reorder_schedule_slots(idx, idx - 1)
+        else:
+            if idx > n_eve:
+                self.reorder_schedule_slots(idx, idx - 1)
+
+    def move_slot_down(self, idx):
+        n_eve = len(self.evening_schedule)
+        if idx < n_eve:
+            if idx < n_eve - 1:
+                self.reorder_schedule_slots(idx, idx + 1)
+        else:
+            if idx < len(self.all_schedule_slots) - 1:
+                self.reorder_schedule_slots(idx, idx + 1)
 
     def get_initial_timer_slot_index(self):
         if not self.all_schedule_slots:

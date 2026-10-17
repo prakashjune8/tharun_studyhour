@@ -1638,6 +1638,63 @@
         inset 0 0 20px color-mix(in srgb, var(--primary) 32%, transparent);
     }
 
+    .slot-item.dragging {
+      opacity: 0.45;
+      border: 2px dashed #f59e0b !important;
+      transform: scale(0.98);
+      cursor: grabbing !important;
+    }
+
+    .slot-item.drag-over {
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6) !important;
+      transform: translateY(-2px);
+    }
+
+    .slot-drag-handle {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      padding: 0 4px;
+      color: #94a3b8;
+      cursor: grab;
+      user-select: none;
+      transition: color 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .slot-drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .slot-drag-handle:hover {
+      color: #38bdf8;
+    }
+
+    .grip-dots {
+      font-size: 13px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .btn-slot-nav {
+      font-size: 8px;
+      line-height: 1;
+      cursor: pointer;
+      color: #64748b;
+      padding: 1px 2px;
+      border-radius: 2px;
+      transition: all 0.1s;
+    }
+
+    .btn-slot-nav:hover {
+      color: #f59e0b;
+      background: rgba(245, 158, 11, 0.2);
+    }
+
     /* Left Gold-Framed Time Plaque */
     .slot-time-plaque {
       width: 192px;
@@ -9972,9 +10029,50 @@
         div.className = `slot-item ${s.type} ${isActive ? 'active' : ''}`;
         if (completedStyle) div.style.cssText += completedStyle;
         div.onclick = () => selectSlot(idx);
+        div.draggable = true;
+        div.dataset.slotIndex = idx;
+
+        div.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("text/plain", String(idx));
+          e.dataTransfer.effectAllowed = "move";
+          div.classList.add("dragging");
+        });
+
+        div.addEventListener("dragend", () => {
+          div.classList.remove("dragging");
+          document.querySelectorAll('.slot-item').forEach(el => el.classList.remove('drag-over'));
+        });
+
+        div.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          div.classList.add("drag-over");
+        });
+
+        div.addEventListener("dragleave", () => {
+          div.classList.remove("drag-over");
+        });
+
+        div.addEventListener("drop", (e) => {
+          e.preventDefault();
+          div.classList.remove("drag-over");
+          const fromIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+          if (!isNaN(fromIdx) && fromIdx !== idx) {
+            reorderSlots(fromIdx, idx);
+          }
+        });
+
+        const dragHandleHtml = `
+          <div class="slot-drag-handle" title="Drag to reorder slot" onclick="event.stopPropagation()">
+            <span class="btn-slot-nav" title="Move Up" onclick="event.stopPropagation(); moveSlotUp(${idx})">▲</span>
+            <span class="grip-dots">⠿</span>
+            <span class="btn-slot-nav" title="Move Down" onclick="event.stopPropagation(); moveSlotDown(${idx})">▼</span>
+          </div>
+        `;
 
         if (s.type === "break") {
           div.innerHTML = `
+            ${dragHandleHtml}
             <svg class="break-leaf-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8Z"/>
             </svg>
@@ -9989,6 +10087,7 @@
         const badgeStyle = s.isCompleted ? 'background: linear-gradient(180deg, #34d399, #10b981); color: #052e16; border-color: #065f46;' : '';
 
         div.innerHTML = `
+          ${dragHandleHtml}
           <div class="slot-time-plaque">
             <span class="plaque-range">${s.start} – ${s.end}</span>
             <span class="plaque-dur">(${s.durationMins}m)</span>
@@ -10007,6 +10106,98 @@
       eveningSlots.forEach((s, i) => evCont.appendChild(createSlot(s, i)));
       const offset = eveningSlots.length;
       morningSlots.forEach((s, i) => mornCont.appendChild(createSlot(s, offset + i)));
+    }
+
+    function reorderSlots(fromIdx, toIdx) {
+      if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0) return;
+      const nEve = eveningSlots.length;
+      const isSrcEve = fromIdx < nEve;
+      const isTgtEve = toIdx < nEve;
+
+      if (isSrcEve && isTgtEve) {
+        const [moved] = eveningSlots.splice(fromIdx, 1);
+        eveningSlots.splice(toIdx, 0, moved);
+        recalculateEveningTimes();
+      } else if (!isSrcEve && !isTgtEve) {
+        const mSrc = fromIdx - nEve;
+        const mTgt = toIdx - nEve;
+        const [moved] = morningSlots.splice(mSrc, 1);
+        morningSlots.splice(mTgt, 0, moved);
+        recalculateMorningTimes();
+      } else {
+        return;
+      }
+
+      allSlots = [...eveningSlots, ...morningSlots];
+
+      if (currentSlotIndex === fromIdx) {
+        currentSlotIndex = toIdx;
+      } else if (fromIdx < currentSlotIndex && toIdx >= currentSlotIndex) {
+        currentSlotIndex--;
+      } else if (fromIdx > currentSlotIndex && toIdx <= currentSlotIndex) {
+        currentSlotIndex++;
+      }
+
+      renderTimetable();
+      selectSlot(currentSlotIndex);
+    }
+
+    function recalculateEveningTimes() {
+      if (!eveningSlots.length) return;
+      const hasPrep = (eveningSlots[0].type === "prep");
+      const startIdx = hasPrep ? 1 : 0;
+      let startMins = 19 * 60; // 07:00 PM default
+      if (typeof scheduleStartTime !== 'undefined' && scheduleStartTime) {
+        const [stH, stM] = scheduleStartTime.split(":").map(Number);
+        if (!isNaN(stH) && !isNaN(stM)) startMins = stH * 60 + stM;
+      }
+      for (let i = startIdx; i < eveningSlots.length; i++) {
+        const s = eveningSlots[i];
+        const endMins = startMins + s.durationMins;
+        s.start = formatMinutesToTime(startMins);
+        s.end = formatMinutesToTime(endMins);
+        startMins = endMins;
+      }
+    }
+
+    function recalculateMorningTimes() {
+      if (!morningSlots.length) return;
+      let startMins = 6 * 60; // 06:00 AM
+      for (let i = 0; i < morningSlots.length; i++) {
+        const s = morningSlots[i];
+        const endMins = startMins + s.durationMins;
+        s.start = formatMinutesToTime(startMins);
+        s.end = formatMinutesToTime(endMins);
+        startMins = endMins;
+      }
+    }
+
+    function moveSlotUp(idx) {
+      const nEve = eveningSlots.length;
+      if (idx < nEve) {
+        const hasPrep = (eveningSlots.length && eveningSlots[0].type === "prep");
+        const minIdx = hasPrep ? 1 : 0;
+        if (idx > minIdx) {
+          reorderSlots(idx, idx - 1);
+        }
+      } else {
+        if (idx > nEve) {
+          reorderSlots(idx, idx - 1);
+        }
+      }
+    }
+
+    function moveSlotDown(idx) {
+      const nEve = eveningSlots.length;
+      if (idx < nEve) {
+        if (idx < nEve - 1) {
+          reorderSlots(idx, idx + 1);
+        }
+      } else {
+        if (idx < allSlots.length - 1) {
+          reorderSlots(idx, idx + 1);
+        }
+      }
     }
 
     function selectSlot(idx) {
