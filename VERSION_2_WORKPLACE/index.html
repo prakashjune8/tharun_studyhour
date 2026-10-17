@@ -4053,7 +4053,7 @@
             <div style="margin-top: 10px;">
               <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary); margin-bottom: 5px;">⚡ 1-Click Quick-Add Subject Chips:</div>
               <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                <button class="btn-primary" style="padding: 3px 8px; font-size: 0.75rem; background: #4f46e5;" onclick="addAssistantTaskRow('Mathematics', 'Exercise 9.1 Questions (Solve by hand)', 'written', 25)">+ Math</button>
+                <button class="btn-primary" style="padding: 3px 8px; font-size: 0.75rem; background: #4f46e5;" onclick="addAssistantTaskRow('Mathematics', 'Exercise 9.1 Questions (Solve by hand)', 'written', 30)">+ Math</button>
                 <button class="btn-primary" style="padding: 3px 8px; font-size: 0.75rem; background: #0284c7;" onclick="addAssistantTaskRow('Physics', 'Kinetic Theory Notes & Concept Read', 'reading', 20)">+ Phy</button>
                 <button class="btn-primary" style="padding: 3px 8px; font-size: 0.75rem; background: #0891b2;" onclick="addAssistantTaskRow('Chemistry', 'Chemical Equations & Balancing', 'written', 20)">+ Chem</button>
                 <button class="btn-primary" style="padding: 3px 8px; font-size: 0.75rem; background: #059669;" onclick="addAssistantTaskRow('Biology', 'Cell Structure & Labeled Diagram', 'written', 20)">+ Bio</button>
@@ -9178,20 +9178,39 @@
           const isCore = isMath || isSci || isSoc;
           const isLang = sLower.includes("tamil") || sLower.includes("தமிழ்") || sLower.includes("eng") || sLower.includes("hindi") || sLower.includes("language");
 
-          if (isCore && estMins >= 25) {
-            // Core Subject Efficiency Splitting
+          // Core Subject Efficiency Splitting:
+          // 1. Mathematics is clubbed into a single 30 min focused slot (no split)
+          if (isMath) {
+            const mathSlotMins = 30;
+            const mathTitle = taskText ? `${doneTitlePrefix}Core Math: ${taskText}` : `${doneTitlePrefix}Core Math Problem Solving`;
+            eveningSlots.push({
+              phase: `${phasePrefix}: ${subName}`,
+              start: formatMinutesToTime(curMins),
+              end: formatMinutesToTime(curMins + mathSlotMins),
+              durationMins: mathSlotMins,
+              title: mathTitle,
+              subject: subName,
+              type: "homework",
+              badge: `${doneBadgePrefix}📐 Math Core`,
+              guidance: "Core Math Problem Solving: 30-minute dedicated focused solving block. Focus 100% on formulas, step-by-step layout, and working textbook questions carefully on copy without skipping intermediate calculations.",
+              isCompleted: isDone
+            });
+            curMins += mathSlotMins;
+
+          } else if ((isSci || isSoc) && estMins >= 25) {
+            // 2. Science & Social Science Core Splitting
             const half1 = Math.max(12, Math.floor(estMins / 2));
             const half2 = estMins - half1;
 
-            let badge1 = `${doneBadgePrefix}📐 Math Core (Sprint 1)`;
-            let title1 = `${doneTitlePrefix}Core Math Sprint 1: ${taskText} (Concept & Steps)`;
-            let guide1 = "Core Math Efficiency Sprint 1: Focus 100% on formulas, step-by-step layout, and working the initial questions carefully.";
+            let badge1 = "";
+            let title1 = "";
+            let guide1 = "";
             if (isSci) {
               const icon = sLower.includes("phy") ? "⚡" : (sLower.includes("chem") ? "⚗️" : "🔬");
               badge1 = `${doneBadgePrefix}${icon} Science Core (Sprint 1)`;
               title1 = `${doneTitlePrefix}Core Science Sprint 1: ${subName} - ${taskText} (Theory & Concepts)`;
               guide1 = "Core Science Efficiency Sprint 1: Deep concept understanding, law/formula review, and active reading of definitions.";
-            } else if (isSoc) {
+            } else {
               badge1 = `${doneBadgePrefix}🌍 Social Core (Sprint 1)`;
               title1 = `${doneTitlePrefix}Core Social Sprint 1: ${subName} - ${taskText} (Timeline & Analysis)`;
               guide1 = "Core Social Efficiency Sprint 1: Understand sequence of events, key dates, geography maps, and textbook causes/effects.";
@@ -9214,15 +9233,15 @@
             });
             curMins += microBrk;
 
-            let badge2 = `${doneBadgePrefix}📐 Math Core (Sprint 2)`;
-            let title2 = `${doneTitlePrefix}Core Math Sprint 2: ${taskText} (Execution & Accuracy)`;
-            let guide2 = "Core Math Efficiency Sprint 2: Solve remaining questions independently. Re-check calculations, signs, and final units.";
+            let badge2 = "";
+            let title2 = "";
+            let guide2 = "";
             if (isSci) {
               const icon = sLower.includes("phy") ? "⚡" : (sLower.includes("chem") ? "⚗️" : "🔬");
               badge2 = `${doneBadgePrefix}${icon} Science Core (Sprint 2)`;
               title2 = `${doneTitlePrefix}Core Science Sprint 2: ${subName} - ${taskText} (Diagrams & Q&A)`;
               guide2 = "Core Science Efficiency Sprint 2: Sketch and label diagrams accurately from memory, and write precise point-wise answers.";
-            } else if (isSoc) {
+            } else {
               badge2 = `${doneBadgePrefix}🌍 Social Core (Sprint 2)`;
               title2 = `${doneTitlePrefix}Core Social Sprint 2: ${subName} - ${taskText} (Answer Framing)`;
               guide2 = "Core Social Efficiency Sprint 2: Frame structured point-wise answers in your own words. Understanding > rote copying.";
@@ -11788,7 +11807,7 @@
         });
       } else {
         // Default starter rows
-        addAssistantTaskRow("Mathematics", "Exercise 9.1 Questions 1 to 5 (Solve by hand)", "written", 25);
+        addAssistantTaskRow("Mathematics", "Exercise 9.1 Questions 1 to 5 (Solve by hand)", "written", 30);
         addAssistantTaskRow("Physics", "Kinetic Theory Notes & Concept Read", "reading", 20);
       }
     }

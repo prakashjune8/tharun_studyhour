@@ -3089,18 +3089,33 @@ class TharunScheduleBalancer:
                 done_title_prefix = "✅ [Done] " if is_done else ""
 
                 # Core Subject Efficiency Splitting:
-                # If a core task is >= 25 mins, split into 2 high-efficiency focused slabs with a micro-recharge break
-                if is_core and est_mins >= 25:
+                # 1. Mathematics is clubbed into a single 30 min focused slot (no split)
+                if is_math:
+                    math_slot_mins = 30
+                    end_math = cur_time + timedelta(minutes=math_slot_mins)
+                    math_title = f"{done_title_prefix}Core Math: {task_text}" if task_text else f"{done_title_prefix}Core Math Problem Solving"
+                    evening_slots.append({
+                        "phase": f"{phase_label}: {sub_name}",
+                        "start": cur_time.strftime("%I:%M %p"),
+                        "end": end_math.strftime("%I:%M %p"),
+                        "duration_mins": math_slot_mins,
+                        "title": math_title,
+                        "subject": sub_name,
+                        "type": "homework",
+                        "badge": f"{done_badge_prefix}📐 Math Core",
+                        "guidance": "Core Math Problem Solving: 30-minute dedicated focused solving block. Focus 100% on formulas, step-by-step layout, and working textbook questions carefully on copy without skipping intermediate calculations.",
+                        "is_completed": is_done
+                    })
+                    cur_time = end_math
+
+                # 2. Science & Social Science Core Splitting (if >= 25 mins)
+                elif (is_science or is_social) and est_mins >= 25:
                     half1 = max(12, est_mins // 2)
                     half2 = est_mins - half1
 
-                    # Slab 1: Core Concept / Step-by-Step Solving Sprint
+                    # Slab 1: Core Concept / Step-by-Step Theory Sprint
                     end1 = cur_time + timedelta(minutes=half1)
-                    if is_math:
-                        badge1 = f"{done_badge_prefix}📐 Math Core (Sprint 1)"
-                        title1 = f"{done_title_prefix}Core Math Sprint 1: {task_text} (Concept & Steps)"
-                        guidance1 = "Core Math Efficiency Sprint 1: Focus 100% on formulas, step-by-step layout, and working the initial questions carefully without skipping intermediate calculations."
-                    elif is_science:
+                    if is_science:
                         spec_icon = "⚡" if "phy" in sub_str else ("⚗️" if "chem" in sub_str else "🔬")
                         badge1 = f"{done_badge_prefix}{spec_icon} Science Core (Sprint 1)"
                         title1 = f"{done_title_prefix}Core Science Sprint 1: {sub_name} - {task_text} (Theory & Concepts)"
@@ -3143,11 +3158,7 @@ class TharunScheduleBalancer:
 
                     # Slab 2: Problem Solving Completion / Accuracy Verification / Diagrams
                     end2 = cur_time + timedelta(minutes=half2)
-                    if is_math:
-                        badge2 = f"{done_badge_prefix}📐 Math Core (Sprint 2)"
-                        title2 = f"{done_title_prefix}Core Math Sprint 2: {task_text} (Execution & Accuracy)"
-                        guidance2 = "Core Math Efficiency Sprint 2: Solve the remaining questions independently. Re-check calculation steps, signs, and final units before packing copy."
-                    elif is_science:
+                    if is_science:
                         spec_icon = "⚡" if "phy" in sub_str else ("⚗️" if "chem" in sub_str else "🔬")
                         badge2 = f"{done_badge_prefix}{spec_icon} Science Core (Sprint 2)"
                         title2 = f"{done_title_prefix}Core Science Sprint 2: {sub_name} - {task_text} (Diagrams & Q&A)"
@@ -14514,7 +14525,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
                     duration=s.get("suggested_duration_mins", 25)
                 )
         else:
-            add_task_row(subject="Mathematics", desc="Exercise 9.1 Questions 1 to 5 (Solve by hand)", task_type="written", duration=25)
+            add_task_row(subject="Mathematics", desc="Exercise 9.1 Questions 1 to 5 (Solve by hand)", task_type="written", duration=30)
             add_task_row(subject="Physics", desc="Kinetic Theory Notes & Textbook Read", task_type="reading", duration=20)
 
         # Bottom Actions Bar
@@ -14531,7 +14542,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             padx=8,
             pady=3,
             cursor="hand2",
-            command=lambda: add_task_row(subject="Mathematics", desc="", duration=25)
+            command=lambda: add_task_row(subject="Mathematics", desc="", duration=30)
         )
         btn_add_blank.pack(side=tk.LEFT)
 
