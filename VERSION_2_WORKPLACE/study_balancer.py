@@ -21,7 +21,7 @@ import calendar
 import ctypes
 from datetime import datetime, timedelta
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog, simpledialog
+from tkinter import ttk, messagebox, filedialog, simpledialog, font as tkfont
 
 try:
     from PIL import Image, ImageTk, ImageDraw, ImageFilter
@@ -9042,11 +9042,17 @@ class DesktopApp:
         # Subtle vertical divider line after time plaque
         tk.Frame(card, bg="#334155", width=1).pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
 
-        # 2. Right 3D Shaded Mini Parchment Scroll Badge (width=112, height=26)
+        # 2. Right 3D Shaded Mini Parchment Scroll Badge (dynamically sized for full word visibility)
         is_rollover_slot = slot.get("is_rollover", False) or "rollover" in slot.get("badge", "").lower()
         badge_txt = slot["badge"]
-        badge_w = 112
         badge_h = 26
+
+        try:
+            badge_font = tkfont.Font(family="Segoe UI", size=8, weight="bold")
+            txt_measured = badge_font.measure(badge_txt)
+        except Exception:
+            txt_measured = len(badge_txt) * 7
+        badge_w = max(168, txt_measured + 40)
 
         badge_canvas = tk.Canvas(card, width=badge_w, height=badge_h, bg=card_bg, highlightthickness=0)
         badge_canvas.pack(side=tk.RIGHT, padx=(8, 0))
