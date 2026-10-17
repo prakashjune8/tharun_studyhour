@@ -131,3 +131,28 @@ All 9 desktop sections are visually audited on Windows via Win32 print window ca
     - **Step 3 (Elimination of Hardcoded Styles)**: Upgraded Header, Brand Crest, Title Highlight, Will of Fire Streak dots, Character Card, Command Grid Deck tiles, Tab Navigation ink-brush underline, and Active Study Card aura to use CSS custom properties.
     - **Step 4 (Automated Headless Test Harness)**: Built automated test harness (`test_cross_theme_regression.py`) executing headless Chrome across all 8 themes and auxiliary views (`tab-diary`, `tab-portions`, `modal-guide`). All 11 automated screenshots generated and verified with 100% structural fidelity.
     - **Documentation & Report Artifact**: Generated `theme_audit_and_visual_parity_report.md` artifact detailing verification results for all 8 themes across all 9 UI sections. Synchronized across `VERSION_2_WORKPLACE\index.html` and root `index.html`.
+
+12. **Phase 11: Desktop Application Layout Stability & Boundary-Locking Patch**:
+    - **Enforce Geometry Propagation Locks on Major Container Frames**:
+      - `self.header_outer`: Height explicitly locked to `86px` with `.pack_propagate(False)` and `.pack(fill=tk.BOTH, expand=True)` on `self.header_frame`.
+      - `self.deck_container`: Height explicitly locked to `176px` with `.pack_propagate(False)`.
+      - `self.shinobi_banner_frame`: Height locked to `176px` with `.pack_propagate(False)` to eliminate vertical/horizontal jumping when switching characters with varying quote lengths.
+      - `self.matrix_command_frame`: Height locked to `176px` with `.grid_propagate(False)` and uniform column configurations (`uniform="cmd_col"`).
+      - `self.sub_prep_container`: Bound with `.pack_propagate(False)` to eliminate cell resizing during mode switches.
+      - `self.timer_card`: Sized to fixed `width=415` with `.pack_propagate(False)` in `self.sched_paned` (minsize=415).
+      - `self.timer_info_box`: Sized to `height=86` with `.pack_propagate(False)` to guarantee zero jitter when active slot text updates.
+      - `ext_bar` and `opt_box`: Sized to `height=38` and `height=42` respectively with `.pack_propagate(False)`.
+      - `self.timeline_header`: Height locked to `46px` with `.pack_propagate(False)` to eliminate jumping during mode toggling.
+    - **Stabilize Timetable & Schedule Card Containers**:
+      - Enforced consistent `highlightthickness=1` across all card states, eliminating border-width resizing jitter.
+      - Implemented an always-packed 4px left indicator strip (`#38bdf8` active, `card_bg` inactive), completely eliminating the 12px horizontal jump when slots are clicked.
+    - **ShinobiPillSelector Dimensional Stability**:
+      - Configured explicit `width` and `height` properties with `.pack_propagate(False)` when dimensions are provided, preventing label length changes from expanding or shrinking selectors.
+    - **Locked Window Geometry & Viewport Bounds**:
+      - Root application initialized to `1440x920` (minsize `1280x850`).
+    - **Automated Verification**:
+      - Tested via automated test suite confirming zero pixel drift across all 8 themes, slot selections, and routine modes (`ALL LAYOUT STABILITY TESTS PASSED 100% PERFECTLY!`).
+    - **Re-compiled & Synchronized Production Binary**:
+      - Re-compiled standalone executable `dist\ScholasticPulse_V2.exe` (63.1 MB) using PyInstaller `--clean VERSION_2_WORKPLACE\ScholasticPulse_V2.spec`.
+      - Synchronized `study_balancer.py` and `dist\ScholasticPulse_V2.exe` to workplace and root directories.
+

@@ -2795,6 +2795,8 @@ class ShinobiPillSelector(tk.Frame):
         self.current_value = initial_value
         self.on_select_callback = on_select_callback
         self.textvariable = textvariable
+        self._pill_width = width
+        self._pill_height = height
 
         if "state" in kwargs:
             kwargs.pop("state")
@@ -2803,6 +2805,13 @@ class ShinobiPillSelector(tk.Frame):
 
         bg_col = "#161f30"
         super().__init__(parent, bg=bg_col, bd=1, relief=tk.SOLID, highlightbackground="#2e3b52", highlightthickness=1, cursor="hand2", **kwargs)
+
+        if width:
+            self.configure(width=width)
+        if height:
+            self.configure(height=height)
+        if width and height:
+            self.pack_propagate(False)
 
         if self.title:
             self.lbl_title = tk.Label(self, text=self.title, font=("Segoe UI", 7, "bold"), fg="#fb923c", bg=bg_col, anchor="w")
@@ -4139,8 +4148,8 @@ class DesktopApp:
     def __init__(self, root):
         self.root = root
         self.root.title("ScholasticPulse - Tharun's Habit & Time Management Architect (Class 8)")
-        self.root.geometry("1180x830")
-        self.root.minsize(1000, 720)
+        self.root.geometry("1440x920")
+        self.root.minsize(1280, 850)
 
         # Apply Windows 11 Immersive Dark Mode to Native Window Title Bar
         if sys.platform == "win32":
@@ -4558,12 +4567,14 @@ class DesktopApp:
             bd=1,
             relief=tk.SOLID,
             highlightbackground="#f59e0b",
-            highlightthickness=2
+            highlightthickness=2,
+            height=86
         )
         self.header_outer.pack(fill=tk.X, side=tk.TOP, padx=14, pady=(8, 6))
+        self.header_outer.pack_propagate(False)
 
         self.header_frame = tk.Frame(self.header_outer, bg="#0b111e", padx=14, pady=8)
-        self.header_frame.pack(fill=tk.X, side=tk.TOP)
+        self.header_frame.pack(fill=tk.BOTH, expand=True)
 
         # Left Brand Emblem + Title Stack
         brand_left = tk.Frame(self.header_frame, bg="#0b111e")
@@ -4701,8 +4712,9 @@ class DesktopApp:
         meta = NARUTO_METADATA.get(self.current_theme, NARUTO_METADATA["naruto_sage"])
         banner_bg = self.colors.get("banner_bg", self.colors["highlight"])
 
-        self.deck_container = tk.Frame(self.root, bg=self.colors["bg"])
+        self.deck_container = tk.Frame(self.root, bg=self.colors["bg"], height=176)
         self.deck_container.pack(fill=tk.X, padx=14, pady=(0, 6))
+        self.deck_container.pack_propagate(False)
 
         # ---------------- STEP 2: SHINOBI CHARACTER CARD (OPTION A: HERO PORTRAIT) ----------------
         self.shinobi_banner_frame = tk.Frame(
@@ -4713,9 +4725,11 @@ class DesktopApp:
             bd=1,
             relief=tk.SOLID,
             highlightbackground="#d97706",
-            highlightthickness=1
+            highlightthickness=1,
+            height=176
         )
         self.shinobi_banner_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 6))
+        self.shinobi_banner_frame.pack_propagate(False)
 
         self.lbl_shinobi_icon = tk.Label(
             self.shinobi_banner_frame,
@@ -4830,9 +4844,11 @@ class DesktopApp:
             bd=1,
             relief=tk.SOLID,
             highlightbackground="#d97706",
-            highlightthickness=1
+            highlightthickness=1,
+            height=176
         )
         self.matrix_command_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(6, 0))
+        self.matrix_command_frame.grid_propagate(False)
 
         for c_idx in range(4):
             self.matrix_command_frame.grid_columnconfigure(c_idx, weight=1, uniform="cmd_col")
@@ -5062,6 +5078,7 @@ class DesktopApp:
             self.pre_exam_day_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         else:
             self.lbl_daily_mode_tag.pack(expand=True)
+        self.sub_prep_container.pack_propagate(False)
         self.sub_prep_container.grid(row=2, column=2, padx=3, pady=2, sticky="nsew")
 
         # Row 2, Col 3: Solid Amber-Gold Primary Schedule CTA Card
@@ -6685,9 +6702,11 @@ class DesktopApp:
             bd=1,
             relief=tk.SOLID,
             highlightbackground=self.colors.get("primary", "#f97316"),
-            highlightthickness=2
+            highlightthickness=2,
+            width=415
         )
-        self.sched_paned.add(self.timer_card, width=415, minsize=395)
+        self.timer_card.pack_propagate(False)
+        self.sched_paned.add(self.timer_card, width=415, minsize=415)
 
         self.timeline_card = tk.Frame(self.sched_paned, bg=self.colors["bg"])
         self.sched_paned.add(self.timeline_card, minsize=480)
@@ -8041,8 +8060,9 @@ class DesktopApp:
 
     def build_timer_view(self, parent):
         # ---------------- STEP 5: CHAKRA FOCUS TIMER PANEL (OPTION A: CIRCULAR CHAKRA RING TIMER) ----------------
-        pad_frame = tk.Frame(parent, bg="#0b111e", padx=12, pady=8)
+        pad_frame = tk.Frame(parent, bg="#0b111e", padx=12, pady=8, width=415)
         pad_frame.pack(fill=tk.BOTH, expand=True)
+        pad_frame.pack_propagate(False)
         self.timer_pad_frame = pad_frame
 
         meta = NARUTO_METADATA.get(self.current_theme, NARUTO_METADATA["naruto_sage"])
@@ -8068,9 +8088,11 @@ class DesktopApp:
             bd=1,
             relief=tk.SOLID,
             highlightbackground="#d97706",
-            highlightthickness=1
+            highlightthickness=1,
+            height=86
         )
         self.timer_info_box.pack(fill=tk.X, pady=(0, 6))
+        self.timer_info_box.pack_propagate(False)
 
         init_timer_img = self.get_naruto_image(self.current_theme, size=(60, 60))
         self.lbl_timer_art = tk.Label(
@@ -8243,9 +8265,11 @@ class DesktopApp:
             bd=1,
             relief=tk.SOLID,
             highlightbackground="#334155",
-            highlightthickness=1
+            highlightthickness=1,
+            height=38
         )
         ext_bar.pack(fill=tk.X, pady=(0, 4))
+        ext_bar.pack_propagate(False)
         self.timer_ext_bar = ext_bar
 
         lbl_ext = tk.Label(
@@ -8292,9 +8316,11 @@ class DesktopApp:
             highlightbackground="#334155",
             highlightthickness=1,
             padx=8,
-            pady=4
+            pady=4,
+            height=42
         )
         opt_box.pack(fill=tk.X, pady=(0, 4))
+        opt_box.pack_propagate(False)
         self.timer_opt_box = opt_box
 
         s_head_row = tk.Frame(opt_box, bg="#131c2e")
@@ -8468,8 +8494,9 @@ class DesktopApp:
         self.update_progress_bar(1.0)
 
     def build_timeline_view(self, parent):
-        self.timeline_header = tk.Frame(parent, bg=self.colors["bg"])
+        self.timeline_header = tk.Frame(parent, bg=self.colors["bg"], height=46)
         self.timeline_header.pack(fill=tk.X, padx=12, pady=(0, 8))
+        self.timeline_header.pack_propagate(False)
 
         lvl = EXECUTION_LEVELS[self.current_level]
         self.timeline_badge_lbl = tk.Label(
@@ -8814,7 +8841,6 @@ class DesktopApp:
         # Study / Homework Ledger Card (Standard: #0f172a, border #785c28; Active: glowing cyan-gold halo + • ACTIVE SPRINT • in gold #facc15)
         card_bg = "#172036" if is_active else "#0f172a"
         card_border = "#facc15" if is_active else ("#10b981" if is_completed else "#785c28")
-        border_w = 2 if is_active else 1
 
         card = tk.Frame(
             self.sched_inner,
@@ -8822,7 +8848,7 @@ class DesktopApp:
             bd=1,
             relief=tk.SOLID,
             highlightbackground=card_border,
-            highlightthickness=border_w,
+            highlightthickness=1,
             padx=10,
             pady=6,
             cursor="hand2"
@@ -8830,9 +8856,9 @@ class DesktopApp:
         card.pack(fill=tk.X, pady=3)
         self.slot_frames.append(card)
 
-        if is_active:
-            # Active Cyan-Gold Glowing Strip
-            tk.Frame(card, bg="#38bdf8", width=4).pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
+        # Fixed 4px accent indicator strip so time plaque never shifts horizontally
+        strip_col = "#38bdf8" if is_active else card_bg
+        tk.Frame(card, bg=strip_col, width=4).pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
 
         # 1. Left Rounded Bronze Time Plaque (width=145, height=44, bg=#271f16, border=#a16207)
         plaque_bg = "#271f16"
