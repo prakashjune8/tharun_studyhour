@@ -8,7 +8,7 @@
   "active_term": "Term-II",
   "terms": {
     "Term-I": {
-      "title": "Portions for Term-I Examination (Completed)",
+      "title": "Portions for Term-I Examination (Past / Completed)",
       "portions": [
         {
           "id": "sub_tamil",
@@ -962,8 +962,8 @@
         }
       ]
     },
-    "Periodic Test-2": {
-      "title": "Portions for Periodic Test-2 (Mid-Term)",
+    "Annual Exam": {
+      "title": "Portions for Annual Final Examination (Upcoming)",
       "portions": [
         {
           "id": "sub_tamil",
@@ -1480,8 +1480,8 @@
         }
       ]
     },
-    "Annual Exam": {
-      "title": "Portions for Annual Final Examination",
+    "Periodic Test": {
+      "title": "Portions for Periodic Test Examination (Upcoming)",
       "portions": [
         {
           "id": "sub_tamil",

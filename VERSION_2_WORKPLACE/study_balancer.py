@@ -4237,6 +4237,13 @@ class DesktopApp:
                     raw_data = json.load(f)
                 if "terms" in raw_data:
                     self.portions_data = raw_data
+                    if "Periodic Test-2" in self.portions_data.get("terms", {}):
+                        pt_info = self.portions_data["terms"].pop("Periodic Test-2")
+                        if "Periodic Test" not in self.portions_data["terms"]:
+                            pt_info["title"] = "Portions for Periodic Test Examination (Upcoming)"
+                            self.portions_data["terms"]["Periodic Test"] = pt_info
+                    if self.portions_data.get("active_term") == "Periodic Test-2":
+                        self.portions_data["active_term"] = "Periodic Test"
                 else:
                     # Auto-migration of legacy portions file into multi-term structure
                     legacy_subs = raw_data.get("subjects", [])
@@ -4252,19 +4259,19 @@ class DesktopApp:
                         "active_term": active_t,
                         "terms": {
                             "Term-I": {
-                                "title": "Portions for Term-I Examination (Completed)",
+                                "title": "Portions for Term-I Examination (Past / Completed)",
                                 "portions": legacy_subs
                             },
                             "Term-II": {
                                 "title": "Portions for Term-II Examination (Upcoming)",
                                 "portions": legacy_subs
                             },
-                            "Periodic Test-2": {
-                                "title": "Portions for Periodic Test-2 (Mid-Term)",
+                            "Periodic Test": {
+                                "title": "Portions for Periodic Test Examination (Upcoming)",
                                 "portions": legacy_subs
                             },
                             "Annual Exam": {
-                                "title": "Portions for Annual Final Examination",
+                                "title": "Portions for Annual Final Examination (Upcoming)",
                                 "portions": legacy_subs
                             }
                         }
@@ -4396,10 +4403,11 @@ class DesktopApp:
             self.handle_generate_schedule(silent=True)
 
     def auto_calculate_pre_exam_duration_from_portions(self):
-        if not self.portions_data or "subjects" not in self.portions_data:
+        subs = self.get_portions_subject_list() if hasattr(self, "get_portions_subject_list") else (self.portions_data.get("subjects", []) if self.portions_data else [])
+        if not subs:
             return 21
         exam_dates = []
-        for s in self.portions_data.get("subjects", []):
+        for s in subs:
             d_str = s.get("exam_date", "")
             if d_str:
                 for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d.%m.%Y", "%d/%m/%Y", "%Y/%m/%d"):
@@ -9957,17 +9965,45 @@ class DesktopApp:
         term_pill = tk.Frame(title_row, bg="#131c2e", bd=0, highlightthickness=1, highlightbackground="#38bdf8", padx=6, pady=2)
         term_pill.pack(side=tk.LEFT, padx=(12, 0))
 
-        tk.Label(term_pill, text="🎯 Term:", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#131c2e").pack(side=tk.LEFT, padx=(0, 4))
-        available_terms = list(terms_map.keys()) if terms_map else ["Term-I", "Term-II", "Periodic Test-2", "Annual Exam"]
+        tk.Label(term_pill, text="🎯 Term / Exam:", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#131c2e").pack(side=tk.LEFT, padx=(0, 4))
+        clean_terms = [k for k in terms_map.keys() if k != "Periodic Test-2"]
+        if not clean_terms:
+            clean_terms = ["Term-I", "Term-II", "Periodic Test", "Annual Exam"]
+        elif "Periodic Test" not in clean_terms:
+            clean_terms.append("Periodic Test")
+        
+        available_terms = list(clean_terms) + ["➕ Add Custom Exam..."]
+        if active_t == "Periodic Test-2":
+            active_t = "Periodic Test"
+            if self.portions_data: self.portions_data["active_term"] = "Periodic Test"
+
         self.cmb_term_selector = ShinobiPillSelector(
             term_pill,
             title="",
             values=available_terms,
             initial_value=active_t,
             on_select_callback=self.on_term_selected,
-            width=140
+            width=150,
+            height=30
         )
         self.cmb_term_selector.pack(side=tk.LEFT)
+
+        self.btn_add_custom_exam = tk.Button(
+            term_pill,
+            text="➕ New Exam",
+            font=("Segoe UI", 8, "bold"),
+            bg="#f59e0b",
+            fg="#0f172a",
+            activebackground="#fbbf24",
+            activeforeground="#0f172a",
+            relief=tk.FLAT,
+            bd=0,
+            padx=7,
+            pady=2,
+            cursor="hand2",
+            command=self.open_add_custom_exam_modal
+        )
+        self.btn_add_custom_exam.pack(side=tk.LEFT, padx=(6, 2))
 
         self.lbl_portion_header_school = tk.Label(
             title_row,
@@ -10164,22 +10200,183 @@ class DesktopApp:
 
         self.render_portion_cards()
 
-    def on_term_selected(self, event=None):
-        new_term = self.cmb_term_selector.get()
+    def _update_term_selector_options(self):
+        terms_map = self.portions_data.get("terms", {}) if self.portions_data else {}
+        clean_terms = [k for k in terms_map.keys() if k != "Periodic Test-2"]
+        if not clean_terms:
+            clean_terms = ["Term-I", "Term-II", "Periodic Test", "Annual Exam"]
+        elif "Periodic Test" not in clean_terms:
+            clean_terms.append("Periodic Test")
+        available = list(clean_terms) + ["➕ Add Custom Exam..."]
+        active_t = self.portions_data.get("active_term", "Term-II") if self.portions_data else "Term-II"
+        if active_t == "Periodic Test-2":
+            active_t = "Periodic Test"
+            if self.portions_data: self.portions_data["active_term"] = "Periodic Test"
+        if hasattr(self, "cmb_term_selector") and self.cmb_term_selector:
+            self.cmb_term_selector.configure(values=available)
+            self.cmb_term_selector.set(active_t)
+
+    def on_term_selected(self, val=None):
+        new_term = self.cmb_term_selector.get() if hasattr(self, "cmb_term_selector") else (val or "Term-II")
+        if new_term == "➕ Add Custom Exam...":
+            self.open_add_custom_exam_modal()
+            return
+
         if self.portions_data:
             self.portions_data["active_term"] = new_term
             terms_map = self.portions_data.get("terms", {})
             term_info = terms_map.get(new_term, {})
             if "title" in term_info:
                 self.portions_data["examination"] = term_info["title"]
+            else:
+                self.portions_data["examination"] = f"Portions for {new_term} - Class VIII"
             try:
                 with open(PORTIONS_FILE, "w", encoding="utf-8") as f:
                     json.dump(self.portions_data, f, indent=2, ensure_ascii=False)
             except Exception:
                 pass
-            self.lbl_portion_header_title.config(text=f"📜 {self.portions_data.get('examination', new_term).upper()}")
+            if hasattr(self, "lbl_portion_header_title") and self.lbl_portion_header_title:
+                self.lbl_portion_header_title.config(text=f"📜 {self.portions_data.get('examination', new_term).upper()}")
+            self.rebuild_portion_filter_buttons()
             self.render_portion_cards()
             self.update_portion_progress_bar()
+
+    def open_add_custom_exam_modal(self, on_created_callback=None):
+        """Opens dedicated modal dialog to create a new custom exam heading (e.g. Unit Test, Pre-Board)."""
+        win, body = self._create_hud_toplevel(
+            "➕ Add Custom Exam / Assessment Heading",
+            subtitle="Pre-Exam Planner • Create dedicated syllabus portions & question tracker for an upcoming exam",
+            width=580,
+            height=330,
+            min_width=520,
+            min_height=290
+        )
+
+        card = tk.Frame(body, bg="#0f172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", padx=16, pady=16)
+        card.pack(fill=tk.BOTH, expand=True, padx=16, pady=16)
+
+        tk.Label(
+            card,
+            text="🏷️ Custom Exam Name / Heading:",
+            font=("Segoe UI", 9, "bold"),
+            fg="#f8fafc",
+            bg="#0f172a"
+        ).pack(anchor="w", pady=(0, 4))
+
+        ent_name = tk.Entry(card, font=("Segoe UI", 10), bg="#1e293b", fg="#f8fafc", insertbackground="#f8fafc", bd=1, relief=tk.SOLID)
+        ent_name.pack(fill=tk.X, pady=(0, 10))
+        ent_name.focus_set()
+
+        # Preset Suggestions Pill Chips
+        tk.Label(
+            card,
+            text="💡 Quick Suggestions (Click to fill):",
+            font=("Segoe UI", 8),
+            fg="#94a3b8",
+            bg="#0f172a"
+        ).pack(anchor="w", pady=(0, 4))
+
+        chips_row = tk.Frame(card, bg="#0f172a")
+        chips_row.pack(fill=tk.X, pady=(0, 12))
+
+        suggestions = ["Pre-Board Exam", "Unit Test", "Model Examination", "Mid-Term Assessment", "Revision Exam"]
+        for s in suggestions:
+            def _apply_chip(val=s):
+                ent_name.delete(0, tk.END)
+                ent_name.insert(0, val)
+            tk.Button(
+                chips_row,
+                text=s,
+                font=("Segoe UI", 8),
+                bg="#1e293b",
+                fg="#38bdf8",
+                activebackground="#38bdf8",
+                activeforeground="#0f172a",
+                bd=0,
+                padx=6,
+                pady=2,
+                cursor="hand2",
+                command=_apply_chip
+            ).pack(side=tk.LEFT, padx=(0, 6))
+
+        def _do_create():
+            exam_name = ent_name.get().strip()
+            if not exam_name:
+                messagebox.showwarning("Name Required", "Please enter an exam heading or title.", parent=win)
+                return
+            if not self.portions_data:
+                self.portions_data = {"terms": {}, "school_name": "Senthil Public School", "active_term": exam_name}
+            if "terms" not in self.portions_data:
+                self.portions_data["terms"] = {}
+
+            # Create entry with template portions from Term-II or default subjects
+            ref_portions = []
+            if "Term-II" in self.portions_data["terms"]:
+                ref_portions = json.loads(json.dumps(self.portions_data["terms"]["Term-II"].get("portions", [])))
+                for sub in ref_portions:
+                    for comp in sub.get("components", []):
+                        comp["mastered"] = False
+                    for ch in sub.get("chapters", []):
+                        ch["mastered"] = False
+            else:
+                ref_portions = self.get_portions_subject_list()
+
+            self.portions_data["terms"][exam_name] = {
+                "title": f"Portions for {exam_name} - Class VIII",
+                "portions": ref_portions
+            }
+            self.portions_data["active_term"] = exam_name
+            self.portions_data["examination"] = f"Portions for {exam_name} - Class VIII"
+
+            try:
+                with open(PORTIONS_FILE, "w", encoding="utf-8") as f:
+                    json.dump(self.portions_data, f, indent=2, ensure_ascii=False)
+            except Exception as e:
+                print(f"Error saving portions: {e}")
+
+            self._update_term_selector_options()
+            if hasattr(self, "lbl_portion_header_title") and self.lbl_portion_header_title:
+                self.lbl_portion_header_title.config(text=f"📜 {self.portions_data['examination'].upper()}")
+            self.rebuild_portion_filter_buttons()
+            self.render_portion_cards()
+            self.update_portion_progress_bar()
+
+            win.destroy()
+            if on_created_callback:
+                on_created_callback(exam_name)
+            messagebox.showinfo(
+                "Custom Exam Created",
+                f"Custom Exam '{exam_name}' created successfully!\n\nYou can now upload portions, paste syllabus, or track chapters for this upcoming exam."
+            )
+
+        btn_box = tk.Frame(card, bg="#0f172a")
+        btn_box.pack(fill=tk.X, pady=(8, 0))
+
+        tk.Button(
+            btn_box,
+            text="✨ Create & Switch to Exam",
+            font=("Segoe UI", 9, "bold"),
+            bg="#f59e0b",
+            fg="#0f172a",
+            bd=0,
+            padx=12,
+            pady=6,
+            cursor="hand2",
+            command=_do_create
+        ).pack(side=tk.RIGHT, padx=(8, 0))
+
+        tk.Button(
+            btn_box,
+            text="Cancel",
+            font=("Segoe UI", 9),
+            bg="#334155",
+            fg="#f8fafc",
+            bd=0,
+            padx=10,
+            pady=6,
+            cursor="hand2",
+            command=win.destroy
+        ).pack(side=tk.RIGHT)
 
     def set_portion_filter(self, sub_name):
         self.portion_filter = sub_name
@@ -10913,7 +11110,7 @@ class DesktopApp:
         win.geometry("920x720")
         win.configure(bg=c["bg"])
 
-        # Top Bar: Exam Title & School inputs
+        # Top Bar: Exam Title, School & Target Category inputs
         top_bar = tk.Frame(win, bg=c["card_bg"], padx=16, pady=12, bd=1, relief=tk.SOLID)
         top_bar.pack(fill=tk.X)
 
@@ -10932,7 +11129,73 @@ class DesktopApp:
             font=("Segoe UI", 8),
             fg=c["fg_muted"],
             bg=c["card_bg"]
-        ).pack(anchor="w", pady=(2, 8))
+        ).pack(anchor="w", pady=(2, 6))
+
+        # Target Exam Substitution Selector & Pointing Out Banner
+        terms_map = self.portions_data.get("terms", {}) if self.portions_data else {}
+        clean_terms = [k for k in terms_map.keys() if k != "Periodic Test-2"]
+        if not clean_terms:
+            clean_terms = ["Term-I", "Term-II", "Periodic Test", "Annual Exam"]
+        elif "Periodic Test" not in clean_terms:
+            clean_terms.append("Periodic Test")
+        if "Term-II" not in clean_terms:
+            clean_terms.insert(1, "Term-II")
+        if "Periodic Test" not in clean_terms:
+            clean_terms.insert(2, "Periodic Test")
+        if "Annual Exam" not in clean_terms:
+            clean_terms.insert(3, "Annual Exam")
+
+        target_options = list(clean_terms) + ["➕ Custom Exam Heading..."]
+        active_t = self.portions_data.get("active_term", "Term-II") if self.portions_data else "Term-II"
+        if active_t == "Periodic Test-2":
+            active_t = "Periodic Test"
+
+        target_cat_frame = tk.Frame(top_bar, bg="#0f172a", bd=1, relief=tk.SOLID, highlightbackground="#f59e0b", padx=10, pady=8)
+        target_cat_frame.pack(fill=tk.X, pady=(2, 8))
+
+        sub_top_row = tk.Frame(target_cat_frame, bg="#0f172a")
+        sub_top_row.pack(fill=tk.X)
+
+        tk.Label(
+            sub_top_row,
+            text="🎯 Substitute into Exam Category:",
+            font=("Segoe UI", 9, "bold"),
+            fg="#facc15",
+            bg="#0f172a"
+        ).pack(side=tk.LEFT, padx=(0, 8))
+
+        target_term_var = tk.StringVar(value=active_t if active_t in target_options else "Term-II")
+        cmb_target_term = ttk.Combobox(
+            sub_top_row,
+            textvariable=target_term_var,
+            values=target_options,
+            state="readonly",
+            font=("Segoe UI", 9, "bold"),
+            width=26
+        )
+        cmb_target_term.pack(side=tk.LEFT, padx=(0, 10))
+
+        ent_custom_term = tk.Entry(sub_top_row, font=("Segoe UI", 9), bg="#1e293b", fg="#f8fafc", insertbackground="#f8fafc", bd=1, relief=tk.SOLID, width=28)
+
+        def _on_target_term_changed(e=None):
+            sel = target_term_var.get()
+            if sel == "➕ Custom Exam Heading...":
+                ent_custom_term.pack(side=tk.LEFT, padx=(4, 0))
+                ent_custom_term.focus_set()
+            else:
+                ent_custom_term.pack_forget()
+
+        cmb_target_term.bind("<<ComboboxSelected>>", _on_target_term_changed)
+
+        # Prominent Pointing Out Alert Banner
+        tk.Label(
+            target_cat_frame,
+            text="💡 Pointing Out: Uploaded syllabus portions and question blueprints will substitute directly into the chosen exam category.\nIn Pre-Exam Planner mode, your 21-Day Revision Roadmap, subject weightages, and routine timetable dynamically connect to this exam.",
+            font=("Segoe UI", 8),
+            fg="#38bdf8",
+            bg="#0f172a",
+            justify="left"
+        ).pack(anchor="w", pady=(4, 0))
 
         # Title / School Edit Fields
         edit_grid = tk.Frame(top_bar, bg=c["card_bg"])
@@ -10940,7 +11203,7 @@ class DesktopApp:
 
         tk.Label(edit_grid, text="Exam Title:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=0, column=0, sticky="w", pady=2)
         ent_title = tk.Entry(edit_grid, font=("Segoe UI", 9), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, width=48)
-        ent_title.insert(0, parsed_json.get("examination", "Portions for Term Examination - Class VIII"))
+        ent_title.insert(0, parsed_json.get("examination", f"Portions for {active_t} - Class VIII"))
         ent_title.grid(row=0, column=1, sticky="w", padx=6, pady=2)
 
         tk.Label(edit_grid, text="School:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=0, column=2, sticky="w", pady=2, padx=(10, 0))
@@ -11025,36 +11288,67 @@ class DesktopApp:
         bot_bar.pack(fill=tk.X)
 
         def do_save():
-            parsed_json["examination"] = ent_title.get().strip()
-            parsed_json["school_name"] = ent_school.get().strip()
+            sel_target = target_term_var.get().strip()
+            if sel_target == "➕ Custom Exam Heading...":
+                custom_name = ent_custom_term.get().strip()
+                target_term = custom_name if custom_name else "Custom Exam"
+            else:
+                target_term = sel_target or "Term-II"
+
+            if target_term == "Periodic Test-2":
+                target_term = "Periodic Test"
+
+            exam_title_val = ent_title.get().strip() or f"Portions for {target_term} - Class VIII"
+            school_val = ent_school.get().strip() or "Senthil Public School"
+
+            parsed_json["examination"] = exam_title_val
+            parsed_json["school_name"] = school_val
 
             try:
                 user_json_str = json_text.get("1.0", tk.END).strip()
                 edited_json = json.loads(user_json_str)
-                edited_json["examination"] = parsed_json["examination"]
-                edited_json["school_name"] = parsed_json["school_name"]
+                edited_json["examination"] = exam_title_val
+                edited_json["school_name"] = school_val
                 final_data = edited_json
             except Exception:
                 final_data = parsed_json
 
-            if ExamPortionParser:
-                ExamPortionParser.save_portions_to_file(final_data, PORTIONS_FILE)
-            else:
+            # Save into self.portions_data structure with terms ledger
+            if not self.portions_data:
+                self.portions_data = {"terms": {}, "school_name": school_val, "active_term": target_term}
+            if "terms" not in self.portions_data:
+                self.portions_data["terms"] = {}
+
+            portions_list = final_data.get("subjects", final_data.get("portions", []))
+            self.portions_data["terms"][target_term] = {
+                "title": exam_title_val,
+                "portions": portions_list
+            }
+            self.portions_data["active_term"] = target_term
+            self.portions_data["examination"] = exam_title_val
+            self.portions_data["school_name"] = school_val
+
+            try:
                 with open(PORTIONS_FILE, "w", encoding="utf-8") as f:
-                    json.dump(final_data, f, indent=2, ensure_ascii=False)
+                    json.dump(self.portions_data, f, indent=2, ensure_ascii=False)
+            except Exception as e:
+                print(f"Error saving portions file: {e}")
 
             self.load_portions_data()
+            self._update_term_selector_options()
+            if hasattr(self, "lbl_portion_header_title") and self.lbl_portion_header_title:
+                self.lbl_portion_header_title.config(text=f"📜 {self.portions_data.get('examination', target_term).upper()}")
             self.rebuild_portion_filter_buttons()
             self.render_portion_cards()
-            self.update_portion_header_labels()
+            self.update_portion_progress_bar()
 
             win.destroy()
             messagebox.showinfo(
-                "Exam Portions Updated!",
-                f"🎉 Successfully updated Exam Portions!\n\n"
-                f"• Exam: {final_data.get('examination')}\n"
-                f"• Subjects: {len(final_data.get('subjects', []))}\n\n"
-                f"Your Syllabus Tracker and 3-Week Day Planner are now fully synchronized."
+                "Exam Portions Substituted!",
+                f"🎉 Successfully substituted portions into: '{target_term}'!\n\n"
+                f"• Exam Heading: {exam_title_val}\n"
+                f"• Subjects: {len(portions_list)}\n\n"
+                f"In Pre-Exam Planner mode, your 21-Day Revision Roadmap, subject weightages, and routine timetable are now dynamically connected to this exam."
             )
 
         btn_save = tk.Button(

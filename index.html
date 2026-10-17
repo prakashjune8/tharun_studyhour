@@ -3315,9 +3315,11 @@
                 <select id="termSelectorWeb" onchange="changeActiveTermWeb(this.value)" style="background: transparent; border: none; color: #f8fafc; font-size: 0.8rem; font-weight: 700; outline: none; cursor: pointer;">
                   <option value="Term-I">Term-I Examination (Completed)</option>
                   <option value="Term-II" selected>Term-II Examination (Upcoming)</option>
-                  <option value="Periodic Test-2">Periodic Test-2 (Mid-Term)</option>
+                  <option value="Periodic Test">Periodic Test (Upcoming)</option>
                   <option value="Annual Exam">Annual Final Examination</option>
+                  <option value="__custom__">➕ Add Custom Exam...</option>
                 </select>
+                <button class="btn-diary-ledger gold-fill" onclick="openAddCustomExamModalWeb()" title="Create custom exam heading" style="padding: 1px 7px; font-size: 0.72rem; margin-left: 2px; border-radius: 10px; font-weight: 700; cursor: pointer;">➕ New Exam</button>
               </div>
             </div>
             <p id="portionSchoolSubtitle" class="diary-engine-sub" style="margin-bottom:0;">
@@ -3402,21 +3404,72 @@
     </div>
 
     <!-- Paste Portions Modal -->
-    <div id="pastePortionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
-      <div class="card" style="width: 90%; max-width: 750px; max-height: 85vh; overflow-y: auto; padding: 20px; background: var(--card-bg); border: 2px solid var(--primary); border-radius: 8px;">
+    <div id="pastePortionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; align-items: center; justify-content: center;">
+      <div class="card" style="width: 90%; max-width: 750px; max-height: 88vh; overflow-y: auto; padding: 20px; background: var(--card-bg); border: 2px solid var(--primary); border-radius: 8px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 8px;">
           <div>
-            <h3 style="color: var(--primary); font-size: 1.15rem;">📝 Paste Exam Portions / Syllabus Notice</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Paste portion text from WhatsApp, email, or circular JSON. The parser will update your tracker.</p>
+            <h3 style="color: var(--primary); font-size: 1.15rem; margin: 0;">📝 Paste Exam Portions / Syllabus Notice</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 2px 0 0 0;">Paste portion text from WhatsApp, email, or circular JSON. The parser will update your tracker.</p>
           </div>
           <button class="btn-secondary" onclick="closePastePortionsModal()">✖ Close</button>
         </div>
+
+        <!-- Target Exam Category Selector -->
+        <div style="background: #0f172a; border: 1px solid #f59e0b; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: #facc15;">🎯 Substitute into Exam Category:</label>
+            <select id="pastePortionsTermSelect" onchange="onPasteTermSelectChanged(this.value)" style="background: #1e293b; color: #f8fafc; border: 1px solid #334155; border-radius: 4px; padding: 4px 8px; font-size: 0.82rem; font-weight: 700; outline: none;">
+              <option value="Term-II">Term-II Examination (Upcoming)</option>
+              <option value="Periodic Test">Periodic Test (Upcoming)</option>
+              <option value="Annual Exam">Annual Final Examination</option>
+              <option value="Term-I">Term-I Examination (Completed / Past)</option>
+              <option value="__custom__">➕ Custom Exam Heading...</option>
+            </select>
+            <input type="text" id="pastePortionsCustomTermInput" placeholder="Enter custom exam heading (e.g. Pre-Board Exam)..." style="display:none; flex: 1; min-width: 200px; background: #1e293b; color: #f8fafc; border: 1px solid #38bdf8; border-radius: 4px; padding: 4px 8px; font-size: 0.82rem;">
+          </div>
+          <div style="margin-top: 6px; font-size: 0.78rem; color: #38bdf8; line-height: 1.4;">
+            💡 <strong>Pointing Out:</strong> Uploaded or pasted portions and question blueprints will substitute directly into the selected exam category.<br>
+            In <strong>Pre-Exam Planner</strong> mode, your 21-Day Revision Roadmap, subject weightages, and routine timetable dynamically connect to this exam.
+          </div>
+        </div>
+
         <div style="margin-bottom: 12px;">
           <textarea id="pastePortionsTextArea" rows="12" style="width: 100%; font-family: monospace; font-size: 0.85rem; padding: 10px; background: var(--input-bg); color: var(--text); border: 1px solid var(--card-border); border-radius: 6px; box-sizing: border-box;" placeholder="Paste exam portions circular text or JSON here..."></textarea>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
           <button class="btn-secondary" onclick="closePastePortionsModal()">Cancel</button>
           <button class="btn-primary" onclick="submitPastedPortions()">⚡ Parse & Update Tracker</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Exam Modal (Web) -->
+    <div id="addCustomExamModalWeb" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1050; align-items: center; justify-content: center;">
+      <div class="card" style="width: 90%; max-width: 520px; padding: 20px; background: #0f172a; border: 2px solid #f59e0b; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px;">
+          <div>
+            <h3 style="color: #facc15; font-size: 1.15rem; margin: 0;">➕ Add Custom Exam Heading</h3>
+            <p style="font-size: 0.78rem; color: #94a3b8; margin: 2px 0 0 0;">Pre-Exam Planner • Create dedicated syllabus portions &amp; question tracker</p>
+          </div>
+          <button class="btn-secondary" onclick="closeAddCustomExamModalWeb()">✖</button>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #f8fafc; margin-bottom: 4px;">🏷️ Custom Exam Name / Heading:</label>
+          <input type="text" id="customExamNameInputWeb" placeholder="e.g. Pre-Board Exam, Unit Test, Model Examination..." style="width: 100%; background: #1e293b; color: #f8fafc; border: 1px solid #38bdf8; border-radius: 4px; padding: 8px 10px; font-size: 0.9rem; box-sizing: border-box;">
+        </div>
+        <div style="margin-bottom: 14px;">
+          <span style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px;">💡 Quick Suggestions:</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <button class="btn-secondary" style="padding: 2px 8px; font-size: 0.75rem; border-color: #38bdf8; color: #38bdf8;" onclick="setCustomExamInputChip('Pre-Board Exam')">Pre-Board Exam</button>
+            <button class="btn-secondary" style="padding: 2px 8px; font-size: 0.75rem; border-color: #38bdf8; color: #38bdf8;" onclick="setCustomExamInputChip('Unit Test')">Unit Test</button>
+            <button class="btn-secondary" style="padding: 2px 8px; font-size: 0.75rem; border-color: #38bdf8; color: #38bdf8;" onclick="setCustomExamInputChip('Model Examination')">Model Examination</button>
+            <button class="btn-secondary" style="padding: 2px 8px; font-size: 0.75rem; border-color: #38bdf8; color: #38bdf8;" onclick="setCustomExamInputChip('Mid-Term Assessment')">Mid-Term Assessment</button>
+            <button class="btn-secondary" style="padding: 2px 8px; font-size: 0.75rem; border-color: #38bdf8; color: #38bdf8;" onclick="setCustomExamInputChip('Revision Exam')">Revision Exam</button>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button class="btn-secondary" onclick="closeAddCustomExamModalWeb()">Cancel</button>
+          <button class="btn-primary" onclick="submitCustomExamWeb()">✨ Create &amp; Switch to Exam</button>
         </div>
       </div>
     </div>
@@ -11106,6 +11159,13 @@
         subEl.textContent = portionsMeta.school_name + " (" + (portionsMeta.stream || "Montessori & CBSE Stream") + ") • " + currentPortionsData.length + " Official Subjects & Chapter Tracker";
       }
 
+      const termSel = document.getElementById("termSelectorWeb");
+      if (termSel && portionsMeta && portionsMeta.active_term) {
+        let act = portionsMeta.active_term === "Periodic Test-2" ? "Periodic Test" : portionsMeta.active_term;
+        addTermOptionIfMissing(act);
+        termSel.value = act;
+      }
+
       const priorityOrder = ["Mathematics", "Physical Science", "Biological Science", "Social Science", "English", "Hindi", "Tamil"];
       const sortedData = [...currentPortionsData].sort((a, b) => {
         const idxA = priorityOrder.indexOf(a.subject);
@@ -11335,11 +11395,95 @@
       }
     }
 
+    function onPasteTermSelectChanged(val) {
+      const customInp = document.getElementById("pastePortionsCustomTermInput");
+      if (customInp) {
+        customInp.style.display = (val === "__custom__") ? "block" : "none";
+        if (val === "__custom__") customInp.focus();
+      }
+    }
+
+    function openAddCustomExamModalWeb() {
+      const modal = document.getElementById("addCustomExamModalWeb");
+      if (modal) {
+        const inp = document.getElementById("customExamNameInputWeb");
+        if (inp) inp.value = "";
+        modal.style.display = "flex";
+        setTimeout(() => { if (inp) inp.focus(); }, 100);
+      }
+    }
+
+    function closeAddCustomExamModalWeb() {
+      const modal = document.getElementById("addCustomExamModalWeb");
+      if (modal) modal.style.display = "none";
+      const termSel = document.getElementById("termSelectorWeb");
+      if (termSel && portionsMeta && portionsMeta.active_term) {
+        termSel.value = portionsMeta.active_term;
+      }
+    }
+
+    function setCustomExamInputChip(val) {
+      const inp = document.getElementById("customExamNameInputWeb");
+      if (inp) {
+        inp.value = val;
+        inp.focus();
+      }
+    }
+
+    function submitCustomExamWeb() {
+      const inp = document.getElementById("customExamNameInputWeb");
+      const examName = inp ? inp.value.trim() : "";
+      if (!examName) {
+        alert("Please enter a custom exam heading!");
+        return;
+      }
+
+      addTermOptionIfMissing(examName);
+      const termSel = document.getElementById("termSelectorWeb");
+      if (termSel) termSel.value = examName;
+
+      changeActiveTermWeb(examName);
+      closeAddCustomExamModalWeb();
+
+      alert(`🎉 Custom Exam Created!\n\nExam Heading: '${examName}'\nPre-Exam Planner & Revision Tracker are now connected to this exam.`);
+    }
+
+    function addTermOptionIfMissing(termName) {
+      const termSel = document.getElementById("termSelectorWeb");
+      if (termSel) {
+        const exists = Array.from(termSel.options).some(o => o.value === termName);
+        if (!exists) {
+          const opt = document.createElement("option");
+          opt.value = termName;
+          opt.textContent = `${termName} (Custom)`;
+          termSel.insertBefore(opt, termSel.lastElementChild);
+        }
+      }
+      const pasteSel = document.getElementById("pastePortionsTermSelect");
+      if (pasteSel) {
+        const pExists = Array.from(pasteSel.options).some(o => o.value === termName);
+        if (!pExists) {
+          const opt2 = document.createElement("option");
+          opt2.value = termName;
+          opt2.textContent = `${termName} (Custom)`;
+          pasteSel.insertBefore(opt2, pasteSel.lastElementChild);
+        }
+      }
+    }
+
     function openPastePortionsModal() {
       const modal = document.getElementById("pastePortionsModal");
       if (modal) {
         const txt = document.getElementById("pastePortionsTextArea");
         if (txt) txt.value = "";
+        const termSel = document.getElementById("pastePortionsTermSelect");
+        if (termSel && portionsMeta && portionsMeta.active_term) {
+          const act = portionsMeta.active_term === "Periodic Test-2" ? "Periodic Test" : portionsMeta.active_term;
+          addTermOptionIfMissing(act);
+          termSel.value = act;
+        }
+        const customInp = document.getElementById("pastePortionsCustomTermInput");
+        if (customInp) customInp.style.display = "none";
         modal.style.display = "flex";
       }
     }
@@ -11355,17 +11499,20 @@
       const reader = new FileReader();
       const ext = file.name.split('.').pop().toLowerCase();
 
+      const termSel = document.getElementById("termSelectorWeb");
+      const currentActiveTerm = (portionsMeta && portionsMeta.active_term) ? portionsMeta.active_term : (termSel ? termSel.value : "Term-II");
+
       reader.onload = function(evt) {
         const content = evt.target.result;
         if (ext === "json" || content.trim().startsWith("{") || content.trim().startsWith("[")) {
           try {
             const data = JSON.parse(content);
-            applyNewPortionsData(data, file.name);
+            applyNewPortionsData(data, file.name, currentActiveTerm);
           } catch(err) {
             alert("Error parsing JSON file: " + err.message);
           }
         } else {
-          parseTextPortionsAndUpdate(content, file.name);
+          parseTextPortionsAndUpdate(content, file.name, currentActiveTerm);
         }
       };
 
@@ -11383,38 +11530,65 @@
         alert("Please paste syllabus text or JSON first!");
         return;
       }
+
+      const termSel = document.getElementById("pastePortionsTermSelect");
+      let targetTerm = termSel ? termSel.value : "Term-II";
+      if (targetTerm === "__custom__") {
+        const customInp = document.getElementById("pastePortionsCustomTermInput");
+        targetTerm = (customInp && customInp.value.trim()) ? customInp.value.trim() : "Custom Exam";
+        addTermOptionIfMissing(targetTerm);
+      }
+
       if (text.startsWith("{") || text.startsWith("[")) {
         try {
           const data = JSON.parse(text);
-          applyNewPortionsData(data, "Pasted Content");
+          applyNewPortionsData(data, "Pasted Content", targetTerm);
           closePastePortionsModal();
           return;
         } catch(e) {}
       }
-      parseTextPortionsAndUpdate(text, "Pasted Content");
+      parseTextPortionsAndUpdate(text, "Pasted Content", targetTerm);
       closePastePortionsModal();
     }
 
-    function applyNewPortionsData(data, sourceName) {
+    function applyNewPortionsData(data, sourceName, targetTerm) {
+      if (!portionsMeta) portionsMeta = {};
+      if (targetTerm) {
+        portionsMeta.active_term = targetTerm;
+        addTermOptionIfMissing(targetTerm);
+        const termSel = document.getElementById("termSelectorWeb");
+        if (termSel) termSel.value = targetTerm;
+      }
       if (data.subjects && Array.isArray(data.subjects)) {
         currentPortionsData = data.subjects;
         if (data.examination) portionsMeta.examination = data.examination;
+        else if (targetTerm) portionsMeta.examination = `Portions for ${targetTerm} - Class VIII CSK`;
         if (data.school_name) portionsMeta.school_name = data.school_name;
         if (data.stream) portionsMeta.stream = data.stream;
       } else if (Array.isArray(data)) {
         currentPortionsData = data;
+        if (targetTerm) portionsMeta.examination = `Portions for ${targetTerm} - Class VIII CSK`;
       }
       localStorage.setItem("tharun_exam_portions_data", JSON.stringify(currentPortionsData));
       localStorage.setItem("tharun_portions_meta", JSON.stringify(portionsMeta));
       renderPortionsTab();
-      alert(`🎉 Successfully updated Exam Portions from ${sourceName}!\nLoaded ${currentPortionsData.length} subjects.`);
+      alert(`🎉 Successfully substituted Exam Portions into '${portionsMeta.active_term || 'Exam'}' from ${sourceName}!\nLoaded ${currentPortionsData.length} subjects.\nPre-Exam Planner & 21-Day Revision Roadmap are now dynamically connected.`);
     }
 
-    function parseTextPortionsAndUpdate(text, sourceName) {
+    function parseTextPortionsAndUpdate(text, sourceName, targetTerm) {
+      if (!portionsMeta) portionsMeta = {};
+      if (targetTerm) {
+        portionsMeta.active_term = targetTerm;
+        addTermOptionIfMissing(targetTerm);
+        const termSel = document.getElementById("termSelectorWeb");
+        if (termSel) termSel.value = targetTerm;
+      }
       const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
       const titleMatch = text.match(/Portions?\s+(?:for\s+)?([^\n\r]+(?:Examination|Exam|Test)[^\n\r]*)/i);
       if (titleMatch) {
         portionsMeta.examination = titleMatch[0].trim();
+      } else if (targetTerm) {
+        portionsMeta.examination = `Portions for ${targetTerm} - Class VIII CSK`;
       }
 
       const subjects = [];
@@ -11449,7 +11623,7 @@
         localStorage.setItem("tharun_exam_portions_data", JSON.stringify(currentPortionsData));
         localStorage.setItem("tharun_portions_meta", JSON.stringify(portionsMeta));
         renderPortionsTab();
-        alert(`🎉 Updated portions from ${sourceName}! Detected ${subjects.length} subjects.`);
+        alert(`🎉 Successfully substituted portions into '${portionsMeta.active_term || 'Exam'}' from ${sourceName}!\nDetected ${subjects.length} subjects.\nPre-Exam Planner & 21-Day Revision Roadmap are now dynamically connected.`);
       } else {
         alert("Could not automatically structure portions from text. You can edit or paste valid JSON directly.");
       }
@@ -12012,12 +12186,17 @@ State updated & synchronized with Web App localStorage.`);
     }
 
     function changeActiveTermWeb(newTerm) {
+      if (newTerm === "__custom__") {
+        openAddCustomExamModalWeb();
+        return;
+      }
       if (!portionsMeta) portionsMeta = {};
+      if (newTerm === "Periodic Test-2") newTerm = "Periodic Test";
       portionsMeta.active_term = newTerm;
       const titleMap = {
-        "Term-I": "Portions for Term-I Examination (Completed) - Class VIII CSK",
+        "Term-I": "Portions for Term-I Examination (Completed / Past) - Class VIII CSK",
         "Term-II": "Portions for Term-II Examination (Upcoming) - Class VIII CSK",
-        "Periodic Test-2": "Portions for Periodic Test-2 (Mid-Term) - Class VIII CSK",
+        "Periodic Test": "Portions for Periodic Test Examination (Upcoming) - Class VIII CSK",
         "Annual Exam": "Portions for Annual Final Examination - Class VIII CSK"
       };
       portionsMeta.examination = titleMap[newTerm] || `Portions for ${newTerm} - Class VIII CSK`;
