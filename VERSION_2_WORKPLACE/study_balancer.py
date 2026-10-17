@@ -2407,8 +2407,15 @@ class ShinobiGraphicsEngine:
         return photo
 
     @classmethod
-    def create_circular_emblem(cls, size=44, bg="#111827", border_color="#f97316", border_width=2.5):
-        key = ('emblem', size, bg, border_color, border_width)
+    def create_konoha_crest_emblem(cls, size=52, border_color="#f59e0b", stroke_color="#fb923c"):
+        """
+        Creates an anti-aliased 4x SSAA Konoha Leaf Village crest medallion matching the Web UI (#deckCrest).
+        Features:
+        - Theme-aware glowing chakra outer ring
+        - Deep radial gradient medallion core
+        - Precision Konoha leaf beak and golden spiral curve
+        """
+        key = ('konoha_crest', size, border_color, stroke_color)
         if key in cls._cache:
             return cls._cache[key]
         if Image is None or ImageDraw is None:
@@ -2417,30 +2424,72 @@ class ShinobiGraphicsEngine:
         s = max(4, size * scale)
         img = Image.new('RGBA', (s, s), (0, 0, 0, 0))
         draw = ImageDraw.Draw(img)
-        bg_rgb = cls._hex_to_rgb(bg)
+        center = s / 2.0
+        radius = (s - 12 * scale) / 2.0
+
         b_rgb = cls._hex_to_rgb(border_color)
-        sbw = max(2, int(border_width * scale))
-        
-        # Outer circular frame
-        draw.ellipse([sbw // 2, sbw // 2, s - 1 - sbw // 2, s - 1 - sbw // 2], fill=(*bg_rgb, 255), outline=(*b_rgb, 255), width=sbw)
-        
-        # Center golden swirl (Naruto Leaf / Uzumaki spiral)
+        s_rgb = cls._hex_to_rgb(stroke_color) if stroke_color else b_rgb
+
+        # Outer chakra glow ring
+        for gw in range(int(5 * scale), 0, -2):
+            alpha = int(35 * (1.0 - gw / (5.0 * scale)))
+            draw.ellipse(
+                [center - radius - gw, center - radius - gw, center + radius + gw, center + radius + gw],
+                outline=(*b_rgb, alpha),
+                width=2
+            )
+
+        # Dark radial medallion core
+        for r in range(int(radius), 0, -1):
+            ratio = r / radius
+            cr = int(31 * (1.0 - ratio * 0.7) + 11 * (ratio * 0.7))
+            cg = int(20 * (1.0 - ratio * 0.7) + 16 * (ratio * 0.7))
+            cb = int(9 * (1.0 - ratio * 0.7) + 30 * (ratio * 0.7))
+            draw.ellipse([center - r, center - r, center + r, center + r], fill=(cr, cg, cb, 255))
+
+        # Circular outer border
+        border_w = max(2, int(2.5 * scale))
+        draw.ellipse([center - radius, center - radius, center + radius, center + radius], outline=(*b_rgb, 255), width=border_w)
+
+        # Konoha Leaf triangle beak
         import math
-        cx, cy = s / 2.0, s / 2.0
+        svg_scale = (s * 0.58) / 48.0
+        ox = center - 24 * svg_scale
+        oy = center - 24 * svg_scale
+        def pt(x, y): return (ox + x * svg_scale, oy + y * svg_scale)
+
+        tri = [pt(11.5, 36), pt(7.5, 41.5), pt(15, 38.5)]
+        draw.polygon(tri, fill=(*s_rgb, 255))
+
+        # Spiral curve points
         spiral_pts = []
-        for deg in range(0, 680, 8):
+        for deg in range(0, 540, 2):
             rad = math.radians(deg)
-            r = (deg / 680.0) * (s * 0.30)
-            px = cx + r * math.cos(rad)
-            py = cy + r * math.sin(rad)
-            spiral_pts.append((px, py))
-        if len(spiral_pts) > 1:
-            draw.line(spiral_pts, fill=(251, 191, 36, 255), width=max(2, int(2.5 * scale)))
-        
+            r_val = 1.8 + deg * 0.024
+            x = 24 + r_val * math.cos(rad - math.pi * 0.5)
+            y = 24 + r_val * math.sin(rad - math.pi * 0.5)
+            spiral_pts.append(pt(x, y))
+        stroke_w = max(2, int(2.6 * scale))
+        draw.line(spiral_pts, fill=(*s_rgb, 255), width=stroke_w, joint='curve')
+
+        # Outer tail arc
+        tail_pts = []
+        for deg in range(120, 210, 2):
+            rad = math.radians(deg)
+            r_val = 13.5
+            x = 24 + r_val * math.cos(rad)
+            y = 24 + r_val * math.sin(rad)
+            tail_pts.append(pt(x, y))
+        draw.line(tail_pts, fill=(*s_rgb, 255), width=stroke_w, joint='curve')
+
         res = img.resize((size, size), Image.Resampling.LANCZOS)
         photo = ImageTk.PhotoImage(res)
         cls._cache[key] = photo
         return photo
+
+    @classmethod
+    def create_circular_emblem(cls, size=52, bg="#111827", border_color="#f97316", border_width=2.5):
+        return cls.create_konoha_crest_emblem(size=size, border_color=border_color, stroke_color=border_color)
 
     @classmethod
     def create_hexagonal_rank_plaque(cls, width=144, height=28, text="RANK: HOKAGE"):
@@ -4915,20 +4964,19 @@ class DesktopApp:
         brand_left.pack(side=tk.LEFT)
         self.header_brand_left = brand_left
 
+        p_col = self.colors.get("primary", "#f59e0b")
+        a_col = self.colors.get("accent", "#fb923c")
+        emblem_photo = ShinobiGraphicsEngine.create_konoha_crest_emblem(size=52, border_color=p_col, stroke_color=a_col)
         self.lbl_header_emblem = tk.Label(
             brand_left,
-            text="🍥",
-            font=("Segoe UI", 16, "bold"),
-            bg="#1a120b",
-            fg="#fb923c",
-            width=2,
-            padx=4,
-            pady=2,
-            bd=1,
-            relief=tk.SOLID,
-            highlightbackground="#f97316",
-            highlightthickness=2
+            image=emblem_photo,
+            bg="#0b111e",
+            bd=0,
+            cursor="hand2"
         )
+        if emblem_photo:
+            self.lbl_header_emblem.image = emblem_photo
+        self.lbl_header_emblem.bind("<Button-1>", lambda e: self.rotate_theme() if hasattr(self, "rotate_theme") else None)
         self.lbl_header_emblem.pack(side=tk.LEFT, padx=(0, 12))
 
         title_box = tk.Frame(brand_left, bg="#0b111e")
@@ -14422,7 +14470,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
 
         # Re-generate circular medallion emblem with active theme's primary color
         if hasattr(self, "lbl_header_emblem"):
-            emblem_photo = ShinobiGraphicsEngine.create_circular_emblem(size=44, bg="#111827", border_color=primary_col, border_width=2.5)
+            emblem_photo = ShinobiGraphicsEngine.create_konoha_crest_emblem(size=52, border_color=primary_col, stroke_color=primary_col)
             if emblem_photo:
                 self.lbl_header_emblem.configure(image=emblem_photo, bg="#0b111e", bd=0)
                 self.lbl_header_emblem.image = emblem_photo
