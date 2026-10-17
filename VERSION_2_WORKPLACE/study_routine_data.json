@@ -64,8 +64,8 @@
       "notes": "Literature (6 chapters), Grammar (Parts of speech, Tenses, Modals, Gerunds), Composition (Letters, Story, Article)"
     }
   ],
-  "theme": "leaf_village",
-  "last_naruto_theme_index": 5,
+  "theme": "minato_flash",
+  "last_naruto_theme_index": 3,
   "tharun_level": 1,
   "selected_language": "English (Language)",
   "habit_streak": 4,
@@ -203,5 +203,5 @@
   "selected_exam_subject": "Mathematics",
   "schedule_start_time": "19:00",
   "sound_preset": "char_naruto",
-  "last_saved": "2026-10-17T20:26:15.215012"
+  "last_saved": "2026-10-17T20:45:22.839425"
 }

@@ -2789,29 +2789,30 @@ class ShinobiPillSelector(tk.Frame):
     Replaces clunky Win32 ttk.Combobox with high-polish dark card (radius=12, bg=#131c2e, border=#334155).
     Fully compatible with ttk.Combobox methods: ['values'], .current(), .set(), .get(), .configure().
     """
-    def __init__(self, parent, title="", values=None, initial_value="", on_select_callback=None, textvariable=None, width=120, height=40, **kwargs):
+    def __init__(self, parent, title="", values=None, initial_value="", on_select_callback=None, textvariable=None, width=120, height=None, **kwargs):
         self.title = title or ""
         self.values = list(values) if values else []
-        self.current_value = initial_value
+        self.current_value = str(initial_value) if initial_value else ""
         self.on_select_callback = on_select_callback
         self.textvariable = textvariable
-        self._pill_width = width
-        self._pill_height = height
 
         if "state" in kwargs:
             kwargs.pop("state")
         if "width" in kwargs:
-            kwargs.pop("width")
+            width = kwargs.pop("width")
+        if "height" in kwargs:
+            height = kwargs.pop("height")
 
         bg_col = "#161f30"
         super().__init__(parent, bg=bg_col, bd=1, relief=tk.SOLID, highlightbackground="#2e3b52", highlightthickness=1, cursor="hand2", **kwargs)
 
-        if width:
-            self.configure(width=width)
-        if height:
-            self.configure(height=height)
-        if width and height:
-            self.pack_propagate(False)
+        px_w = int(width * 8 + 30) if (width and width <= 35) else int(width if width else 120)
+        px_h = int(height) if height else (32 if not self.title else 40)
+        self._pill_width = px_w
+        self._pill_height = px_h
+
+        super().configure(width=px_w, height=px_h)
+        self.pack_propagate(False)
 
         if self.title:
             self.lbl_title = tk.Label(self, text=self.title, font=("Segoe UI", 7, "bold"), fg="#fb923c", bg=bg_col, anchor="w")
@@ -2820,14 +2821,13 @@ class ShinobiPillSelector(tk.Frame):
             self.lbl_title = None
 
         val_row = tk.Frame(self, bg=bg_col)
-        val_row.pack(fill=tk.X, padx=6, pady=(1 if self.title else 3, 2))
+        val_row.pack(fill=tk.BOTH, expand=True, padx=6, pady=(1 if self.title else 2, 2))
         self.val_row = val_row
 
-        disp_txt = str(initial_value) if initial_value else (self.values[0] if self.values else "")
+        disp_txt = self.current_value if self.current_value else (self.values[0] if self.values else "")
         self.current_value = disp_txt
-        if len(disp_txt) > 22:
-            disp_txt = disp_txt[:21] + "…"
-        self.lbl_val = tk.Label(val_row, text=disp_txt, font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg=bg_col, anchor="w")
+        formatted_txt = self._format_display_text(disp_txt)
+        self.lbl_val = tk.Label(val_row, text=formatted_txt, font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg=bg_col, anchor="w")
         self.lbl_val.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         self.lbl_chev = tk.Label(val_row, text="▾", font=("Segoe UI", 8, "bold"), fg="#fb923c", bg=bg_col)
@@ -2871,14 +2871,18 @@ class ShinobiPillSelector(tk.Frame):
         if self.on_select_callback:
             self.on_select_callback(val)
 
+    def _format_display_text(self, val):
+        txt = str(val) if val is not None else ""
+        max_chars = max(22, int(getattr(self, "_pill_width", 120) / 7.2))
+        if len(txt) > max_chars:
+            txt = txt[:max_chars - 1] + "…"
+        return txt
+
     def set(self, val):
         self.current_value = str(val)
         if self.textvariable and self.textvariable.get() != self.current_value:
             self.textvariable.set(self.current_value)
-        disp_txt = str(val)
-        if len(disp_txt) > 22:
-            disp_txt = disp_txt[:21] + "…"
-        self.lbl_val.configure(text=disp_txt)
+        self.lbl_val.configure(text=self._format_display_text(self.current_value))
 
     def get(self):
         return self.current_value
@@ -2916,7 +2920,18 @@ class ShinobiPillSelector(tk.Frame):
         if "state" in kwargs:
             kwargs.pop("state")
         if "width" in kwargs:
-            kwargs.pop("width")
+            w = kwargs.pop("width")
+            if w is not None:
+                px_w = int(w * 8 + 30) if w <= 35 else int(w)
+                self._pill_width = px_w
+                super().configure(width=px_w)
+                if hasattr(self, "lbl_val"):
+                    self.lbl_val.configure(text=self._format_display_text(self.current_value))
+        if "height" in kwargs:
+            h = kwargs.pop("height")
+            if h is not None:
+                self._pill_height = int(h)
+                super().configure(height=self._pill_height)
         if kwargs:
             super().configure(**kwargs)
 
@@ -8559,7 +8574,8 @@ class DesktopApp:
             initial_value=init_date_val,
             textvariable=self.timeline_date_var,
             on_select_callback=lambda v: self.on_timeline_date_selected(),
-            width=180
+            width=200,
+            height=32
         )
         self.timeline_date_combo.pack(side=tk.LEFT, padx=(0, 6))
 
@@ -8580,7 +8596,8 @@ class DesktopApp:
             initial_value=self.selected_exam_subject,
             textvariable=self.exam_sub_var,
             on_select_callback=lambda v: self.on_exam_subject_changed(),
-            width=150
+            width=160,
+            height=32
         )
         self.timeline_exam_combo.pack(side=tk.LEFT, padx=(0, 6))
 
@@ -8603,7 +8620,8 @@ class DesktopApp:
             initial_value=init_prep_val,
             textvariable=self.pre_exam_day_var,
             on_select_callback=lambda v: self.on_pre_exam_day_changed(),
-            width=210
+            width=220,
+            height=32
         )
         self.timeline_prep_combo.pack(side=tk.LEFT, padx=(0, 6))
 
