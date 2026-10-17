@@ -2149,6 +2149,7 @@ COLOR_PALETTES = {
         "fg_muted": "#fed7aa",
         "primary": "#f97316",
         "primary_hover": "#ea580c",
+        "primary_fg": "#0f172a",
         "accent": "#facc15",
         "success": "#22c55e",
         "warning": "#f59e0b",
@@ -2169,6 +2170,7 @@ COLOR_PALETTES = {
         "fg_muted": "#93c5fd",
         "primary": "#38bdf8",
         "primary_hover": "#0284c7",
+        "primary_fg": "#0f172a",
         "accent": "#a855f7",
         "success": "#34d399",
         "warning": "#fbbf24",
@@ -2189,6 +2191,7 @@ COLOR_PALETTES = {
         "fg_muted": "#94a3b8",
         "primary": "#06b6d4",
         "primary_hover": "#0891b2",
+        "primary_fg": "#0f172a",
         "accent": "#64748b",
         "success": "#10b981",
         "warning": "#f59e0b",
@@ -2209,6 +2212,7 @@ COLOR_PALETTES = {
         "fg_muted": "#fef08a",
         "primary": "#facc15",
         "primary_hover": "#eab308",
+        "primary_fg": "#0f172a",
         "accent": "#38bdf8",
         "success": "#22c55e",
         "warning": "#f97316",
@@ -2229,6 +2233,7 @@ COLOR_PALETTES = {
         "fg_muted": "#a1a1aa",
         "primary": "#ef4444",
         "primary_hover": "#dc2626",
+        "primary_fg": "#ffffff",
         "accent": "#c084fc",
         "success": "#34d399",
         "warning": "#fbbf24",
@@ -2249,6 +2254,7 @@ COLOR_PALETTES = {
         "fg_muted": "#6ee7b7",
         "primary": "#10b981",
         "primary_hover": "#059669",
+        "primary_fg": "#0f172a",
         "accent": "#f59e0b",
         "success": "#34d399",
         "warning": "#fbbf24",
@@ -2269,6 +2275,7 @@ COLOR_PALETTES = {
         "fg_muted": "#94a3b8",
         "primary": "#38bdf8",
         "primary_hover": "#0284c7",
+        "primary_fg": "#0f172a",
         "accent": "#818cf8",
         "success": "#34d399",
         "warning": "#fbbf24",
@@ -2289,6 +2296,7 @@ COLOR_PALETTES = {
         "fg_muted": "#64748b",
         "primary": "#0284c7",
         "primary_hover": "#0369a1",
+        "primary_fg": "#ffffff",
         "accent": "#6366f1",
         "success": "#059669",
         "warning": "#d97706",
@@ -4959,12 +4967,23 @@ class DesktopApp:
         self.action_tiles = []
         # Helper to construct Uniform 54px Stacked Icon-over-Text Action Tiles matching Web UI
         def _make_stacked_action_card(r, c, icon, label, command, is_gold_cta=False):
+            curr_c = getattr(self, "colors", {})
+            curr_t = getattr(self, "current_theme", "naruto_sage")
+            prim = curr_c.get("primary", "#f59e0b")
+            acc = curr_c.get("accent", "#fde047")
+            cta_fg = curr_c.get("primary_fg", "#ffffff" if curr_t in ["itachi_uchiha", "light"] else "#0f172a")
+
+            init_bg = prim if is_gold_cta else "#161f30"
+            init_border = acc if is_gold_cta else "#2e3b52"
+            fg_icon = cta_fg if is_gold_cta else acc
+            fg_lbl = cta_fg if is_gold_cta else "#f8fafc"
+
             card = tk.Frame(
                 self.matrix_command_frame,
-                bg=("#f59e0b" if is_gold_cta else "#161f30"),
+                bg=init_bg,
                 bd=1,
                 relief=tk.SOLID,
-                highlightbackground=("#fde047" if is_gold_cta else "#2e3b52"),
+                highlightbackground=init_border,
                 highlightthickness=1,
                 cursor="hand2",
                 height=54
@@ -4972,13 +4991,10 @@ class DesktopApp:
             card.grid(row=r, column=c, padx=3, pady=2, sticky="nsew")
             card.pack_propagate(False)
 
-            fg_icon = "#0f172a" if is_gold_cta else "#f59e0b"
-            fg_lbl = "#0f172a" if is_gold_cta else "#f8fafc"
-
-            lbl_icon = tk.Label(card, text=icon, font=("Segoe UI", 13, "bold"), fg=fg_icon, bg=card["bg"])
+            lbl_icon = tk.Label(card, text=icon, font=("Segoe UI", 13, "bold"), fg=fg_icon, bg=init_bg)
             lbl_icon.pack(pady=(3, 0))
 
-            lbl_text = tk.Label(card, text=label, font=("Segoe UI", 8, "bold"), fg=fg_lbl, bg=card["bg"])
+            lbl_text = tk.Label(card, text=label, font=("Segoe UI", 8, "bold"), fg=fg_lbl, bg=init_bg)
             lbl_text.pack(pady=(0, 3))
 
             self.action_tiles.append((card, lbl_icon, lbl_text, is_gold_cta))
@@ -4987,14 +5003,54 @@ class DesktopApp:
                 if command:
                     command()
 
+            def _apply_card_style(hovered):
+                colors = getattr(self, "colors", {})
+                current_t = getattr(self, "current_theme", "naruto_sage")
+                p = colors.get("primary", "#f59e0b")
+                p_hov = colors.get("primary_hover", p)
+                a = colors.get("accent", "#fde047")
+                t_fg = colors.get("primary_fg", "#ffffff" if current_t in ["itachi_uchiha", "light"] else "#0f172a")
+
+                if is_gold_cta:
+                    bg_color = p_hov if hovered else p
+                    border_color = "#ffffff" if hovered else a
+                    try:
+                        card.configure(bg=bg_color, highlightbackground=border_color)
+                        lbl_icon.configure(bg=bg_color, fg=t_fg)
+                        lbl_text.configure(bg=bg_color, fg=t_fg)
+                    except Exception:
+                        pass
+                else:
+                    border_color = p if hovered else "#2e3b52"
+                    icon_color = p if hovered else a
+                    try:
+                        card.configure(bg="#161f30", highlightbackground=border_color)
+                        lbl_icon.configure(bg="#161f30", fg=icon_color)
+                        lbl_text.configure(bg="#161f30", fg="#f8fafc")
+                    except Exception:
+                        pass
+
+            def _on_enter(e):
+                _apply_card_style(True)
+
+            def _on_leave(e):
+                try:
+                    px, py = card.winfo_pointerxy()
+                    cx = card.winfo_rootx()
+                    cy = card.winfo_rooty()
+                    cw = card.winfo_width()
+                    ch = card.winfo_height()
+                    if cx <= px <= cx + cw and cy <= py <= cy + ch:
+                        return
+                except Exception:
+                    pass
+                _apply_card_style(False)
+
             for w in (card, lbl_icon, lbl_text):
                 w.bind("<Button-1>", _on_click)
-                if is_gold_cta:
-                    w.bind("<Enter>", lambda e, cd=card: cd.configure(bg="#fbbf24", highlightbackground="#ffffff"))
-                    w.bind("<Leave>", lambda e, cd=card: cd.configure(bg="#f59e0b", highlightbackground="#fde047"))
-                else:
-                    w.bind("<Enter>", lambda e, cd=card: cd.configure(highlightbackground=getattr(self, "colors", {}).get("primary", "#f59e0b")))
-                    w.bind("<Leave>", lambda e, cd=card: cd.configure(highlightbackground="#2e3b52"))
+                w.bind("<Enter>", _on_enter)
+                w.bind("<Leave>", _on_leave)
+
             return card
 
         # Row 1 Action Tiles: Rotate, Guides ▾, Digest, Wisdom
@@ -13966,11 +14022,12 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
 
         # Re-theme 2x4 Action Grid Tiles
         if hasattr(self, "action_tiles"):
+            cta_fg = self.colors.get("primary_fg", "#ffffff" if self.current_theme in ["itachi_uchiha", "light"] else "#0f172a")
             for card, lbl_icon, lbl_text, is_gold_cta in self.action_tiles:
                 if is_gold_cta:
                     card.configure(bg=primary_col, highlightbackground=accent_col)
-                    lbl_icon.configure(bg=primary_col, fg="#0f172a")
-                    lbl_text.configure(bg=primary_col, fg="#0f172a")
+                    lbl_icon.configure(bg=primary_col, fg=cta_fg)
+                    lbl_text.configure(bg=primary_col, fg=cta_fg)
                 else:
                     card.configure(bg="#161f30", highlightbackground="#2e3b52")
                     lbl_icon.configure(bg="#161f30", fg=accent_col)

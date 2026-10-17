@@ -8724,6 +8724,10 @@
         focusBtn.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`;
         focusBtn.style.borderColor = colors.accent;
         focusBtn.style.boxShadow = `0 0 16px ${colors.glow}`;
+        const pFg = (theme.key === "itachi_uchiha" || theme.key === "light") ? "#ffffff" : "#0a0e17";
+        focusBtn.style.color = pFg;
+        const focusIc = focusBtn.querySelector(".ic");
+        if (focusIc) focusIc.style.color = pFg;
       }
 
       // Section 5B: Timer Widget dynamic properties & button repaint
