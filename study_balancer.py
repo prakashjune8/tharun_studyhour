@@ -2336,6 +2336,11 @@ class ShinobiGraphicsEngine:
     _cache = {}
 
     @classmethod
+    def clear_cache(cls):
+        """Clears all cached SSAA cards, 3D parchment scrolls, circular emblems, and rank plaques."""
+        cls._cache.clear()
+
+    @classmethod
     def _hex_to_rgb(cls, hex_color):
         if not hex_color or not isinstance(hex_color, str) or not hex_color.startswith('#'):
             return (15, 23, 42)
@@ -2739,8 +2744,8 @@ class ShinobiPillButton(tk.Canvas):
         if "bg_bot" in kwargs:
             self._bg_bot = kwargs.pop("bg_bot")
             redraw = True
-        if "fg" in kwargs or "foreground" in kwargs:
-            self._fg_color = kwargs.pop("fg", None) or kwargs.pop("foreground", None)
+        if "fg" in kwargs or "foreground" in kwargs or "fg_color" in kwargs:
+            self._fg_color = kwargs.pop("fg", None) or kwargs.pop("foreground", None) or kwargs.pop("fg_color", None)
             redraw = True
         if "highlightbackground" in kwargs:
             self._border_color = kwargs.pop("highlightbackground")
@@ -4037,6 +4042,7 @@ class ShinobiTabBar(tk.Frame):
         self.tab_defs = []
         self.tab_widgets = {}
         self.active_tab_id = None
+        self.active_indicator_color = "#f59e0b" 
 
     def set_tabs(self, tabs_info):
         """
@@ -4109,8 +4115,9 @@ class ShinobiTabBar(tk.Frame):
                 c.create_rectangle(0, 0, w, h, fill="#fdf3dc", outline="#d97706")
             
             c.create_text(w // 2, h // 2, text=title_text, font=("Segoe UI", 9, "bold"), fill="#1f1206")
-            # Glowing 3px orange-gold underline bar
-            c.create_line(16, h - 2, w - 16, h - 2, fill="#f59e0b", width=3)
+            # Glowing 3px underline bar matching active theme primary/accent
+            ind_col = getattr(self, "active_indicator_color", "#f59e0b")
+            c.create_line(16, h - 2, w - 16, h - 2, fill=ind_col, width=3)
         else:
             # 3D Dark-Slate Scroll with Dark Crimson Cylindrical Rollers
             photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=16, is_dark_slate=True)
@@ -4906,6 +4913,7 @@ class DesktopApp:
         self.theme_combo = self.pill_theme
         self.setting_pills = [self.pill_mode, self.pill_level, self.pill_start, self.pill_theme]
 
+        self.action_tiles = []
         # Helper to construct Uniform 54px Stacked Icon-over-Text Action Tiles matching Web UI
         def _make_stacked_action_card(r, c, icon, label, command, is_gold_cta=False):
             card = tk.Frame(
@@ -4930,6 +4938,8 @@ class DesktopApp:
             lbl_text = tk.Label(card, text=label, font=("Segoe UI", 8, "bold"), fg=fg_lbl, bg=card["bg"])
             lbl_text.pack(pady=(0, 3))
 
+            self.action_tiles.append((card, lbl_icon, lbl_text, is_gold_cta))
+
             def _on_click(e):
                 if command:
                     command()
@@ -4937,11 +4947,11 @@ class DesktopApp:
             for w in (card, lbl_icon, lbl_text):
                 w.bind("<Button-1>", _on_click)
                 if is_gold_cta:
-                    w.bind("<Enter>", lambda e: card.configure(bg="#fbbf24", highlightbackground="#ffffff"))
-                    w.bind("<Leave>", lambda e: card.configure(bg="#f59e0b", highlightbackground="#fde047"))
+                    w.bind("<Enter>", lambda e, cd=card: cd.configure(bg="#fbbf24", highlightbackground="#ffffff"))
+                    w.bind("<Leave>", lambda e, cd=card: cd.configure(bg="#f59e0b", highlightbackground="#fde047"))
                 else:
-                    w.bind("<Enter>", lambda e: card.configure(highlightbackground="#f59e0b"))
-                    w.bind("<Leave>", lambda e: card.configure(highlightbackground="#334155"))
+                    w.bind("<Enter>", lambda e, cd=card: cd.configure(highlightbackground=getattr(self, "colors", {}).get("primary", "#f59e0b")))
+                    w.bind("<Leave>", lambda e, cd=card: cd.configure(highlightbackground="#2e3b52"))
             return card
 
         # Row 1 Action Tiles: Rotate, Guides ▾, Digest, Wisdom
@@ -9025,11 +9035,15 @@ class DesktopApp:
 
             ring_img = Image.new("RGBA", (sw, sh), (11, 17, 30, 255))
 
-            # 1. Soft Radial Aura Halo (Golden-amber / Emerald break + Cyan inner glow)
+            c = getattr(self, "colors", COLOR_PALETTES.get(self.current_theme, COLOR_PALETTES["naruto_sage"]))
+            prim_rgb = ShinobiGraphicsEngine._hex_to_rgb(c.get("primary", "#f97316"))
+            acc_rgb = ShinobiGraphicsEngine._hex_to_rgb(c.get("accent", "#38bdf8"))
+
+            # 1. Soft Radial Aura Halo (Dynamic Theme Primary + Accent glow)
             aura_img = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
             aura_draw = ImageDraw.Draw(aura_img)
-            glow_color = (16, 185, 129, 150) if is_break else (245, 158, 11, 160)
-            cyan_color = (56, 189, 248, 140)
+            glow_color = (16, 185, 129, 150) if is_break else (*prim_rgb, 160)
+            cyan_color = (*acc_rgb, 140)
             aura_draw.ellipse([scx - (r + 18 * scale), scy - (r + 18 * scale), scx + (r + 18 * scale), scy + (r + 18 * scale)],
                               outline=glow_color, width=12 * scale)
             aura_draw.ellipse([scx - (r + 7 * scale), scy - (r + 7 * scale), scx + (r + 7 * scale), scy + (r + 7 * scale)],
@@ -9042,16 +9056,16 @@ class DesktopApp:
             track_bbox = [scx - r, scy - r, scx + r, scy + r]
             draw.ellipse(track_bbox, outline=(30, 41, 59, 255), width=thickness)
 
-            # 3. Glowing Progress Arc (Silky smooth SSAA)
+            # 3. Glowing Progress Arc (Silky smooth SSAA matching active theme)
             if frac > 0.005:
                 start_angle = 270
                 end_angle = 270 + int(360.0 * frac)
-                arc_col = (16, 185, 129, 255) if is_break else (249, 115, 22, 255)
-                core_col = (167, 243, 208, 255) if is_break else (253, 224, 71, 255)
+                arc_col = (16, 185, 129, 255) if is_break else (*prim_rgb, 255)
+                core_col = (167, 243, 208, 255) if is_break else (*acc_rgb, 255)
                 draw.arc(track_bbox, start=start_angle, end=end_angle, fill=arc_col, width=thickness)
                 draw.arc(track_bbox, start=start_angle, end=end_angle, fill=core_col, width=max(2, thickness // 3))
 
-            # 4. 16 Soft Radial Golden Flare Nodules around Perimeter
+            # 4. 16 Soft Radial Flare Nodules around Perimeter
             import math
             for nodule_i in range(16):
                 ang = math.radians(nodule_i * (360.0 / 16.0))
@@ -9059,7 +9073,7 @@ class DesktopApp:
                 nx = scx + dist * math.cos(ang)
                 ny = scy + dist * math.sin(ang)
                 nod_rad = 1.8 * scale
-                draw.ellipse([nx - nod_rad, ny - nod_rad, nx + nod_rad, ny + nod_rad], fill=(251, 191, 36, 210))
+                draw.ellipse([nx - nod_rad, ny - nod_rad, nx + nod_rad, ny + nod_rad], fill=(*acc_rgb, 210))
 
             # 5. Inner Dark Core Disc
             ir = r - (thickness // 2) - scale
@@ -13219,6 +13233,23 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
         except Exception:
             pass
 
+    def refresh_all_views(self):
+        """Full dynamic UI refresh across all desktop views, canvas graphics, and frames on theme rotation."""
+        ShinobiGraphicsEngine.clear_cache()
+        if hasattr(self, "_naruto_art_cache"):
+            self._naruto_art_cache.clear()
+        self.apply_theme()
+        if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
+            self.custom_tab_bar.active_indicator_color = self.colors.get("primary", "#f59e0b")
+            self.custom_tab_bar._refresh_all_tabs()
+        self.update_timer_display()
+        self.render_timetable_cards()
+        self.render_diary_table()
+        self.render_portion_cards()
+        self.render_gravity_list()
+        if hasattr(self, "audit_tree"):
+            self.render_audit_tab_content()
+
     def on_theme_combo_selected(self, event=None):
         disp = self.theme_var.get()
         for k, v in NARUTO_METADATA.items():
@@ -13229,7 +13260,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
         if self.current_theme in NARUTO_ROTATION_KEYS:
             self.last_naruto_theme_index = NARUTO_ROTATION_KEYS.index(self.current_theme)
         self.save_data()
-        self.apply_theme()
+        self.refresh_all_views()
 
     def rotate_theme(self):
         cur_key = self.current_theme
@@ -13242,7 +13273,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
         self.current_theme = NARUTO_ROTATION_KEYS[next_idx]
         self.colors = COLOR_PALETTES.get(self.current_theme, COLOR_PALETTES["naruto_sage"])
         self.save_data()
-        self.apply_theme()
+        self.refresh_all_views()
 
     def get_naruto_image(self, theme_key, size=(48, 48)):
         """Loads and caches resized PIL ImageTk PhotoImage for a Naruto theme."""
@@ -13409,70 +13440,89 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
         return quotes
 
     def apply_theme(self):
+        # 1. Update self.colors to the active theme from COLOR_PALETTES
+        self.colors = COLOR_PALETTES.get(self.current_theme, COLOR_PALETTES["naruto_sage"])
         c = self.colors
-        card_bg = c["card_bg"]
         meta = NARUTO_METADATA.get(self.current_theme, NARUTO_METADATA["naruto_sage"])
-        banner_bg = card_bg
 
-        self.root.configure(bg=c["bg"])
+        primary_col = c.get("primary", "#f97316")
+        accent_col = c.get("accent", "#facc15")
+        border_col = c.get("card_border", primary_col)
+        bg_col = c.get("bg", "#0a0e17")
+        card_bg = c.get("card_bg", "#151c2e")
+
+        # 2. Clear graphics cache for fresh theme rendering
+        ShinobiGraphicsEngine.clear_cache()
+
+        # 3. Root Window Background
+        self.root.configure(bg=bg_col)
+
+        # 4. Top Header Bar (Step 1)
         if hasattr(self, "header_outer"):
-            self.header_outer.configure(bg="#0b111e", highlightbackground=c.get("primary", "#f59e0b"), highlightthickness=2)
-        self.header_frame.configure(bg="#0b111e")
+            self.header_outer.configure(bg="#0b111e", highlightbackground=primary_col, highlightthickness=1)
+        if hasattr(self, "header_frame"):
+            self.header_frame.configure(bg="#0b111e")
         for attr in ("header_brand_left", "title_box", "title_row", "header_right", "header_heatmap_frame"):
             if hasattr(self, attr):
                 getattr(self, attr).configure(bg="#0b111e")
+
+        # Re-generate circular medallion emblem with active theme's primary color
         if hasattr(self, "lbl_header_emblem"):
-            self.lbl_header_emblem.configure(bg="#1a120b", fg=c.get("primary", "#fb923c"), highlightbackground=c.get("primary", "#f97316"))
+            emblem_photo = ShinobiGraphicsEngine.create_circular_emblem(size=44, bg="#111827", border_color=primary_col, border_width=2.5)
+            if emblem_photo:
+                self.lbl_header_emblem.configure(image=emblem_photo, bg="#0b111e", bd=0)
+                self.lbl_header_emblem.image = emblem_photo
+
         if hasattr(self, "lbl_title_prefix"):
             self.lbl_title_prefix.configure(bg="#0b111e", fg="#ffffff")
-        self.lbl_title.configure(bg="#0b111e", fg=c.get("primary", "#fbbf24"))
+        if hasattr(self, "lbl_title"):
+            self.lbl_title.configure(bg="#0b111e", fg=primary_col)
         if hasattr(self, "lbl_class8_pill"):
-            self.lbl_class8_pill.configure(bg="#0c2d48", fg="#38bdf8", highlightbackground="#0284c7")
-        self.lbl_subtitle.configure(bg="#0b111e", fg="#94a3b8")
+            self.lbl_class8_pill.configure(bg="#083344", fg="#22d3ee", highlightbackground="#06b6d4")
+        if hasattr(self, "lbl_subtitle"):
+            self.lbl_subtitle.configure(bg="#0b111e", fg="#94a3b8")
+
         if hasattr(self, "streak_box_frame"):
-            self.streak_box_frame.configure(bg="#131c2e", highlightbackground="#334155")
-        self.lbl_streak.configure(
-            text=f"🔥 Will of Fire: Day {self.habit_streak} Streak",
-            bg="#131c2e",
-            fg="#f8fafc"
-        )
+            self.streak_box_frame.configure(bg="#161f30", highlightbackground="#334155")
+        if hasattr(self, "lbl_streak"):
+            self.lbl_streak.configure(bg="#161f30", fg="#f8fafc")
         self._render_header_streak_dots()
+
         if hasattr(self, "btn_month_dropdown"):
             self.btn_month_dropdown.configure(
-                bg="#131c2e",
+                bg="#1e293b",
                 fg="#f8fafc",
-                activebackground=c.get("primary", "#f97316"),
+                activebackground=primary_col,
                 activeforeground="#0f172a",
                 highlightbackground="#334155"
             )
-        self.render_streak_heatmap()
 
-        # Update Shinobi Banner & Command Deck (Row 2 - Unified Deck Background)
+        # 5. Shinobi Hero Card (Step 2)
         if hasattr(self, "deck_container"):
-            self.deck_container.configure(bg=c["bg"])
+            self.deck_container.configure(bg=bg_col)
 
         if hasattr(self, "shinobi_banner_frame"):
             self.shinobi_banner_frame.configure(
-                bg="#0b111e",
-                highlightbackground=c.get("primary", "#f97316"),
-                highlightthickness=2
+                bg="#0c1322",
+                highlightbackground=border_col,
+                highlightthickness=1
             )
             banner_img = self.get_naruto_image(self.current_theme, size=(122, 122))
-            if banner_img:
+            if banner_img and hasattr(self, "lbl_shinobi_icon"):
                 self.lbl_shinobi_icon.configure(
                     image=banner_img,
                     text="",
                     bg="#0c1322",
-                    highlightbackground="#f59e0b",
+                    highlightbackground=primary_col,
                     highlightthickness=2
                 )
                 self.lbl_shinobi_icon.image = banner_img
-            else:
+            elif hasattr(self, "lbl_shinobi_icon"):
                 self.lbl_shinobi_icon.configure(
                     text=meta["icon"],
                     image="",
                     bg="#0c1322",
-                    highlightbackground="#f59e0b",
+                    highlightbackground=primary_col,
                     highlightthickness=2
                 )
 
@@ -13480,20 +13530,22 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
                 self.shinobi_text_box.configure(bg="#0c1322")
 
             if hasattr(self, "lbl_shinobi_eyebrow"):
-                self.lbl_shinobi_eyebrow.configure(fg="#fb923c", bg="#0c1322")
+                self.lbl_shinobi_eyebrow.configure(fg=primary_col, bg="#0c1322")
 
-            self.lbl_shinobi_title.configure(
-                text=f"{meta['character'].upper()} • {meta['title'].upper()}",
-                fg="#facc15",
-                bg="#0c1322"
-            )
+            if hasattr(self, "lbl_shinobi_title"):
+                self.lbl_shinobi_title.configure(
+                    text=f"{meta['character'].upper()} • {meta['title'].upper()}",
+                    fg=accent_col,
+                    bg="#0c1322"
+                )
 
             clean_quote = meta['quote'].strip('“"\'”')
-            self.lbl_shinobi_quote.configure(
-                text=f"“ {clean_quote} ”",
-                fg="#ffffff",
-                bg="#0c1322"
-            )
+            if hasattr(self, "lbl_shinobi_quote"):
+                self.lbl_shinobi_quote.configure(
+                    text=f"“ {clean_quote} ”",
+                    fg="#ffffff",
+                    bg="#0c1322"
+                )
 
             if hasattr(self, "shinobi_bottom_row"):
                 self.shinobi_bottom_row.configure(bg="#0c1322")
@@ -13503,7 +13555,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
                     text=f"⚡ Jutsu: {meta['jutsu']}",
                     fg="#fde68a",
                     bg="#090d16",
-                    highlightbackground="#eab308",
+                    highlightbackground=primary_col,
                     highlightthickness=1
                 )
 
@@ -13521,10 +13573,11 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
                         highlightthickness=1
                     )
 
+        # 6. Command Grid Deck (Step 3)
         if hasattr(self, "matrix_command_frame"):
             self.matrix_command_frame.configure(
                 bg="#0c1322",
-                highlightbackground="#d97706",
+                highlightbackground=border_col,
                 highlightthickness=1
             )
             for pill in getattr(self, "setting_pills", []):
@@ -13532,197 +13585,143 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
                     pill.configure(bg="#161f30", highlightbackground="#2e3b52")
                     for sch in pill.winfo_children():
                         if isinstance(sch, tk.Label):
-                            sch.configure(bg="#161f30", fg="#fb923c")
+                            if sch == getattr(pill, "lbl_title", None):
+                                sch.configure(bg="#161f30", fg=primary_col)
+                            else:
+                                sch.configure(bg="#161f30")
+
             if hasattr(self, "sub_prep_container") and self.sub_prep_container.winfo_exists():
                 self.sub_prep_container.configure(bg="#161f30", highlightbackground="#2e3b52")
             if hasattr(self, "lbl_exam_sub"):
-                self.lbl_exam_sub.configure(bg="#161f30", fg="#fb923c")
+                self.lbl_exam_sub.configure(bg="#161f30", fg=primary_col)
             if hasattr(self, "lbl_pre_exam_day"):
                 self.lbl_pre_exam_day.configure(bg="#161f30", fg="#38bdf8")
             if hasattr(self, "lbl_daily_mode_tag"):
                 self.lbl_daily_mode_tag.configure(bg="#161f30", fg="#f8fafc")
 
-        # Comprehensive theme synchronization for all action buttons and menus
-        def cfg_btn(b, bg_col, fg_col=None, active_bg=None, active_fg=None, border_col=None):
-            if b and hasattr(b, "winfo_exists") and b.winfo_exists():
-                try:
-                    c_fg = fg_col if fg_col else get_contrast_fg(bg_col)
-                    act_bg = active_bg if active_bg else bg_col
-                    act_fg = active_fg if active_fg else get_contrast_fg(act_bg)
-                    kwargs = {
-                        "bg": bg_col,
-                        "fg": c_fg,
-                        "activebackground": act_bg,
-                        "activeforeground": act_fg
-                    }
-                    if border_col:
-                        kwargs["highlightbackground"] = border_col
-                    b.configure(**kwargs)
-                except Exception:
-                    pass
+        # Synchronize Theme Selector Pill label & StringVar
+        if hasattr(self, "pill_theme") and self.pill_theme.winfo_exists():
+            self.pill_theme.set(meta["display_name"])
+        if hasattr(self, "theme_var"):
+            self.theme_var.set(meta["display_name"])
 
-        # Month Selector Button (Sage Mode Modern pill)
-        cfg_btn(getattr(self, "btn_month_dropdown", None), "#131c2e", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
+        # Re-theme 2x4 Action Grid Tiles
+        if hasattr(self, "action_tiles"):
+            for card, lbl_icon, lbl_text, is_gold_cta in self.action_tiles:
+                if is_gold_cta:
+                    card.configure(bg=primary_col, highlightbackground=accent_col)
+                    lbl_icon.configure(bg=primary_col, fg="#0f172a")
+                    lbl_text.configure(bg=primary_col, fg="#0f172a")
+                else:
+                    card.configure(bg="#161f30", highlightbackground="#2e3b52")
+                    lbl_icon.configure(bg="#161f30", fg=accent_col)
+                    lbl_text.configure(bg="#161f30", fg="#f8fafc")
 
-        # Matrix Command Deck Buttons (Option A: Dark Glass Action Deck + Solid Gold Primary Schedule Button)
-        for dark_btn_attr in ["btn_rotate_shinobi", "btn_guide_menu", "btn_parent_digest", "btn_shinobi_wisdom", "btn_v1_audit", "btn_error_bank"]:
-            cfg_btn(
-                getattr(self, dark_btn_attr, None),
-                "#131c2e",
-                "#f8fafc",
-                active_bg=c.get("primary", "#f97316"),
-                active_fg="#0f172a",
-                border_col="#334155"
-            )
         if hasattr(self, "guide_dropdown_menu") and self.guide_dropdown_menu:
             try:
                 self.guide_dropdown_menu.configure(
                     bg="#0f172a",
                     fg="#f8fafc",
-                    activebackground=c.get("primary", "#f97316"),
+                    activebackground=primary_col,
                     activeforeground="#0f172a"
                 )
             except Exception:
                 pass
-        cfg_btn(
-            getattr(self, "btn_quick_focus", None),
-            "#f59e0b",
-            "#1c1104",
-            active_bg="#fbbf24",
-            active_fg="#1c1104",
-            border_col="#fde047"
-        )
 
-        # STEP 5: Timer Deck (Option A: Circular Chakra Ring Timer with Character-Adaptive Outer Flame Glow)
+        # 7. Tab Navigation Bar & Golden Divider Line (Step 4)
+        if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
+            self.custom_tab_bar.configure(bg="#0b1120")
+            self.custom_tab_bar.active_indicator_color = primary_col
+            self.custom_tab_bar._refresh_all_tabs()
+
+        if hasattr(self, "tab_separator") and self.tab_separator.winfo_exists():
+            self.tab_separator.configure(bg=border_col)
+
+        # 8. Left Chakra Focus Timer Side Panel (Step 5)
         if hasattr(self, "timer_card") and self.timer_card.winfo_exists():
-            self.timer_card.configure(bg="#0b111e", highlightbackground=c.get("primary", "#f97316"), highlightthickness=2)
+            self.timer_card.configure(bg="#0b111e", highlightbackground=border_col, highlightthickness=1)
         if hasattr(self, "timer_pad_frame") and self.timer_pad_frame.winfo_exists():
             self.timer_pad_frame.configure(bg="#0b111e")
-        for tf in ["timer_info_box", "timer_ext_bar", "timer_opt_box", "timer_habit_box"]:
-            f_w = getattr(self, tf, None)
-            if f_w and f_w.winfo_exists():
+        if hasattr(self, "lbl_timer_head") and self.lbl_timer_head.winfo_exists():
+            self.lbl_timer_head.configure(
+                text=f"⏱️ THARUN'S CHAKRA FOCUS TIMER ({meta['character'].upper()})",
+                fg=primary_col,
+                bg="#0b111e"
+            )
+        if hasattr(self, "timer_info_box") and self.timer_info_box.winfo_exists():
+            self.timer_info_box.configure(bg="#111a2e", highlightbackground=border_col, highlightthickness=1)
+
+        # Update Timer Portrait
+        if hasattr(self, "lbl_timer_art") and self.lbl_timer_art.winfo_exists():
+            t_img = self.get_naruto_image(self.current_theme, size=(60, 60))
+            if t_img:
+                self.lbl_timer_art.configure(image=t_img, text="", bg="#111a2e", highlightbackground=primary_col)
+                self.lbl_timer_art.image = t_img
+            else:
+                self.lbl_timer_art.configure(text=meta["icon"], image="", font=("Segoe UI", 22), bg="#111a2e")
+
+        # Update Primary Timer Toggle Button
+        if hasattr(self, "btn_timer_toggle") and self.btn_timer_toggle.winfo_exists():
+            self.btn_timer_toggle.configure(
+                bg_top=accent_col,
+                bg_bot=primary_col,
+                border_color=accent_col,
+                fg_color="#0f172a"
+            )
+
+        # 9. Tab Frames Background Synchronization
+        for tab in [getattr(self, "tab_schedule", None), getattr(self, "tab_diary", None), getattr(self, "tab_portions", None)]:
+            if tab and tab.winfo_exists():
                 try:
-                    f_w.configure(bg="#131c2e", highlightbackground="#334155")
+                    tab.configure(bg=bg_col)
                 except Exception:
                     pass
 
-        cfg_btn(getattr(self, "btn_timer_toggle", None), c.get("primary", "#f97316"), "#0f172a", active_bg="#fbbf24", active_fg="#0f172a", border_col="#fde047")
-        cfg_btn(getattr(self, "btn_timer_reset", None), "#131c2e", "#f8fafc", active_bg="#1e293b", active_fg="#f8fafc", border_col="#334155")
-        cfg_btn(getattr(self, "btn_timer_next", None), "#131c2e", "#f8fafc", active_bg="#1e293b", active_fg="#f8fafc", border_col="#334155")
-        cfg_btn(getattr(self, "btn_timer_early", None), "#131c2e", "#facc15", active_bg="#f59e0b", active_fg="#0f172a", border_col="#eab308")
-        cfg_btn(getattr(self, "btn_end_day", None), "#131c2e", "#34d399", active_bg="#10b981", active_fg="#0f172a", border_col="#10b981")
-
-        if hasattr(self, "timer_ext_buttons") and self.timer_ext_buttons:
-            for b in self.timer_ext_buttons:
-                cfg_btn(b, "#1e293b", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#475569")
-
-        cfg_btn(getattr(self, "btn_test_sound", None), "#1e293b", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#475569")
-        cfg_btn(getattr(self, "btn_browse_wisdom", None), "#1e293b", "#facc15", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#475569")
-        cfg_btn(getattr(self, "btn_subject_playbook", None), "#1e293b", "#38bdf8", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#475569")
-        cfg_btn(getattr(self, "btn_active_sub_guide", None), "#1e293b", "#fb923c", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#475569")
-
-        if hasattr(self, "rescue_buttons") and self.rescue_buttons:
-            r_fg_cols = ["#38bdf8", "#f87171", "#e2e8f0", "#fb923c", "#facc15", "#34d399", "#94a3b8"]
-            for b, fg_col in zip(self.rescue_buttons, r_fg_cols):
-                cfg_btn(b, "#1e293b", fg_col, active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
-
-        # Tab 1: Timeline / Schedule
+        # Schedule Timeline View Containers
         for fr in ["timeline_header", "mode_controls_frame", "balanced_controls_frame", "exam_controls_frame", "pre_exam_controls_frame", "timeline_btn_box"]:
             f_widget = getattr(self, fr, None)
             if f_widget and f_widget.winfo_exists():
                 try:
-                    f_widget.configure(bg=c["bg"])
+                    f_widget.configure(bg=bg_col)
                 except Exception:
                     pass
+
         if hasattr(self, "timeline_badge_lbl") and self.timeline_badge_lbl.winfo_exists():
-            self.timeline_badge_lbl.configure(bg=c["bg"], fg=c["fg"])
+            self.timeline_badge_lbl.configure(bg=bg_col, fg="#ffffff")
         if hasattr(self, "lbl_diary_date_prefix") and self.lbl_diary_date_prefix.winfo_exists():
-            self.lbl_diary_date_prefix.configure(bg=c["bg"], fg=c["fg_muted"])
-        if hasattr(self, "lbl_timeline_exam_prefix") and self.lbl_timeline_exam_prefix.winfo_exists():
-            self.lbl_timeline_exam_prefix.configure(bg=c["bg"], fg=c["warning"])
-        if hasattr(self, "lbl_timeline_prep_prefix") and self.lbl_timeline_prep_prefix.winfo_exists():
-            self.lbl_timeline_prep_prefix.configure(bg=c["bg"], fg=c["accent"])
+            self.lbl_diary_date_prefix.configure(bg=bg_col, fg=c.get("fg_muted", "#94a3b8"))
 
-        cfg_btn(getattr(self, "btn_timeline_roadmap", None), c["accent"], active_bg=c["primary"])
-        cfg_btn(getattr(self, "btn_regen", None), c["primary"], active_bg=c.get("primary_hover", c["primary"]))
-        cfg_btn(getattr(self, "btn_export", None), c["input_bg"], c["fg"], border_col=c["card_border"], active_bg=c["card_border"])
+        if hasattr(self, "btn_regen") and self.btn_regen.winfo_exists():
+            self.btn_regen.configure(bg_top="#fcd34d", bg_bot=primary_col, border_color=primary_col, fg_color="#0f172a")
+        if hasattr(self, "btn_export") and self.btn_export.winfo_exists():
+            self.btn_export.configure(bg_top="#fcd34d", bg_bot=border_col, border_color=border_col, fg_color="#0f172a")
 
-        # STEP 8: Exam Portions & Syllabus Tracker (Option B: Scroll & Chakra Ledger)
+        if hasattr(self, "sched_paned") and self.sched_paned.winfo_exists():
+            self.sched_paned.configure(bg=bg_col)
+        if hasattr(self, "timeline_card") and self.timeline_card.winfo_exists():
+            self.timeline_card.configure(bg=bg_col)
+        if hasattr(self, "sched_canvas") and self.sched_canvas.winfo_exists():
+            self.sched_canvas.configure(bg=bg_col)
+        if hasattr(self, "sched_inner") and self.sched_inner.winfo_exists():
+            self.sched_inner.configure(bg=bg_col)
+
+        # Tab 2 & 3 Containers
         if hasattr(self, "portions_header_card") and self.portions_header_card.winfo_exists():
-            self.portions_header_card.configure(bg="#0e172a", highlightbackground="#d4af5a")
+            self.portions_header_card.configure(bg="#0e172a", highlightbackground=border_col)
         if hasattr(self, "portion_filter_bar") and self.portion_filter_bar.winfo_exists():
-            self.portion_filter_bar.configure(bg=c["bg"])
+            self.portion_filter_bar.configure(bg=bg_col)
         if hasattr(self, "portions_canvas") and self.portions_canvas.winfo_exists():
-            self.portions_canvas.configure(bg=c["bg"])
+            self.portions_canvas.configure(bg=bg_col)
         if hasattr(self, "portions_inner") and self.portions_inner.winfo_exists():
-            self.portions_inner.configure(bg=c["bg"])
+            self.portions_inner.configure(bg=bg_col)
 
-        cfg_btn(getattr(self, "btn_upload_portions", None), "#f59e0b", "#1c1104", active_bg="#fbbf24", active_fg="#1c1104", border_col="#fde047")
-        cfg_btn(getattr(self, "btn_paste_portions", None), "#131c2e", "#38bdf8", active_bg="#1e293b", active_fg="#38bdf8", border_col="#334155")
-        cfg_btn(getattr(self, "btn_launch_pre_exam", None), "#161006", "#facc15", active_bg="#f59e0b", active_fg="#1c1104", border_col="#eab308")
-        cfg_btn(getattr(self, "btn_copy_portions", None), "#131c2e", "#f8fafc", active_bg="#1e293b", active_fg="#f8fafc", border_col="#334155")
-        cfg_btn(getattr(self, "btn_reset_checks", None), "#131c2e", "#f87171", active_bg="#2a1215", active_fg="#fca5a5", border_col="#334155")
-
-        if hasattr(self, "filter_buttons") and self.filter_buttons:
-            for name, btn in self.filter_buttons.items():
-                is_act = (getattr(self, "portion_filter", "All Subjects") == name)
-                btn.config(
-                    text=f"📜 {name}" if is_act else name,
-                    bg="#f5e4c3" if is_act else "#131c2e",
-                    fg="#1f1206" if is_act else "#cbd5e1",
-                    highlightbackground="#991b1b" if is_act else "#334155"
-                )
-
-        # STEP 7: School Diary (Option B: Scroll & Chakra Ledger)
         if hasattr(self, "diary_top_bar") and self.diary_top_bar.winfo_exists():
-            self.diary_top_bar.configure(bg="#0e172a", highlightbackground="#d4af5a")
+            self.diary_top_bar.configure(bg="#0e172a", highlightbackground=border_col)
         if hasattr(self, "diary_add_box") and self.diary_add_box.winfo_exists():
-            self.diary_add_box.configure(bg="#0e172a", highlightbackground="#b48a3e")
-
-        cfg_btn(getattr(self, "btn_apply", None), "#f59e0b", "#1c1104", active_bg="#fbbf24", active_fg="#1c1104", border_col="#fde047")
-        cfg_btn(getattr(self, "btn_audit", None), "#131c2e", "#38bdf8", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
-        cfg_btn(getattr(self, "btn_save", None), "#131c2e", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
-        cfg_btn(getattr(self, "btn_open_input", None), "#131c2e", "#34d399", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
-        cfg_btn(getattr(self, "btn_import_folder", None), "#131c2e", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
-        cfg_btn(getattr(self, "btn_import", None), "#131c2e", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
-        cfg_btn(getattr(self, "btn_photo_assistant", None), "#131c2e", "#facc15", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#d4af5a")
-        cfg_btn(getattr(self, "btn_add_entry", None), "#f59e0b", "#1c1104", active_bg="#fbbf24", active_fg="#1c1104", border_col="#fde047")
-
-        # Update Timer Companion Art (Option A: 52x52 portrait with gold border)
-        if hasattr(self, "lbl_timer_art"):
-            timer_img = self.get_naruto_image(self.current_theme, size=(52, 52))
-            if timer_img:
-                self.lbl_timer_art.configure(image=timer_img, text="", bg="#131c2e", highlightbackground=c.get("primary", "#f59e0b"))
-                self.lbl_timer_art.image = timer_img
-            else:
-                self.lbl_timer_art.configure(text=meta["icon"], image="", font=("Segoe UI", 22), bg="#131c2e")
-
-        if hasattr(self, "theme_var"):
-            self.theme_var.set(meta["display_name"])
-
-        if hasattr(self, "lbl_timer_head"):
-            self.lbl_timer_head.configure(
-                text=f"⏱️ THARUN'S CHAKRA FOCUS TIMER ({meta['character'].upper()})",
-                fg=c.get("primary", "#fb923c"),
-                bg="#0b111e"
-            )
-
-        # Update tabs bg
-        for tab in [self.tab_schedule, self.tab_diary, self.tab_portions]:
-            try:
-                tab.configure(bg=c["bg"])
-            except Exception:
-                pass
+            self.diary_add_box.configure(bg="#0e172a", highlightbackground=border_col)
 
         style = ttk.Style()
         self.configure_notebook_styles(style)
-        self.update_timer_display()
-        self.render_timetable_cards()
-        self.render_diary_table()
-        self.render_portion_cards()
-        self.render_gravity_list()
-        if hasattr(self, "audit_tree"):
-            self.render_audit_tab_content()
 
     def open_diary_photo_assistant_window(self, image_path=None):
         """Smart Side-by-Side Diary Photo Assistant: Eliminates OCR handwriting errors with zoomable photo preview + 1-click subject chips."""

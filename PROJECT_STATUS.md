@@ -16,8 +16,8 @@
 | **Phase 3: Pop-up Modals Suite** | Section 9 in `study_balancer.py` | ✅ 100% Complete | `desktop_step9_guide.png` & `desktop_step9_playbook.png` |
 | **Phase 4: Executable Rebuild** | `dist\ScholasticPulse_V2.exe` | ✅ 100% Complete | Standalone EXE (61.5 MB) Rebuilt & Deployed |
 | **Phase 5: Precision Hardening** | JSON Dual-Path & Unified HUD Shell | ✅ 100% Complete | Verified Dual-Path Persistence & Option C HUD Modals |
-| **Phase 7: High-DPI Visual Parity** | 4x SSAA Engine, Radial Aura, 3D Scrolls & Dark Title Bar | ✅ 100% Complete | `desktop_v2_highdpi_final.png` Verified |
 | **Phase 8: Forensic Parity Upgrade** | Pixel, Typography, 16 Flare Nodules, Metallic Plaque & 3D Scrolls | ✅ 100% Complete | `desktop_step1_to_6_tab1.png` & `desktop_step8_portions.png` |
+| **Phase 9: Theme Synchronization** | Dynamic Canvas Re-Rendering & Engine Cache Clearing | ✅ 100% Complete | `desktop_theme_rotated.png` & `desktop_itachi_theme.png` Verified |
 
 ---
 
@@ -116,3 +116,10 @@ All 9 desktop sections are visually audited on Windows via Win32 print window ca
    - **Steps 7, 8 & 9 (Diary, Portions & Verification)**: Verified multi-term selector (`Term-I`, `Term-II`, `Periodic Test-2`, `Annual Exam`) and 2-column syllabus cards in Tab 3. Re-captured live Win32 screenshots across all 3 tabs confirming 100% visual parity with `index.html`.
    - **Re-compiled & Synchronized Production Binary**: Re-compiled `dist\ScholasticPulse_V2.exe` (63.1 MB) and synced across `VERSION_2_WORKPLACE` and workspace root. All changes committed and pushed to GitHub repository (`https://github.com/prakashjune8/tharun_studyhour`).
 
+10. **Phase 9: Theme Rotation Synchronization & Dynamic Canvas Re-Rendering**:
+    - **Engine Cache Clearing**: Added `ShinobiGraphicsEngine.clear_cache()` class method to flush the PIL cached `PhotoImage` memory bank on every theme rotation or selection event.
+    - **Dynamic Circular Chakra Ring Aura & Flares**: Updated `update_progress_bar()` to dynamically re-derive the 16 perimeter flare nodules, outer Gaussian radial aura, inner ring background, and sub-badge colors directly from `c["primary"]` and `c["accent"]`, enabling seamless transitions between Naruto (Amber/Gold), Sasuke (Sky Blue/Indigo), Kakashi (Cyan), and Itachi (Crimson/Red).
+    - **Synchronized Tab Bar Underline**: Updated `ShinobiTabBar` with dynamic `active_indicator_color` property and real-time tab redraws on theme rotation.
+    - **Live Re-Configuration Loop**: Replaced all hardcoded container borders in `apply_theme()` (`header_outer`, `shinobi_banner_frame`, `matrix_command_frame`, `tab_separator`) with dynamic theme colors. Added hover background tracking across `self.action_tiles` and dynamically re-rendered `lbl_header_emblem`, `lbl_shinobi_rank_badge`, and `lbl_timer_art`.
+    - **Centralized `refresh_all_views()`**: Integrated full view refreshes across schedule cards, diary tables, portions cards, gravity list, and audit tabs upon rotation or dropdown selection. Verified live desktop switching with screenshots (`desktop_theme_rotated.png` for Kakashi cyan and `desktop_itachi_theme.png` for Itachi crimson).
+    - **Re-compiled & Synchronized Production Binary**: Re-compiled `dist\ScholasticPulse_V2.exe` (63.1 MB) and synced to both `VERSION_2_WORKPLACE\dist` and root `dist`.
