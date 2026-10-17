@@ -1029,28 +1029,116 @@
       display: none;
       position: absolute;
       right: 0;
-      top: 100%;
-      min-width: 270px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      top: calc(100% + 6px);
+      min-width: 320px;
+      max-width: 370px;
+      background: rgba(11, 17, 32, 0.98);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(217, 119, 6, 0.65);
+      border-radius: 12px;
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.88), 0 0 24px rgba(217, 119, 6, 0.22);
       z-index: 1000;
-      padding: 6px 0;
-      margin-top: 4px;
+      padding: 8px;
+      margin-top: 2px;
+      animation: shinobiDropdownFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .guide-dropdown-menu a {
-      display: block;
-      padding: 8px 14px;
-      font-size: 0.82rem;
-      color: var(--text);
+    .guide-dd-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px 8px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 4px;
+    }
+    .guide-dd-hdr-icon {
+      font-size: 0.95rem;
+    }
+    .guide-dd-hdr-title {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #f59e0b;
+    }
+    .guide-dd-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      margin: 3px 0;
+      border-radius: 8px;
+      background: rgba(22, 31, 48, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       text-decoration: none;
-      font-weight: 600;
-      transition: background 0.15s, color 0.15s;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      box-sizing: border-box;
     }
-    .guide-dropdown-menu a:hover {
-      background: var(--highlight);
-      color: var(--primary);
+    .guide-dd-icon-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      flex-shrink: 0;
+      transition: all 0.18s ease;
+    }
+    .guide-dd-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .guide-dd-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.15s ease;
+    }
+    .guide-dd-sub {
+      font-size: 0.67rem;
+      font-weight: 500;
+      color: #94a3b8;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .guide-dd-arrow {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #64748b;
+      margin-left: 4px;
+      transition: all 0.18s ease;
+      flex-shrink: 0;
+    }
+    .guide-dd-card:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(245, 158, 11, 0.75);
+      transform: translateX(3px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 12px rgba(245, 158, 11, 0.25);
+    }
+    .guide-dd-card:hover .guide-dd-icon-badge {
+      background: rgba(245, 158, 11, 0.18);
+      border-color: #f59e0b;
+      transform: scale(1.05);
+    }
+    .guide-dd-card:hover .guide-dd-title {
+      color: #fbbf24;
+    }
+    .guide-dd-card:hover .guide-dd-arrow {
+      color: #f59e0b;
+      transform: translateX(3px);
     }
 
     button {
@@ -3205,11 +3293,58 @@
             <span>Guides ▾</span>
           </button>
           <div id="guideDropdownMenu" class="guide-dropdown-menu">
-            <a href="javascript:void(0)" onclick="openGuideModal('gravity')">⚖️ Core Subject Priorities &amp; Weightage</a>
-            <a href="javascript:void(0)" onclick="openGuideModal('skills')">✍️ Spelling &amp; Diagram Clinic Protocol</a>
-            <a href="javascript:void(0)" onclick="openGuideModal('audit')">📊 Time Variance &amp; Occurrence Audit</a>
-            <a href="javascript:void(0)" onclick="openGuideModal('levels')">📈 Habit Progression Ladder (Levels 1-3)</a>
-            <a href="javascript:void(0)" onclick="openShinobiWisdomModal()">🎙️ Voice &amp; Wisdom Scroll (43 Tracks)</a>
+            <div class="guide-dd-header">
+              <span class="guide-dd-hdr-icon">📜</span>
+              <span class="guide-dd-hdr-title">SHINOBI STUDY PROTOCOLS &amp; GUIDES</span>
+            </div>
+            <a href="javascript:void(0)" class="guide-dd-card" onclick="openGuideModal('gravity')">
+              <div class="guide-dd-icon-badge">⚖️</div>
+              <div class="guide-dd-content">
+                <div class="guide-dd-title">Core Subject Priorities &amp; Weightage</div>
+                <div class="guide-dd-sub">CBSE Class 8 Cognitive Load &amp; Study Gravity Matrix</div>
+              </div>
+              <div class="guide-dd-arrow">›</div>
+            </a>
+            <a href="javascript:void(0)" class="guide-dd-card" onclick="openGuideModal('skills')">
+              <div class="guide-dd-icon-badge">✍️</div>
+              <div class="guide-dd-content">
+                <div class="guide-dd-title">Spelling &amp; Diagram Clinic Protocol</div>
+                <div class="guide-dd-sub">Pen-and-Paper Mistake Log, Blind Diagrams &amp; Science Clinics</div>
+              </div>
+              <div class="guide-dd-arrow">›</div>
+            </a>
+            <a href="javascript:void(0)" class="guide-dd-card" onclick="openGuideModal('audit')">
+              <div class="guide-dd-icon-badge">📊</div>
+              <div class="guide-dd-content">
+                <div class="guide-dd-title">Subject Occurrence &amp; Time Variance Audit</div>
+                <div class="guide-dd-sub">Historical Slot Adherence, Extensions &amp; Friction Analysis</div>
+              </div>
+              <div class="guide-dd-arrow">›</div>
+            </a>
+            <a href="javascript:void(0)" class="guide-dd-card" onclick="openGuideModal('levels')">
+              <div class="guide-dd-icon-badge">📈</div>
+              <div class="guide-dd-content">
+                <div class="guide-dd-title">Habit Progression Ladder (Levels 1–3)</div>
+                <div class="guide-dd-sub">Genin (15m) → Chunin (30m) → Jonin (45m) Mastery Protocol</div>
+              </div>
+              <div class="guide-dd-arrow">›</div>
+            </a>
+            <a href="javascript:void(0)" class="guide-dd-card" onclick="openShinobiWisdomModal()">
+              <div class="guide-dd-icon-badge">🎙️</div>
+              <div class="guide-dd-content">
+                <div class="guide-dd-title">Voice &amp; Wisdom Scroll (43 Tracks)</div>
+                <div class="guide-dd-sub">Naruto Uzumaki &amp; Alexa Shinobi Audio Coaching &amp; Guidance</div>
+              </div>
+              <div class="guide-dd-arrow">›</div>
+            </a>
+            <a href="javascript:void(0)" class="guide-dd-card" onclick="openV1AuditModal()">
+              <div class="guide-dd-icon-badge">🔍</div>
+              <div class="guide-dd-content">
+                <div class="guide-dd-title">V1 Chronological System Audit</div>
+                <div class="guide-dd-sub">Timeline Verification, Checkpoints &amp; Material Inspector</div>
+              </div>
+              <div class="guide-dd-arrow">›</div>
+            </a>
           </div>
         </div>
 
@@ -8346,6 +8481,8 @@
     }
 
     function openShinobiWisdomModal() {
+      const gMenu = document.getElementById("guideDropdownMenu");
+      if (gMenu) gMenu.style.display = "none";
       const modal = document.getElementById("shinobiWisdomModal");
       if (!modal) return;
       modal.style.display = "flex";
@@ -12776,6 +12913,8 @@ const V1_AUDIT_CHECKPOINTS = [
 let activeV1AuditFilter = "All";
 
 function openV1AuditModal() {
+  const gMenu = document.getElementById("guideDropdownMenu");
+  if (gMenu) gMenu.style.display = "none";
   const m = document.getElementById("v1AuditModal");
   if (!m) return;
   m.style.display = "flex";

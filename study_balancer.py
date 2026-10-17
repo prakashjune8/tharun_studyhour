@@ -5442,12 +5442,158 @@ class DesktopApp:
             command=self.open_v1_audit_inspector_modal
         )
         def _popup_guides_menu():
+            if getattr(self, "_active_guides_popup", None) and self._active_guides_popup.winfo_exists():
+                try:
+                    self._active_guides_popup.destroy()
+                except Exception:
+                    pass
+                self._active_guides_popup = None
+                return
+
+            if ShinobiPillSelector._active_popup:
+                ShinobiPillSelector.close_active_popup()
+
+            btn = getattr(self, "btn_guide_menu", None)
+            if not btn:
+                return
+
+            popup = tk.Toplevel(self.root)
+            self._active_guides_popup = popup
+            popup.overrideredirect(True)
             try:
-                x = self.btn_guide_menu.winfo_rootx()
-                y = self.btn_guide_menu.winfo_rooty() + self.btn_guide_menu.winfo_height()
-                self.guide_dropdown_menu.tk_popup(x, y)
+                popup.attributes("-topmost", True)
             except Exception:
                 pass
+
+            p_col = self.colors.get("primary", "#f59e0b")
+            a_col = self.colors.get("accent", "#fb923c")
+
+            popup.configure(bg="#0c1322", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground=p_col)
+
+            guide_items = [
+                ("⚖️", "Core Subject Priorities & Weightage", "CBSE Class 8 Cognitive Load & Study Gravity Matrix", lambda: self.open_guide_modal("gravity")),
+                ("✍️", "Spelling & Diagram Clinic Protocol", "Pen-and-Paper Mistake Log, Blind Diagrams & Science Clinics", lambda: self.open_guide_modal("skills")),
+                ("📊", "Subject Occurrence & Time Variance Audit", "Historical Slot Adherence, Extensions & Friction Analysis", lambda: self.open_guide_modal("audit")),
+                ("📈", "Habit Progression Ladder (Levels 1-3)", "Genin (15m) → Chunin (30m) → Jonin (45m) Mastery Protocol", lambda: self.open_guide_modal("levels")),
+                ("🎙️", "Voice & Wisdom Scroll (43 Tracks)", "Naruto Uzumaki & Alexa Shinobi Audio Coaching & Guidance", self.open_shinobi_wisdom_modal),
+                ("🔍", "V1 Chronological System Audit", "Timeline Verification, Checkpoints & Material Inspector", self.open_v1_audit_inspector_modal),
+            ]
+
+            popup_w = 360
+            item_h = 48
+            total_h = 36 + len(guide_items) * item_h + 10
+
+            x = btn.winfo_rootx()
+            y = btn.winfo_rooty() + btn.winfo_height() + 3
+            screen_w = popup.winfo_screenwidth()
+            screen_h = popup.winfo_screenheight()
+
+            if x + popup_w > screen_w - 10:
+                x = screen_w - popup_w - 10
+            if y + total_h > screen_h - 40:
+                y = btn.winfo_rooty() - total_h - 3
+
+            popup.geometry(f"{popup_w}x{total_h}+{x}+{y}")
+
+            # Top Header Strip
+            hdr = tk.Frame(popup, bg="#0c1322", padx=10, pady=6)
+            hdr.pack(fill=tk.X)
+            lbl_hdr = tk.Label(hdr, text="📜 SHINOBI STUDY PROTOCOLS & GUIDES", font=("Segoe UI", 8, "bold"), fg=p_col, bg="#0c1322")
+            lbl_hdr.pack(side=tk.LEFT)
+
+            sep = tk.Frame(popup, bg="#1e293b", height=1)
+            sep.pack(fill=tk.X, padx=8, pady=(0, 4))
+
+            container = tk.Frame(popup, bg="#0c1322", padx=6, pady=2)
+            container.pack(fill=tk.BOTH, expand=True)
+
+            for icon, title, sub, cmd in guide_items:
+                card = tk.Frame(
+                    container,
+                    bg="#0f172a",
+                    bd=1,
+                    relief=tk.SOLID,
+                    highlightthickness=1,
+                    highlightbackground="#1e293b",
+                    cursor="hand2"
+                )
+                card.pack(fill=tk.X, padx=2, pady=2)
+
+                badge = tk.Frame(card, bg="#1e293b", width=30, height=30)
+                badge.pack_propagate(False)
+                badge.pack(side=tk.LEFT, padx=(6, 8), pady=4)
+                lbl_ico = tk.Label(badge, text=icon, font=("Segoe UI Emoji", 11), fg=p_col, bg="#1e293b")
+                lbl_ico.pack(expand=True)
+
+                txt_box = tk.Frame(card, bg="#0f172a")
+                txt_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, pady=3)
+
+                lbl_t = tk.Label(txt_box, text=title, font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg="#0f172a", anchor="w")
+                lbl_t.pack(anchor="w")
+
+                lbl_s = tk.Label(txt_box, text=sub, font=("Segoe UI", 7), fg="#94a3b8", bg="#0f172a", anchor="w")
+                lbl_s.pack(anchor="w")
+
+                lbl_arr = tk.Label(card, text="›", font=("Segoe UI", 11, "bold"), fg="#64748b", bg="#0f172a")
+                lbl_arr.pack(side=tk.RIGHT, padx=(0, 8))
+
+                card_widgets = [card, badge, lbl_ico, txt_box, lbl_t, lbl_s, lbl_arr]
+
+                def _bind_guide(c=card, t=txt_box, a=lbl_arr, lt=lbl_t, ls=lbl_s, callback=cmd, p=p_col, ac=a_col):
+                    def _enter(e):
+                        c.configure(bg="#1e293b", highlightbackground=p)
+                        t.configure(bg="#1e293b")
+                        a.configure(bg="#1e293b", fg=p)
+                        lt.configure(bg="#1e293b", fg=ac)
+                        ls.configure(bg="#1e293b")
+                    def _leave(e):
+                        c.configure(bg="#0f172a", highlightbackground="#1e293b")
+                        t.configure(bg="#0f172a")
+                        a.configure(bg="#0f172a", fg="#64748b")
+                        lt.configure(bg="#0f172a", fg="#f8fafc")
+                        ls.configure(bg="#0f172a")
+                    def _click(e):
+                        if popup and popup.winfo_exists():
+                            try:
+                                popup.destroy()
+                            except Exception:
+                                pass
+                        self._active_guides_popup = None
+                        callback()
+                    return _enter, _leave, _click
+
+                ent_fn, lev_fn, clk_fn = _bind_guide(card, txt_box, lbl_arr, lbl_t, lbl_s, cmd, p_col, a_col)
+
+                for w in card_widgets:
+                    w.bind("<Enter>", ent_fn)
+                    w.bind("<Leave>", lev_fn)
+                    w.bind("<Button-1>", clk_fn)
+
+            def _check_click_outside(e):
+                if not popup.winfo_exists():
+                    return
+                try:
+                    px = popup.winfo_rootx()
+                    py = popup.winfo_rooty()
+                    pw = popup.winfo_width()
+                    ph = popup.winfo_height()
+                    if not (px <= e.x_root <= px + pw and py <= e.y_root <= py + ph):
+                        if popup and popup.winfo_exists():
+                            popup.destroy()
+                        self._active_guides_popup = None
+                except Exception:
+                    if popup and popup.winfo_exists():
+                        popup.destroy()
+                    self._active_guides_popup = None
+
+            popup.bind("<FocusOut>", lambda e: popup.destroy() if popup.winfo_exists() else None)
+            popup.bind("<Escape>", lambda e: popup.destroy() if popup.winfo_exists() else None)
+            try:
+                self.root.bind("<Button-1>", _check_click_outside, add="+")
+            except Exception:
+                pass
+            popup.focus_set()
+
         self.btn_guide_menu = _make_stacked_action_card(1, 1, "📖", "Guides ▾", _popup_guides_menu)
 
         self.btn_parent_digest = _make_stacked_action_card(1, 2, "📊", "Digest", self.open_weekly_parent_digest)
