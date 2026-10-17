@@ -2394,8 +2394,120 @@ class ShinobiGraphicsEngine:
         return photo
 
     @classmethod
-    def create_3d_parchment_scroll(cls, width, height, roller_width=18, is_mini_badge=False, is_rollover=False):
-        key = ('scroll', width, height, roller_width, is_mini_badge, is_rollover)
+    def create_circular_emblem(cls, size=44, bg="#111827", border_color="#f97316", border_width=2.5):
+        key = ('emblem', size, bg, border_color, border_width)
+        if key in cls._cache:
+            return cls._cache[key]
+        if Image is None or ImageDraw is None:
+            return None
+        scale = 4
+        s = max(4, size * scale)
+        img = Image.new('RGBA', (s, s), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        bg_rgb = cls._hex_to_rgb(bg)
+        b_rgb = cls._hex_to_rgb(border_color)
+        sbw = max(2, int(border_width * scale))
+        
+        # Outer circular frame
+        draw.ellipse([sbw // 2, sbw // 2, s - 1 - sbw // 2, s - 1 - sbw // 2], fill=(*bg_rgb, 255), outline=(*b_rgb, 255), width=sbw)
+        
+        # Center golden swirl (Naruto Leaf / Uzumaki spiral)
+        import math
+        cx, cy = s / 2.0, s / 2.0
+        spiral_pts = []
+        for deg in range(0, 680, 8):
+            rad = math.radians(deg)
+            r = (deg / 680.0) * (s * 0.30)
+            px = cx + r * math.cos(rad)
+            py = cy + r * math.sin(rad)
+            spiral_pts.append((px, py))
+        if len(spiral_pts) > 1:
+            draw.line(spiral_pts, fill=(251, 191, 36, 255), width=max(2, int(2.5 * scale)))
+        
+        res = img.resize((size, size), Image.Resampling.LANCZOS)
+        photo = ImageTk.PhotoImage(res)
+        cls._cache[key] = photo
+        return photo
+
+    @classmethod
+    def create_hexagonal_rank_plaque(cls, width=144, height=28, text="RANK: HOKAGE"):
+        key = ('hex_rank', width, height, text)
+        if key in cls._cache:
+            return cls._cache[key]
+        if Image is None or ImageDraw is None:
+            return None
+        scale = 4
+        sw, sh = max(1, width * scale), max(1, height * scale)
+        img = Image.new('RGBA', (sw, sh), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        
+        # Chamfered pointed ribbon polygon: polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%)
+        inset_x = int(sw * 0.08)
+        poly = [
+            (inset_x, 0),
+            (sw - inset_x, 0),
+            (sw - 1, sh // 2),
+            (sw - inset_x, sh - 1),
+            (inset_x, sh - 1),
+            (0, sh // 2)
+        ]
+        
+        mask = Image.new('L', (sw, sh), 0)
+        mdraw = ImageDraw.Draw(mask)
+        mdraw.polygon(poly, fill=255)
+        
+        # Metallic gold vertical gradient: #fde68a (top) -> #d99a2b (mid) -> #8a5a12 (bottom)
+        grad = Image.new('RGBA', (sw, sh), (0, 0, 0, 0))
+        gdraw = ImageDraw.Draw(grad)
+        top_c = (253, 230, 138)
+        mid_c = (217, 154, 43)
+        bot_c = (138, 90, 18)
+        for y in range(sh):
+            rel_y = y / max(1, sh - 1)
+            if rel_y < 0.5:
+                fac = rel_y / 0.5
+                r = int(top_c[0] + (mid_c[0] - top_c[0]) * fac)
+                g = int(top_c[1] + (mid_c[1] - top_c[1]) * fac)
+                b = int(top_c[2] + (mid_c[2] - top_c[2]) * fac)
+            else:
+                fac = (rel_y - 0.5) / 0.5
+                r = int(mid_c[0] + (bot_c[0] - mid_c[0]) * fac)
+                g = int(mid_c[1] + (bot_c[1] - mid_c[1]) * fac)
+                b = int(mid_c[2] + (bot_c[2] - mid_c[2]) * fac)
+            gdraw.line([(0, y), (sw, y)], fill=(r, g, b, 255))
+            
+        img.paste(grad, (0, 0), mask)
+        draw.polygon(poly, outline=(254, 240, 138, 255), width=max(1, int(1.5 * scale)))
+        
+        # Render text in crisp dark ink (#1b1205)
+        try:
+            from PIL import ImageFont
+            font = None
+            for font_name in ["segoeuib.ttf", "arialbd.ttf", "tahoma.ttf"]:
+                try:
+                    font = ImageFont.truetype(font_name, int(9 * scale))
+                    break
+                except Exception:
+                    pass
+            if not font:
+                font = ImageFont.load_default()
+            bbox = draw.textbbox((0, 0), text, font=font)
+            tw = bbox[2] - bbox[0]
+            th = bbox[3] - bbox[1]
+            tx = (sw - tw) // 2
+            ty = (sh - th) // 2 - int(1 * scale)
+            draw.text((tx, ty), text, fill=(27, 18, 5, 255), font=font)
+        except Exception:
+            pass
+            
+        res = img.resize((width, height), Image.Resampling.LANCZOS)
+        photo = ImageTk.PhotoImage(res)
+        cls._cache[key] = photo
+        return photo
+
+    @classmethod
+    def create_3d_parchment_scroll(cls, width, height, roller_width=18, is_mini_badge=False, is_rollover=False, is_dark_slate=False):
+        key = ('scroll', width, height, roller_width, is_mini_badge, is_rollover, is_dark_slate)
         if key in cls._cache:
             return cls._cache[key]
 
@@ -2409,13 +2521,26 @@ class ShinobiGraphicsEngine:
         img = Image.new('RGBA', (sw, sh), (0, 0, 0, 0))
         draw = ImageDraw.Draw(img)
 
-        # Center parchment: #d6be96 top shadow -> #fdf3dc center highlight -> #e6cfa7 bottom edge
-        # Amber Parchment Rollover: #fef3c7 center, #fde68a bottom
+        # Center parchment:
+        # Standard: #d6be96 top shadow -> #fdf3dc center highlight -> #e6cfa7 bottom edge
+        # Amber Rollover: #fef3c7 center, #fde68a bottom
+        # Dark Slate Inactive: #1e293b top -> #161f30 center -> #0f172a bottom
         cx1 = srw - (2 * scale)
         cx2 = sw - srw + (2 * scale)
         for y in range(sh):
             rel_y = y / max(1, sh - 1)
-            if is_rollover:
+            if is_dark_slate:
+                if rel_y < 0.4:
+                    fac = rel_y / 0.4
+                    r = int(30 + (22 - 30) * fac)
+                    g = int(41 + (28 - 41) * fac)
+                    b = int(59 + (46 - 59) * fac)
+                else:
+                    fac = (rel_y - 0.4) / 0.6
+                    r = int(22 + (15 - 22) * fac)
+                    g = int(28 + (23 - 28) * fac)
+                    b = int(46 + (42 - 46) * fac)
+            elif is_rollover:
                 if rel_y < 0.35:
                     fac = rel_y / 0.35
                     r = int(254 + (255 - 254) * fac)
@@ -2439,30 +2564,45 @@ class ShinobiGraphicsEngine:
                     b = int(220 + (167 - 220) * fac)
             draw.line([(cx1, y), (cx2, y)], fill=(r, g, b, 255))
 
-        top_border_col = (217, 119, 6, 255) if is_rollover else (180, 83, 9, 255)
+        top_border_col = (51, 65, 85, 255) if is_dark_slate else ((217, 119, 6, 255) if is_rollover else (180, 83, 9, 255))
         draw.line([(cx1, 0), (cx2, 0)], fill=top_border_col, width=max(1, scale))
         draw.line([(cx1, sh - 1), (cx2, sh - 1)], fill=top_border_col, width=max(1, scale))
 
-        # Cylindrical mahogany-crimson rollers: #450a0a -> #dc2626 -> #7f1d1d
+        # Cylindrical mahogany-crimson rollers:
         def _draw_roller(rx1, rx2):
             rw = rx2 - rx1
             for x in range(rw):
                 rel_x = x / max(1, rw - 1)
-                if rel_x < 0.45:
-                    fac = rel_x / 0.45
-                    cr = int(69 + (220 - 69) * fac)
-                    cg = int(10 + (38 - 10) * fac)
-                    cb = int(10 + (38 - 10) * fac)
+                if is_dark_slate:
+                    # Dark mahogany for inactive scroll rollers: #4a0d13 -> #7f1d1d -> #3b0709
+                    if rel_x < 0.45:
+                        fac = rel_x / 0.45
+                        cr = int(74 + (127 - 74) * fac)
+                        cg = int(13 + (29 - 13) * fac)
+                        cb = int(19 + (29 - 19) * fac)
+                    else:
+                        fac = (rel_x - 0.45) / 0.55
+                        cr = int(127 + (59 - 127) * fac)
+                        cg = int(29 + (7 - 29) * fac)
+                        cb = int(29 + (9 - 29) * fac)
                 else:
-                    fac = (rel_x - 0.45) / 0.55
-                    cr = int(220 + (127 - 220) * fac)
-                    cg = int(38 + (29 - 38) * fac)
-                    cb = int(38 + (29 - 38) * fac)
+                    if rel_x < 0.45:
+                        fac = rel_x / 0.45
+                        cr = int(69 + (220 - 69) * fac)
+                        cg = int(10 + (38 - 10) * fac)
+                        cb = int(10 + (38 - 10) * fac)
+                    else:
+                        fac = (rel_x - 0.45) / 0.55
+                        cr = int(220 + (127 - 220) * fac)
+                        cg = int(38 + (29 - 38) * fac)
+                        cb = int(38 + (29 - 38) * fac)
                 draw.line([(rx1 + x, 0), (rx1 + x, sh - 1)], fill=(cr, cg, cb, 255))
             cap_h = max(3, 4 * scale // 2)
-            draw.rectangle([rx1, 0, rx2, cap_h], fill=(234, 179, 8, 255))
-            draw.rectangle([rx1, sh - 1 - cap_h, rx2, sh - 1], fill=(234, 179, 8, 255))
-            draw.rectangle([rx1, 0, rx2, sh - 1], outline=(153, 27, 27, 255), width=max(1, scale // 2))
+            cap_col = (148, 163, 184, 255) if is_dark_slate else (234, 179, 8, 255)
+            draw.rectangle([rx1, 0, rx2, cap_h], fill=cap_col)
+            draw.rectangle([rx1, sh - 1 - cap_h, rx2, sh - 1], fill=cap_col)
+            outline_col = (71, 85, 105, 255) if is_dark_slate else (153, 27, 27, 255)
+            draw.rectangle([rx1, 0, rx2, sh - 1], outline=outline_col, width=max(1, scale // 2))
 
         _draw_roller(0, srw - 1)
         _draw_roller(sw - srw, sw - 1)
@@ -2656,8 +2796,8 @@ class ShinobiPillSelector(tk.Frame):
         if "width" in kwargs:
             kwargs.pop("width")
 
-        bg_col = "#131c2e"
-        super().__init__(parent, bg=bg_col, bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, cursor="hand2", **kwargs)
+        bg_col = "#161f30"
+        super().__init__(parent, bg=bg_col, bd=1, relief=tk.SOLID, highlightbackground="#2e3b52", highlightthickness=1, cursor="hand2", **kwargs)
 
         if self.title:
             self.lbl_title = tk.Label(self, text=self.title, font=("Segoe UI", 7, "bold"), fg="#fb923c", bg=bg_col, anchor="w")
@@ -3960,8 +4100,8 @@ class ShinobiTabBar(tk.Frame):
         c.delete("all")
 
         if is_active:
-            # 3D Shaded Cylindrical Parchment Scroll
-            photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=16)
+            # 3D Shaded Cylindrical Parchment Scroll (Active: Cream Parchment + Golden Bottom Indicator)
+            photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=16, is_dark_slate=False)
             if photo:
                 c._active_photo = photo
                 c.create_image(0, 0, image=photo, anchor="nw")
@@ -3969,21 +4109,18 @@ class ShinobiTabBar(tk.Frame):
                 c.create_rectangle(0, 0, w, h, fill="#fdf3dc", outline="#d97706")
             
             c.create_text(w // 2, h // 2, text=title_text, font=("Segoe UI", 9, "bold"), fill="#1f1206")
-            # Golden amber bottom glow bar
-            c.create_line(12, h - 2, w - 12, h - 2, fill="#f59e0b", width=3)
+            # Glowing 3px orange-gold underline bar
+            c.create_line(16, h - 2, w - 16, h - 2, fill="#f59e0b", width=3)
         else:
-            # Rounded Dark Glass Pill
-            b_col = "#f59e0b" if info.get("hover") else "#334155"
-            photo = ShinobiGraphicsEngine.create_rounded_glass_card(
-                w, h, radius=10, bg_top="#131c2e", bg_bot="#0b1120", border_color=b_col, border_width=1
-            )
+            # 3D Dark-Slate Scroll with Dark Crimson Cylindrical Rollers
+            photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=16, is_dark_slate=True)
             if photo:
                 c._inactive_photo = photo
                 c.create_image(0, 0, image=photo, anchor="nw")
             else:
-                c.create_rectangle(0, 0, w, h, fill="#131c2e", outline=b_col)
+                c.create_rectangle(0, 0, w, h, fill="#161f30", outline="#334155")
 
-            fg_col = "#ffffff" if info.get("hover") else "#94a3b8"
+            fg_col = "#ffffff" if info.get("hover") else "#cbd5e1"
             c.create_text(w // 2, h // 2, text=title_text, font=("Segoe UI", 8, "bold"), fill=fg_col)
 
     def _refresh_all_tabs(self):
@@ -4563,22 +4700,22 @@ class DesktopApp:
         # ---------------- STEP 2: SHINOBI CHARACTER CARD (OPTION A: HERO PORTRAIT) ----------------
         self.shinobi_banner_frame = tk.Frame(
             self.deck_container,
-            bg="#0b111e",
+            bg="#0c1322",
             padx=14,
             pady=10,
             bd=1,
             relief=tk.SOLID,
-            highlightbackground="#f97316",
-            highlightthickness=2
+            highlightbackground="#d97706",
+            highlightthickness=1
         )
         self.shinobi_banner_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 6))
 
         self.lbl_shinobi_icon = tk.Label(
             self.shinobi_banner_frame,
-            bg="#0b111e",
+            bg="#0c1322",
             bd=2,
             relief=tk.SOLID,
-            highlightbackground="#fbbf24",
+            highlightbackground="#f59e0b",
             highlightthickness=2
         )
         init_banner_img = self.get_naruto_image(self.current_theme, size=(122, 122))
@@ -4589,7 +4726,7 @@ class DesktopApp:
             self.lbl_shinobi_icon.configure(text=meta["icon"], font=("Segoe UI", 22))
         self.lbl_shinobi_icon.pack(side=tk.LEFT, padx=(0, 14))
 
-        self.shinobi_text_box = tk.Frame(self.shinobi_banner_frame, bg="#0b111e")
+        self.shinobi_text_box = tk.Frame(self.shinobi_banner_frame, bg="#0c1322")
         self.shinobi_text_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Eyebrow Label: SHINOBI SCROLL
@@ -4598,7 +4735,7 @@ class DesktopApp:
             text="📜 SHINOBI SCROLL",
             font=("Segoe UI", 8, "bold"),
             fg="#fb923c",
-            bg="#0b111e",
+            bg="#0c1322",
             anchor="w",
             justify=tk.LEFT
         )
@@ -4610,28 +4747,28 @@ class DesktopApp:
             text=f"{meta['character'].upper()} • {meta['title'].upper()}",
             font=("Segoe UI", 11, "bold"),
             fg="#facc15",
-            bg="#0b111e",
+            bg="#0c1322",
             anchor="w",
             justify=tk.LEFT
         )
         self.lbl_shinobi_title.pack(anchor="w", fill=tk.X, pady=(0, 3))
 
-        # Hero Quote in Bold Crisp White
+        # Hero Quote in Bold Crisp White with Oversized Golden Double Quotes
         clean_quote = meta['quote'].strip('“"\'”')
         self.lbl_shinobi_quote = tk.Label(
             self.shinobi_text_box,
-            text=f"❝ {clean_quote} ❞",
-            font=("Segoe UI", 11, "bold"),
+            text=f"“ {clean_quote} ”",
+            font=("Segoe UI", 10, "bold"),
             fg="#ffffff",
-            bg="#0b111e",
+            bg="#0c1322",
             wraplength=420,
             anchor="w",
             justify=tk.LEFT
         )
         self.lbl_shinobi_quote.pack(anchor="w", fill=tk.X, pady=(1, 6))
 
-        # Bottom Row: Glowing Jutsu Chip (Left) + Metallic Gold Rank Badge (Right)
-        self.shinobi_bottom_row = tk.Frame(self.shinobi_text_box, bg="#0b111e")
+        # Bottom Row: Glowing Jutsu Chip (Left) + Chamfered Hexagonal Metallic Gold Rank Plaque (Right)
+        self.shinobi_bottom_row = tk.Frame(self.shinobi_text_box, bg="#0c1322")
         self.shinobi_bottom_row.pack(anchor="w", fill=tk.X, pady=(2, 0))
 
         self.lbl_shinobi_jutsu = tk.Label(
@@ -4639,31 +4776,37 @@ class DesktopApp:
             text=f"⚡ Jutsu: {meta['jutsu']}",
             font=("Segoe UI", 8, "bold"),
             fg="#fde68a",
-            bg="#17120c",
+            bg="#090d16",
             padx=10,
             pady=3,
             bd=1,
             relief=tk.SOLID,
-            highlightbackground="#f97316",
+            highlightbackground="#eab308",
             highlightthickness=1,
             anchor="w",
             justify=tk.LEFT
         )
         self.lbl_shinobi_jutsu.pack(side=tk.LEFT, anchor="w")
 
+        # Chamfered Hexagonal Rank Plaque
+        rank_photo = ShinobiGraphicsEngine.create_hexagonal_rank_plaque(width=138, height=26, text=f"RANK: {meta['rank'].upper()}")
         self.lbl_shinobi_rank_badge = tk.Label(
             self.shinobi_bottom_row,
-            text=f"RANK: {meta['rank'].upper()}",
-            font=("Segoe UI", 8, "bold"),
-            fg="#1c1104",
-            bg="#eab308",
-            padx=10,
-            pady=3,
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#fef08a",
-            highlightthickness=1
+            bg="#0c1322",
+            bd=0
         )
+        if rank_photo:
+            self.lbl_shinobi_rank_badge.configure(image=rank_photo)
+            self.lbl_shinobi_rank_badge.image = rank_photo
+        else:
+            self.lbl_shinobi_rank_badge.configure(
+                text=f"RANK: {meta['rank'].upper()}",
+                font=("Segoe UI", 8, "bold"),
+                fg="#1c1104",
+                bg="#eab308",
+                padx=10,
+                pady=3
+            )
         self.lbl_shinobi_rank_badge.pack(side=tk.RIGHT, anchor="e", padx=(6, 0))
 
         def _on_shinobi_text_resize(event):
@@ -4674,13 +4817,13 @@ class DesktopApp:
         # ---------------- STEP 3: COMMAND GRID DECK (HIGH-DPI STACKED ICONS & ROUNDED SELECTORS) ----------------
         self.matrix_command_frame = tk.Frame(
             self.deck_container,
-            bg="#0b1120",
+            bg="#0c1322",
             padx=10,
             pady=8,
             bd=1,
             relief=tk.SOLID,
             highlightbackground="#d97706",
-            highlightthickness=2
+            highlightthickness=1
         )
         self.matrix_command_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(6, 0))
 
@@ -4763,29 +4906,29 @@ class DesktopApp:
         self.theme_combo = self.pill_theme
         self.setting_pills = [self.pill_mode, self.pill_level, self.pill_start, self.pill_theme]
 
-        # Helper to construct 56px Stacked Icon-over-Text Action Tiles
+        # Helper to construct Uniform 54px Stacked Icon-over-Text Action Tiles matching Web UI
         def _make_stacked_action_card(r, c, icon, label, command, is_gold_cta=False):
             card = tk.Frame(
                 self.matrix_command_frame,
-                bg=("#f59e0b" if is_gold_cta else "#131c2e"),
+                bg=("#f59e0b" if is_gold_cta else "#161f30"),
                 bd=1,
                 relief=tk.SOLID,
-                highlightbackground=("#fde047" if is_gold_cta else "#334155"),
+                highlightbackground=("#fde047" if is_gold_cta else "#2e3b52"),
                 highlightthickness=1,
                 cursor="hand2",
-                height=52
+                height=54
             )
             card.grid(row=r, column=c, padx=3, pady=2, sticky="nsew")
             card.pack_propagate(False)
 
-            fg_icon = "#0f172a" if is_gold_cta else "#38bdf8"
+            fg_icon = "#0f172a" if is_gold_cta else "#f59e0b"
             fg_lbl = "#0f172a" if is_gold_cta else "#f8fafc"
 
-            lbl_icon = tk.Label(card, text=icon, font=("Segoe UI", 12, "bold"), fg=fg_icon, bg=card["bg"])
-            lbl_icon.pack(pady=(2, 0))
+            lbl_icon = tk.Label(card, text=icon, font=("Segoe UI", 13, "bold"), fg=fg_icon, bg=card["bg"])
+            lbl_icon.pack(pady=(3, 0))
 
             lbl_text = tk.Label(card, text=label, font=("Segoe UI", 8, "bold"), fg=fg_lbl, bg=card["bg"])
-            lbl_text.pack(pady=(0, 2))
+            lbl_text.pack(pady=(0, 3))
 
             def _on_click(e):
                 if command:
@@ -4928,6 +5071,10 @@ class DesktopApp:
         self.custom_tab_bar = ShinobiTabBar(self.root, None)
         self.custom_tab_bar.pack(fill=tk.X, padx=14, pady=(2, 0))
 
+        # Golden separator line beneath tab bar matching Web UI (#d97706)
+        self.tab_separator = tk.Frame(self.root, bg="#d97706", height=2)
+        self.tab_separator.pack(fill=tk.X, padx=14, pady=(2, 0))
+
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=14, pady=(6, 10))
         self.custom_tab_bar.notebook = self.notebook
@@ -4962,18 +5109,13 @@ class DesktopApp:
             self.notebook.forget(tab_id)
 
         visible_tabs = [
-            ("tab_schedule", self.tab_schedule, "📜", "Daily Schedule")
+            ("tab_schedule", self.tab_schedule, "📅", "Daily Schedule"),
+            ("tab_diary", self.tab_diary, "📖", "School Diary"),
+            ("tab_portions", self.tab_portions, "📑", "Exam Portions")
         ]
         self.notebook.add(self.tab_schedule, text="Daily Schedule")
-
-        if self.is_exam_mode:
-            pass
-        elif self.is_pre_exam_mode:
-            visible_tabs.append(("tab_portions", self.tab_portions, "📚", "Exam Portions & Pre-Exam Tracker"))
-            self.notebook.add(self.tab_portions, text="Exam Portions & Pre-Exam Tracker")
-        else:
-            visible_tabs.append(("tab_diary", self.tab_diary, "📖", "School Diary & Subject Slabs"))
-            self.notebook.add(self.tab_diary, text="School Diary & Subject Slabs")
+        self.notebook.add(self.tab_diary, text="School Diary")
+        self.notebook.add(self.tab_portions, text="Exam Portions")
 
         if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
             self.custom_tab_bar.set_tabs(visible_tabs)
@@ -7898,29 +8040,32 @@ class DesktopApp:
             pad_frame,
             text=f"⏱️ THARUN'S CHAKRA FOCUS TIMER ({meta['character'].upper()})",
             font=("Segoe UI", 9, "bold"),
-            fg="#fb923c",
+            fg="#38bdf8",
             bg="#0b111e",
-            anchor="w"
+            anchor="center"
         )
-        self.lbl_timer_head.pack(fill=tk.X, pady=(0, 5))
+        self.lbl_timer_head.pack(fill=tk.X, pady=(0, 2))
 
-        # Active Slot Info Card
+        # Golden separator line under timer header matching Web UI
+        tk.Frame(pad_frame, bg="#d97706", height=1).pack(fill=tk.X, pady=(0, 6))
+
+        # Active Slot Info Card (rounded #111a2e, border #d97706)
         self.timer_info_box = tk.Frame(
             pad_frame,
-            bg="#131c2e",
+            bg="#111a2e",
             padx=8,
             pady=6,
             bd=1,
             relief=tk.SOLID,
-            highlightbackground="#334155",
+            highlightbackground="#d97706",
             highlightthickness=1
         )
         self.timer_info_box.pack(fill=tk.X, pady=(0, 6))
 
-        init_timer_img = self.get_naruto_image(self.current_theme, size=(52, 52))
+        init_timer_img = self.get_naruto_image(self.current_theme, size=(60, 60))
         self.lbl_timer_art = tk.Label(
             self.timer_info_box,
-            bg="#131c2e",
+            bg="#111a2e",
             bd=1,
             relief=tk.SOLID,
             highlightbackground="#f59e0b",
@@ -7933,36 +8078,39 @@ class DesktopApp:
             self.lbl_timer_art.configure(text="🍥", font=("Segoe UI", 22))
         self.lbl_timer_art.pack(side=tk.LEFT, padx=(0, 8))
 
-        text_sub_box = tk.Frame(self.timer_info_box, bg="#131c2e")
+        text_sub_box = tk.Frame(self.timer_info_box, bg="#111a2e")
         text_sub_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.timer_text_sub_box = text_sub_box
 
+        # Row 1: Cyan header (#38bdf8)
         self.lbl_slot_phase = tk.Label(
             text_sub_box,
             text="EVENING FOCUS",
             font=("Segoe UI", 7, "bold"),
-            fg="#fb923c",
-            bg="#131c2e"
+            fg="#38bdf8",
+            bg="#111a2e"
         )
         self.lbl_slot_phase.pack(anchor="w")
 
+        # Row 2: White title (#ffffff)
         self.lbl_slot_title = tk.Label(
             text_sub_box,
             text="Select or start a slot",
             font=("Segoe UI", 9, "bold"),
-            fg="#f8fafc",
-            bg="#131c2e",
+            fg="#ffffff",
+            bg="#111a2e",
             wraplength=290,
             justify="left"
         )
         self.lbl_slot_title.pack(anchor="w", pady=(1, 1))
 
+        # Row 3: Amber subject + time (#fde68a)
         self.lbl_slot_sub = tk.Label(
             text_sub_box,
             text="Mathematics",
-            font=("Segoe UI", 8),
-            fg="#94a3b8",
-            bg="#131c2e"
+            font=("Segoe UI", 8, "bold"),
+            fg="#fde68a",
+            bg="#111a2e"
         )
         self.lbl_slot_sub.pack(anchor="w")
 
@@ -8316,9 +8464,9 @@ class DesktopApp:
         lvl = EXECUTION_LEVELS[self.current_level]
         self.timeline_badge_lbl = tk.Label(
             self.timeline_header,
-            text=f"📋 {lvl['badge']}",
-            font=("Segoe UI", 10, "bold"),
-            fg=self.colors["fg"],
+            text=f"📜 Balanced Routine ({lvl['badge']})",
+            font=("Segoe UI", 12, "bold"),
+            fg="#ffffff",
             bg=self.colors["bg"]
         )
         self.timeline_badge_lbl.pack(side=tk.LEFT)
@@ -8421,39 +8569,35 @@ class DesktopApp:
         btn_box.pack(side=tk.RIGHT)
         self.timeline_btn_box = btn_box
 
-        self.btn_regen = tk.Button(
+        self.btn_regen = ShinobiGraphicsEngine.create_rounded_pill_button(
             btn_box,
-            text="⚡ Refresh Timetable",
+            text="🔄 Refresh",
+            width=92,
+            height=30,
+            bg_top="#fcd34d",
+            bg_bot="#d97706",
+            border_color="#f59e0b",
+            fg_color="#0f172a",
             font=("Segoe UI", 8, "bold"),
-            bg=self.colors["primary"],
-            fg=get_contrast_fg(self.colors["primary"]),
-            activebackground=self.colors.get("primary_hover", self.colors["primary"]),
-            activeforeground=get_contrast_fg(self.colors.get("primary_hover", self.colors["primary"])),
-            relief=tk.FLAT,
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.handle_generate_schedule
+            command=self.handle_generate_schedule,
+            radius=8
         )
-        self.btn_regen.pack(side=tk.LEFT, padx=4)
+        self.btn_regen.pack(side=tk.LEFT, padx=3)
 
-        self.btn_export = tk.Button(
+        self.btn_export = ShinobiGraphicsEngine.create_rounded_pill_button(
             btn_box,
-            text="📋 Copy / Print",
-            font=("Segoe UI", 8),
-            bg=self.colors["input_bg"],
-            fg=self.colors["fg"],
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground=self.colors["card_border"],
-            activebackground=self.colors["card_border"],
-            activeforeground=get_contrast_fg(self.colors["card_border"]),
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.export_timetable
+            text="🖨️ Print for Desk",
+            width=118,
+            height=30,
+            bg_top="#fcd34d",
+            bg_bot="#d97706",
+            border_color="#f59e0b",
+            fg_color="#0f172a",
+            font=("Segoe UI", 8, "bold"),
+            command=self.export_timetable,
+            radius=8
         )
-        self.btn_export.pack(side=tk.LEFT)
+        self.btn_export.pack(side=tk.LEFT, padx=3)
 
         canvas_frame = tk.Frame(parent, bg=self.colors["bg"])
         canvas_frame.pack(fill=tk.BOTH, expand=True, padx=12, pady=0)
@@ -8543,28 +8687,28 @@ class DesktopApp:
         except Exception:
             pass
 
-    def _create_parchment_scroll_banner(self, parent, title_text, right_text=None, pady=(4, 6)):
-        """Renders an unfurled true 3D cylindrical shaded parchment scroll banner matching Web UI."""
-        banner_canvas = tk.Canvas(parent, height=36, bg=self.colors["bg"], highlightthickness=0)
+    def _create_parchment_scroll_banner(self, parent, title_line1, sub_line2=None, right_text=None, pady=(4, 6), height=52):
+        """Renders an unfurled true 3D cylindrical shaded parchment scroll banner (52px) matching Web UI."""
+        banner_canvas = tk.Canvas(parent, height=height, bg=self.colors["bg"], highlightthickness=0)
         banner_canvas.pack(fill=tk.X, pady=pady)
 
         def _render_banner_content(event=None):
             w = banner_canvas.winfo_width()
             if w <= 10:
-                w = 600
-            h = 36
-            photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=18)
+                w = 650
+            h = height
+            photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=20)
             if photo:
                 banner_canvas.photo = photo
                 banner_canvas.delete("all")
                 banner_canvas.create_image(0, 0, image=photo, anchor="nw")
-                banner_canvas.create_text(26, 18, text=f"📜  {title_text}", font=("Segoe UI", 9, "bold"), fill="#1f1206", anchor="w")
-                if right_text:
-                    tw = len(right_text) * 7 + 16
-                    rx2 = w - 24
-                    rx1 = rx2 - tw
-                    banner_canvas.create_rectangle(rx1, 7, rx2, 29, fill="#fde68a", outline="#b45309", width=1)
-                    banner_canvas.create_text((rx1 + rx2) // 2, 18, text=right_text, font=("Segoe UI", 8, "bold"), fill="#7f1d1d")
+                
+                # 100% Centered two-line text (Zero box clutter)
+                if sub_line2:
+                    banner_canvas.create_text(w // 2, 20, text=title_line1, font=("Segoe UI", 10, "bold"), fill="#1f1206", anchor="center")
+                    banner_canvas.create_text(w // 2, 36, text=sub_line2, font=("Segoe UI", 8, "bold"), fill="#451a03", anchor="center")
+                else:
+                    banner_canvas.create_text(w // 2, h // 2, text=title_line1, font=("Segoe UI", 10, "bold"), fill="#1f1206", anchor="center")
 
         banner_canvas.bind("<Configure>", _render_banner_content)
         banner_canvas.after(20, _render_banner_content)
@@ -8583,28 +8727,32 @@ class DesktopApp:
 
         if self.is_pre_exam_mode:
             day_data = self.get_active_pre_exam_day_data()
-            eve_header_text = f"PRE-EXAM ROUTINE (DAY {self.pre_exam_day}/{self.pre_exam_duration_days}): {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')} • {day_data['title']}"
-            morn_header_text = f"MORNING RETENTION PRIMING: 6:00 AM – 7:30 AM • {day_data['morning_task']}"
-            eve_tag = f"DAY {self.pre_exam_day}/{self.pre_exam_duration_days}"
+            eve_line1 = f"PRE-EXAM FOCUS PLAN: {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')}"
+            eve_line2 = f"Day {self.pre_exam_day}/{self.pre_exam_duration_days} • {day_data['title']}"
+            morn_line1 = "🌅 MORNING RETENTION PRIMING: 06:00 AM – 07:30 AM"
+            morn_line2 = f"({day_data['morning_task']})"
         elif self.is_exam_mode:
-            eve_header_text = f"EXAM EVE SPRINT ({self.selected_exam_subject.upper()}): {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')} • 3-Stage Mastery"
-            morn_header_text = "MORNING EXAM RETENTION PRIMING: 6:00 AM – 7:30 AM • Retention & Mindset"
-            eve_tag = "EXAM SPRINT"
+            eve_line1 = f"EXAM EVE FOCUS PLAN: {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')}"
+            eve_line2 = f"({self.selected_exam_subject.upper()} ➔ Formula Blitz ➔ 3-Stage Mastery)"
+            morn_line1 = "🌅 MORNING EXAM RETENTION PRIMING: 06:00 AM – 07:30 AM"
+            morn_line2 = "(High-Yield Retention & Calm Mindset)"
         else:
-            eve_header_text = f"🌙 SCHOOL DIARY & SUBJECT SLABS: {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')}"
-            morn_header_text = f"🌅 MORNING RETENTION PLAN: {lvl['morn_start']} – {lvl['morn_end']} ({self.selected_language})"
-            eve_tag = f"{len(self.evening_schedule)} SLOTS"
+            eve_line1 = f"EVENING FOCUS PLAN: {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')}"
+            eve_line2 = "(Core Efficiency Slabs ➔ Daily Maths ➔ Diagrams)"
+            morn_line1 = f"🌅 MORNING RETENTION PLAN: {lvl['morn_start']} – {lvl['morn_end']}"
+            morn_line2 = f"(Active Concept Recall ➔ {self.selected_language} Language Clinic)"
 
-        self._create_parchment_scroll_banner(self.sched_inner, eve_header_text, right_text=eve_tag, pady=(2, 6))
+        self._create_parchment_scroll_banner(self.sched_inner, eve_line1, sub_line2=eve_line2, pady=(2, 6), height=52)
 
         for idx, slot in enumerate(self.evening_schedule):
             self.create_slot_card(idx, slot)
 
         self._create_parchment_scroll_banner(
             self.sched_inner,
-            morn_header_text,
-            right_text=f"{len(self.morning_schedule)} SLOTS",
-            pady=(10, 6)
+            morn_line1,
+            sub_line2=morn_line2,
+            pady=(10, 6),
+            height=52
         )
 
         offset = len(self.evening_schedule)
@@ -8626,18 +8774,16 @@ class DesktopApp:
                 _bind_click_recursive(ch)
 
         if is_break:
-            # Micro-Break Pill (#064e3b bg, #10b981 border)
-            card_bg = "#064e3b" if is_active else "#042f2e"
-            card_border = "#34d399" if is_active else "#10b981"
+            # Micro-Break Pill: Full-width rounded emerald-green pill (#114232 bg, #10b981 border, height=32, NO right button)
             card = tk.Frame(
                 self.sched_inner,
-                bg=card_bg,
+                bg="#114232",
                 bd=1,
                 relief=tk.SOLID,
-                highlightbackground=card_border,
-                highlightthickness=(2 if is_active else 1),
-                padx=10,
-                pady=4,
+                highlightbackground="#10b981",
+                highlightthickness=1,
+                padx=12,
+                pady=5,
                 cursor="hand2"
             )
             card.pack(fill=tk.X, pady=2)
@@ -8645,37 +8791,19 @@ class DesktopApp:
 
             tk.Label(
                 card,
-                text=f"⏱️ {slot['start']} – {slot['end']} ({slot['duration_mins']}m)",
-                font=("Segoe UI", 8, "bold"),
-                fg="#34d399",
-                bg=card_bg
-            ).pack(side=tk.LEFT, padx=(0, 10))
-
-            tk.Label(
-                card,
-                text=f"{slot['title']} • Chakra Recharge",
+                text=f"🍃 {slot['start']} – {slot['end']} ({slot['duration_mins']}m) • {slot['title']} • Chakra Recharge",
                 font=("Segoe UI", 8, "bold"),
                 fg="#a7f3d0",
-                bg=card_bg,
+                bg="#114232",
                 anchor="w"
             ).pack(side=tk.LEFT, fill=tk.X, expand=True)
-
-            tk.Label(
-                card,
-                text=slot["badge"],
-                font=("Segoe UI", 8, "bold"),
-                fg="#041311",
-                bg="#10b981",
-                padx=8,
-                pady=1
-            ).pack(side=tk.RIGHT)
 
             _bind_click_recursive(card)
             return
 
-        # Study / Homework Ledger Card
+        # Study / Homework Ledger Card (Standard: #0f172a, border #785c28; Active: glowing cyan-gold halo + • ACTIVE SPRINT • in gold #facc15)
         card_bg = "#172036" if is_active else "#0f172a"
-        card_border = "#f59e0b" if is_active else ("#10b981" if is_completed else "#334155")
+        card_border = "#facc15" if is_active else ("#10b981" if is_completed else "#785c28")
         border_w = 2 if is_active else 1
 
         card = tk.Frame(
@@ -8693,12 +8821,12 @@ class DesktopApp:
         self.slot_frames.append(card)
 
         if is_active:
-            # Active Golden Indicator Strip
-            tk.Frame(card, bg="#f59e0b", width=4).pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
+            # Active Cyan-Gold Glowing Strip
+            tk.Frame(card, bg="#38bdf8", width=4).pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
 
-        # 1. Left Rounded Bronze Time Plaque (Time on Line 1, (15m Sprint) on Line 2)
-        plaque_bg = "#1c1917" if is_active else "#18181b"
-        plaque_border = "#f59e0b" if is_active else "#785c28"
+        # 1. Left Rounded Bronze Time Plaque (width=145, height=44, bg=#271f16, border=#a16207)
+        plaque_bg = "#271f16"
+        plaque_border = "#facc15" if is_active else "#a16207"
         time_plaque = tk.Frame(
             card,
             bg=plaque_bg,
@@ -8707,15 +8835,18 @@ class DesktopApp:
             highlightbackground=plaque_border,
             highlightthickness=1,
             padx=8,
-            pady=3
+            pady=3,
+            width=145,
+            height=44
         )
+        time_plaque.pack_propagate(False)
         time_plaque.pack(side=tk.LEFT, padx=(0, 10))
 
         tk.Label(
             time_plaque,
             text=f"{slot['start']} – {slot['end']}",
             font=("Segoe UI", 8, "bold"),
-            fg="#fde047" if is_active else "#fef08a",
+            fg="#fef08a" if is_active else "#fde68a",
             bg=plaque_bg
         ).pack(anchor="w")
 
@@ -8727,16 +8858,19 @@ class DesktopApp:
             bg=plaque_bg
         ).pack(anchor="w")
 
-        # 2. Right 3D Shaded Mini Scroll Badge
+        # Subtle vertical divider line after time plaque
+        tk.Frame(card, bg="#334155", width=1).pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
+
+        # 2. Right 3D Shaded Mini Parchment Scroll Badge (width=112, height=26)
         is_rollover_slot = slot.get("is_rollover", False) or "rollover" in slot.get("badge", "").lower()
         badge_txt = slot["badge"]
-        badge_w = max(80, len(badge_txt) * 7 + 24)
-        badge_h = 24
+        badge_w = 112
+        badge_h = 26
 
         badge_canvas = tk.Canvas(card, width=badge_w, height=badge_h, bg=card_bg, highlightthickness=0)
         badge_canvas.pack(side=tk.RIGHT, padx=(8, 0))
 
-        scroll_photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(badge_w, badge_h, roller_width=8, is_mini_badge=True, is_rollover=is_rollover_slot)
+        scroll_photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(badge_w, badge_h, roller_width=10, is_mini_badge=True, is_rollover=is_rollover_slot)
         if scroll_photo:
             badge_canvas.photo = scroll_photo
             badge_canvas.create_image(0, 0, image=scroll_photo, anchor="nw")
@@ -8750,13 +8884,13 @@ class DesktopApp:
         title_row.pack(fill=tk.X)
 
         if is_active:
-            # Active Sprint indicator pill
+            # Active Sprint indicator badge in gold #facc15
             tk.Label(
                 title_row,
                 text="• ACTIVE SPRINT •",
                 font=("Segoe UI", 7, "bold"),
                 fg="#0f172a",
-                bg="#f59e0b",
+                bg="#facc15",
                 padx=6,
                 pady=1
             ).pack(side=tk.LEFT, padx=(0, 6))
@@ -8765,8 +8899,8 @@ class DesktopApp:
         tk.Label(
             title_row,
             text=f"{title_prefix}{slot['title']}",
-            font=("Segoe UI", 9, "bold"),
-            fg="#fef08a" if is_active else ("#94a3b8" if is_completed else "#f8fafc"),
+            font=("Segoe UI", 10, "bold"),
+            fg="#ffffff" if is_active else ("#94a3b8" if is_completed else "#ffffff"),
             bg=card_bg,
             anchor="w"
         ).pack(side=tk.LEFT, fill=tk.X, expand=True)
@@ -8917,7 +9051,17 @@ class DesktopApp:
                 draw.arc(track_bbox, start=start_angle, end=end_angle, fill=arc_col, width=thickness)
                 draw.arc(track_bbox, start=start_angle, end=end_angle, fill=core_col, width=max(2, thickness // 3))
 
-            # 4. Inner Dark Core Disc
+            # 4. 16 Soft Radial Golden Flare Nodules around Perimeter
+            import math
+            for nodule_i in range(16):
+                ang = math.radians(nodule_i * (360.0 / 16.0))
+                dist = r + (thickness // 2) + int(2.5 * scale)
+                nx = scx + dist * math.cos(ang)
+                ny = scy + dist * math.sin(ang)
+                nod_rad = 1.8 * scale
+                draw.ellipse([nx - nod_rad, ny - nod_rad, nx + nod_rad, ny + nod_rad], fill=(251, 191, 36, 210))
+
+            # 5. Inner Dark Core Disc
             ir = r - (thickness // 2) - scale
             draw.ellipse([scx - ir, scy - ir, scx + ir, scy + ir], fill=(8, 13, 25, 255), outline=(30, 41, 59, 255), width=scale)
 
@@ -8934,7 +9078,7 @@ class DesktopApp:
                 self.timer_canvas.create_arc(cx - r, cy - r, cx + r, cy + r, start=90, extent=extent_deg,
                                              style=tk.ARC, outline=("#10b981" if is_break else "#f97316"), width=10)
 
-        # 5. Clean, Zero-Overlap Text Rendering inside the Ring
+        # 6. Clean Hero Text inside Ring ("15:00" in 28pt bold white, "SPRINT 1 OF 2" in 8pt bold cyan)
         mins = getattr(self, "timer_seconds_left", 900) // 60
         secs = getattr(self, "timer_seconds_left", 900) % 60
         self.timer_canvas.create_text(
@@ -8943,14 +9087,21 @@ class DesktopApp:
             font=("Segoe UI", 28, "bold"),
             fill="#ffffff"
         )
-        badge_clean = slot_badge.split("(")[0].strip() if "(" in slot_badge else slot_badge
-        if len(badge_clean) > 15:
-            badge_clean = badge_clean[:14] + "…"
+        if is_break:
+            sub_badge = "CHAKRA RECHARGE"
+            sub_col = "#34d399"
+        else:
+            # Determine sprint 1 of 2 or badge
+            sub_badge = "SPRINT 1 OF 2" if "sprint" in slot_badge.lower() or "slab" in slot_badge.lower() else slot_badge.split("(")[0].strip()
+            if len(sub_badge) > 16:
+                sub_badge = sub_badge[:15] + "…"
+            sub_col = "#38bdf8"
+
         self.timer_canvas.create_text(
             cx, cy + 18,
-            text=badge_clean,
+            text=sub_badge,
             font=("Segoe UI", 8, "bold"),
-            fill=("#34d399" if is_break else "#38bdf8")
+            fill=sub_col
         )
 
     def toggle_timer(self):
@@ -13311,8 +13462,8 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
                 self.lbl_shinobi_icon.configure(
                     image=banner_img,
                     text="",
-                    bg="#0b111e",
-                    highlightbackground="#fbbf24",
+                    bg="#0c1322",
+                    highlightbackground="#f59e0b",
                     highlightthickness=2
                 )
                 self.lbl_shinobi_icon.image = banner_img
@@ -13320,71 +13471,76 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
                 self.lbl_shinobi_icon.configure(
                     text=meta["icon"],
                     image="",
-                    bg="#0b111e",
-                    highlightbackground="#fbbf24",
+                    bg="#0c1322",
+                    highlightbackground="#f59e0b",
                     highlightthickness=2
                 )
 
             if hasattr(self, "shinobi_text_box"):
-                self.shinobi_text_box.configure(bg="#0b111e")
+                self.shinobi_text_box.configure(bg="#0c1322")
 
             if hasattr(self, "lbl_shinobi_eyebrow"):
-                self.lbl_shinobi_eyebrow.configure(fg="#fb923c", bg="#0b111e")
+                self.lbl_shinobi_eyebrow.configure(fg="#fb923c", bg="#0c1322")
 
             self.lbl_shinobi_title.configure(
                 text=f"{meta['character'].upper()} • {meta['title'].upper()}",
                 fg="#facc15",
-                bg="#0b111e"
+                bg="#0c1322"
             )
 
             clean_quote = meta['quote'].strip('“"\'”')
             self.lbl_shinobi_quote.configure(
-                text=f"❝ {clean_quote} ❞",
+                text=f"“ {clean_quote} ”",
                 fg="#ffffff",
-                bg="#0b111e"
+                bg="#0c1322"
             )
 
             if hasattr(self, "shinobi_bottom_row"):
-                self.shinobi_bottom_row.configure(bg="#0b111e")
+                self.shinobi_bottom_row.configure(bg="#0c1322")
 
             if hasattr(self, "lbl_shinobi_jutsu"):
                 self.lbl_shinobi_jutsu.configure(
                     text=f"⚡ Jutsu: {meta['jutsu']}",
                     fg="#fde68a",
-                    bg="#17120c",
-                    highlightbackground=c.get("primary", "#f97316"),
+                    bg="#090d16",
+                    highlightbackground="#eab308",
                     highlightthickness=1
                 )
 
             if hasattr(self, "lbl_shinobi_rank_badge"):
-                self.lbl_shinobi_rank_badge.configure(
-                    text=f"RANK: {meta['rank'].upper()}",
-                    fg="#1c1104",
-                    bg="#eab308",
-                    highlightbackground="#fef08a",
-                    highlightthickness=1
-                )
+                rank_photo = ShinobiGraphicsEngine.create_hexagonal_rank_plaque(width=138, height=26, text=f"RANK: {meta['rank'].upper()}")
+                if rank_photo:
+                    self.lbl_shinobi_rank_badge.configure(image=rank_photo, bg="#0c1322", bd=0)
+                    self.lbl_shinobi_rank_badge.image = rank_photo
+                else:
+                    self.lbl_shinobi_rank_badge.configure(
+                        text=f"RANK: {meta['rank'].upper()}",
+                        fg="#1c1104",
+                        bg="#eab308",
+                        highlightbackground="#fef08a",
+                        highlightthickness=1
+                    )
 
         if hasattr(self, "matrix_command_frame"):
             self.matrix_command_frame.configure(
-                bg="#0b111e",
-                highlightbackground=c.get("primary", "#f97316"),
-                highlightthickness=2
+                bg="#0c1322",
+                highlightbackground="#d97706",
+                highlightthickness=1
             )
             for pill in getattr(self, "setting_pills", []):
                 if pill and pill.winfo_exists():
-                    pill.configure(bg="#131c2e", highlightbackground="#334155")
+                    pill.configure(bg="#161f30", highlightbackground="#2e3b52")
                     for sch in pill.winfo_children():
                         if isinstance(sch, tk.Label):
-                            sch.configure(bg="#131c2e", fg="#fb923c")
+                            sch.configure(bg="#161f30", fg="#fb923c")
             if hasattr(self, "sub_prep_container") and self.sub_prep_container.winfo_exists():
-                self.sub_prep_container.configure(bg="#131c2e", highlightbackground="#334155")
+                self.sub_prep_container.configure(bg="#161f30", highlightbackground="#2e3b52")
             if hasattr(self, "lbl_exam_sub"):
-                self.lbl_exam_sub.configure(bg="#131c2e", fg="#fb923c")
+                self.lbl_exam_sub.configure(bg="#161f30", fg="#fb923c")
             if hasattr(self, "lbl_pre_exam_day"):
-                self.lbl_pre_exam_day.configure(bg="#131c2e", fg="#38bdf8")
+                self.lbl_pre_exam_day.configure(bg="#161f30", fg="#38bdf8")
             if hasattr(self, "lbl_daily_mode_tag"):
-                self.lbl_daily_mode_tag.configure(bg="#131c2e", fg="#f8fafc")
+                self.lbl_daily_mode_tag.configure(bg="#161f30", fg="#f8fafc")
 
         # Comprehensive theme synchronization for all action buttons and menus
         def cfg_btn(b, bg_col, fg_col=None, active_bg=None, active_fg=None, border_col=None):
