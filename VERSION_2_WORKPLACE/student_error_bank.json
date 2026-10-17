@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "subject": "Tamil",
+    "category": "மயங்கொலி எழுத்து பிழை (ழ/ள/ல)",
+    "trap_word": "தமிழ் / தவளை / குரல்",
+    "slip": "தவளை என்பதற்கு பதிலாக தவலை அல்லது ள/ல மாற்றி எழுதுதல்",
+    "fix": "ழ = நுனி நாக்கு மேல் அண்ணத்தை வருட வேண்டும்; ள = நாக்கு மேல்நோக்கி வளைய வேண்டும்; ல = பல்லைத் தொட வேண்டும்.",
+    "occurrences": 3
+  },
+  {
+    "id": 2,
+    "subject": "Tamil",
+    "category": "மயங்கொலி எழுத்து பிழை (ண/ந/ன)",
+    "trap_word": "கண் / நன்றி / மனம்",
+    "slip": "ரன்னகரம் (ன) மற்றும் டண்ணகரம் (ண) குழப்பம்",
+    "fix": "ட-வுக்குப் பின் ண வரும் (கண்டான்); த-வுக்கு முன் ந வரும் (வந்தான்); ற-வுக்குப் பின் ன வரும் (சென்றான்).",
+    "occurrences": 2
+  },
+  {
+    "id": 3,
+    "subject": "Hindi",
+    "category": "मात्रा अशुद्धि (ि vs ी)",
+    "trap_word": "कवि / नदी / दिन / दीन",
+    "slip": "छोटी 'इ' (ि) और बड़ी 'ई' (ी) में भ्रम (दिन = Day vs दीन = Poor)",
+    "fix": "ध्वनि खिंचे तो बड़ी 'ई' (ी - बाद में); हल्की आवाज़ तो छोटी 'इ' (ि - पहले)।",
+    "occurrences": 2
+  },
+  {
+    "id": 4,
+    "subject": "Mathematics",
+    "category": "Algebraic Negative Sign Distribution",
+    "trap_word": "-(3x - 5)",
+    "slip": "Writing -3x - 5 instead of -3x + 5",
+    "fix": "Rule: Minus outside bracket flips EVERY sign inside! -(a - b) = -a + b.",
+    "occurrences": 4
+  },
+  {
+    "id": 5,
+    "subject": "Mathematics",
+    "category": "Missing Units & Boxed Final Answer",
+    "trap_word": "Area / Volume / Money",
+    "slip": "Writing 'Answer = 150' without cm² or ₹",
+    "fix": "CBSE deducts 0.5 mark. Rule: Always draw pencil box with unit: [ Area = 150 cm² ].",
+    "occurrences": 3
+  },
+  {
+    "id": 6,
+    "subject": "Physical Science",
+    "category": "SI Unit Omission in Physics",
+    "trap_word": "Pressure / Force / Focal Length",
+    "slip": "Writing calculation result without Pascal (Pa) or Newtons (N)",
+    "fix": "No SI unit = 1 mark lost! Check SI unit before turning the page.",
+    "occurrences": 2
+  }
+]

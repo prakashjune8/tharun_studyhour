@@ -1,0 +1,235 @@
+{
+  "student_name": "Tharun",
+  "school": "Senthil Public School",
+  "version": "1.1",
+  "description": "Tharun's Time Variance, Cognitive Pace & Earned Freedom Ledger",
+  "subject_occurrence_audit": {
+    "description": "Weekly Subject Coverage & Cognitive Gravity Allocation Ledger (7 Official Senthil Public School Subjects)",
+    "rolling_week_cycle": "Current Rolling 7-Day Cycle",
+    "math_daily_rule_verified": true,
+    "total_official_subjects": 7,
+    "active_in_loop": 7,
+    "subjects": [
+      {
+        "subject": "Mathematics",
+        "category": "Core",
+        "gravity_score": 3,
+        "weekly_target_sessions": 7,
+        "actual_sessions_logged": 7,
+        "total_minutes_logged": 245,
+        "occurrence_rate": "100%",
+        "rotation_status": "🟢 Daily Muscle (7/7 Days)",
+        "last_covered": "Today (Daily Hand-Solving)",
+        "pedagogical_focus": "NCERT/State textbook hand-solving, step-by-step proofs & algebraic identities"
+      },
+      {
+        "subject": "Physical Science",
+        "category": "Core",
+        "gravity_score": 3,
+        "weekly_target_sessions": 4,
+        "actual_sessions_logged": 4,
+        "total_minutes_logged": 120,
+        "occurrence_rate": "100%",
+        "rotation_status": "🟢 Optimal Loop (4/4 Sessions)",
+        "last_covered": "Yesterday (Atom & Lenses)",
+        "pedagogical_focus": "Thomson/Rutherford atom models, ray diagrams, lens formula & chemical formulas"
+      },
+      {
+        "subject": "Biological Science",
+        "category": "Core",
+        "gravity_score": 3,
+        "weekly_target_sessions": 4,
+        "actual_sessions_logged": 4,
+        "total_minutes_logged": 115,
+        "occurrence_rate": "100%",
+        "rotation_status": "🟢 Optimal Loop (4/4 Sessions)",
+        "last_covered": "Today (Active Homework)",
+        "pedagogical_focus": "Blind diagrams: Heart, neuron, reflex arc, xylem/phloem & structure-function cards"
+      },
+      {
+        "subject": "Social Science",
+        "category": "Core",
+        "gravity_score": 2,
+        "weekly_target_sessions": 4,
+        "actual_sessions_logged": 3,
+        "total_minutes_logged": 85,
+        "occurrence_rate": "88%",
+        "rotation_status": "🟢 On Track (3/4 Sessions)",
+        "last_covered": "Today (Complementary Evening Slot)",
+        "pedagogical_focus": "1857 cause-event flow-trees, M-C-T-R-S soil mnemonic & India map pinning"
+      },
+      {
+        "subject": "Tamil",
+        "category": "Language",
+        "gravity_score": 2,
+        "weekly_target_sessions": 3,
+        "actual_sessions_logged": 3,
+        "total_minutes_logged": 85,
+        "occurrence_rate": "100%",
+        "rotation_status": "🟢 Target Met (3/3 Sessions)",
+        "last_covered": "Today (Evening Homework)",
+        "pedagogical_focus": "ழ/ள/ல error correction, Thirukkural recitation, self-writing prose answers"
+      },
+      {
+        "subject": "English",
+        "category": "Language",
+        "gravity_score": 2,
+        "weekly_target_sessions": 3,
+        "actual_sessions_logged": 3,
+        "total_minutes_logged": 90,
+        "occurrence_rate": "100%",
+        "rotation_status": "🟢 Target Met (3/3 Sessions)",
+        "last_covered": "Morning Clinic (Complementary Rotation)",
+        "pedagogical_focus": "Grammar (tenses/modals/articles), formal letter format & Error Bank review"
+      },
+      {
+        "subject": "Hindi",
+        "category": "Language",
+        "gravity_score": 2,
+        "weekly_target_sessions": 3,
+        "actual_sessions_logged": 2,
+        "total_minutes_logged": 60,
+        "occurrence_rate": "80%",
+        "rotation_status": "🟡 Next in Loop (2/3 Sessions)",
+        "last_covered": "Scheduled in Weekly Rotation",
+        "pedagogical_focus": "Vigyapan Lekhan box, Chitra Varnan paragraph & Matra error reduction"
+      }
+    ]
+  },
+  "total_variance_records": 3,
+  "total_extensions_recorded": 2,
+  "cumulative_extra_minutes": 25,
+  "total_surplus_events": 1,
+  "cumulative_saved_minutes": 183,
+  "subject_friction_summary": {
+    "Mathematics": {
+      "extension_count": 1,
+      "total_extra_mins": 15,
+      "primary_cause": "Multi-step algebraic problem solving"
+    },
+    "Tamil": {
+      "extension_count": 1,
+      "total_extra_mins": 10,
+      "primary_cause": "Self-writing and spelling verification"
+    }
+  },
+  "subject_velocity_summary": {
+    "Physics": {
+      "surplus_count": 1,
+      "total_saved_mins": 15,
+      "fastest_task": "Concept Review: Physics D.N: 4"
+    }
+  },
+  "audit_records": [
+    {
+      "id": "EARLY_20261008_230241",
+      "timestamp": "2026-10-08T23:02:41.113020",
+      "date": "2026-10-08",
+      "variance_type": "PROACTIVE_EARLY_START",
+      "phase": "Early Initiative",
+      "slot_title": "Started Early at 17:00",
+      "subject": "Self-Discipline / Initiative",
+      "original_mins": 0,
+      "saved_mins": 168,
+      "extended_mins": 0,
+      "actual_total_mins": 168,
+      "reason": "Tharun took self-initiative to begin studying early at 17:00",
+      "action_taken": "Routine finishes early at 07:15 PM. Earned 2.8 hrs of free evening leisure.",
+      "cascade_action": {
+        "action_choice": "EARNED_FREE_LEISURE",
+        "free_leisure_hours": 2.8,
+        "routine_finish_time": "07:15 PM",
+        "bedtime_impact": "10:00 PM Bedtime 100% Preserved (Zero night-time study pressure)"
+      }
+    },
+    {
+      "id": "SURPLUS_20261007_193500",
+      "timestamp": "2026-10-07T19:35:00",
+      "date": "2026-10-07",
+      "variance_type": "SURPLUS_EARLY_COMPLETION",
+      "phase": "Evening Study",
+      "slot_title": "Concept Review: Physics D.N: 4",
+      "subject": "Physics",
+      "original_mins": 25,
+      "saved_mins": 15,
+      "extended_mins": 0,
+      "actual_total_mins": 10,
+      "reason": "Swift active recall & key points memorized without distraction",
+      "action_taken": "Shifted routine forward ➔ Evening routine completed early at 09:45 PM",
+      "cascade_action": {
+        "action_choice": "Shifted routine forward",
+        "saved_mins": 15,
+        "new_routine_finish_time": "09:45 PM",
+        "bedtime_impact": "Routine finished earlier at 09:45 PM (Earned 15m free time)"
+      }
+    },
+    {
+      "id": "AUDIT_20261006_194510",
+      "timestamp": "2026-10-06T19:45:10",
+      "date": "2026-10-06",
+      "variance_type": "OVERRUN_EXTENSION",
+      "phase": "Evening Study",
+      "slot_title": "School Diary Homework: Mathematics",
+      "subject": "Mathematics",
+      "original_mins": 25,
+      "saved_mins": 0,
+      "extended_mins": 15,
+      "actual_total_mins": 40,
+      "reason": "Required extra step-by-step hand calculation for given geometry questions",
+      "action_taken": "Break & secondary slot compression",
+      "cascade_action": {
+        "compressed_slots": [
+          {
+            "slot": "Chair-Time Relief Break",
+            "original_mins": 12,
+            "new_mins": 7,
+            "delta": -5
+          },
+          {
+            "slot": "Science/Social Diagram Retention",
+            "original_mins": 40,
+            "new_mins": 30,
+            "delta": -10
+          }
+        ],
+        "extinguished_or_deferred_slots": [],
+        "bedtime_preserved": "10:00 PM (Inviolable)",
+        "school_bag_audit_preserved": true
+      }
+    },
+    {
+      "id": "AUDIT_20261007_064500",
+      "timestamp": "2026-10-07T06:45:00",
+      "date": "2026-10-07",
+      "variance_type": "OVERRUN_EXTENSION",
+      "phase": "Morning Revision",
+      "slot_title": "Language Clinic: Tamil Self-Writing",
+      "subject": "Tamil",
+      "original_mins": 35,
+      "saved_mins": 0,
+      "extended_mins": 10,
+      "actual_total_mins": 45,
+      "reason": "Writing answers on his own and correcting spelling mistakes in Error Bank",
+      "action_taken": "Morning buffer compression",
+      "cascade_action": {
+        "compressed_slots": [
+          {
+            "slot": "Morning Hydration Break",
+            "original_mins": 10,
+            "new_mins": 5,
+            "delta": -5
+          },
+          {
+            "slot": "Final School Dispatch Audit",
+            "original_mins": 10,
+            "new_mins": 5,
+            "delta": -5
+          }
+        ],
+        "extinguished_or_deferred_slots": [],
+        "bedtime_preserved": "07:30 AM (Morning Departure Preserved)",
+        "school_bag_audit_preserved": true
+      }
+    }
+  ]
+}

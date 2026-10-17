@@ -1,0 +1,1 @@
+﻿Place Tharun's school diary photos (.jpg, .png), Word documents (.docx), PDFs (.pdf), or text notes (.txt) in this folder. ScholasticPulse can scan and import all diary entries from this folder with one click.

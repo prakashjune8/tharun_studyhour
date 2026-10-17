@@ -1,0 +1,183 @@
+{
+  "student_name": "Tharun",
+  "school": "Senthil Public School",
+  "format_version": "1.0",
+  "description": "Tharun's Official School Diary Homework Entries - Multi-Subject Core Efficiency Slabs",
+  "diary_entries": [
+    {
+      "date": "2026-10-06",
+      "display_date": "06/10/2026",
+      "efficiency_split_core": true,
+      "items": [
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Do the given questions",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": true,
+          "raw_source": "Math: Do the given questions",
+          "match_source": "Prefix 'Math:'",
+          "categorization_reason": "Mathematics problem solving practice"
+        },
+        {
+          "subject": "Geography",
+          "code": "Geo",
+          "task": "Do the given activity",
+          "task_type": "activity",
+          "est_mins": 15,
+          "completed": true,
+          "raw_source": "Geo: Do the given activity",
+          "match_source": "Prefix 'Geo:'",
+          "categorization_reason": "Practical activity / diagram"
+        },
+        {
+          "subject": "Physics",
+          "code": "Phy",
+          "task": "Learn D.N: 4",
+          "task_type": "memorize",
+          "est_mins": 15,
+          "completed": true,
+          "raw_source": "Phy: Learn D.N: 4",
+          "match_source": "Prefix 'Phy:'",
+          "categorization_reason": "Concept memorization & active recall"
+        },
+        {
+          "subject": "History",
+          "code": "His",
+          "task": "Read Pg no. 84",
+          "task_type": "reading",
+          "est_mins": 15,
+          "completed": true,
+          "raw_source": "His: Read Pg no. 84",
+          "match_source": "Prefix 'His:'",
+          "categorization_reason": "Textbook page reading & review"
+        },
+        {
+          "subject": "Biology",
+          "code": "Bio",
+          "task": "Bring your science lab manual without fail",
+          "task_type": "bag_pack",
+          "est_mins": 5,
+          "completed": true,
+          "raw_source": "Bio: Bring your science lab manual without fail",
+          "match_source": "Prefix 'Bio:'",
+          "categorization_reason": "School bag equipment / lab manual reminder"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "display_date": "07/10/2026",
+      "efficiency_split_core": true,
+      "items": [
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Ch-7 Junction for UT",
+          "task_type": "written",
+          "est_mins": 30,
+          "completed": true,
+          "raw_source": "Math: Ch-7 Junction for UT",
+          "match_source": "Prefix 'Math:'",
+          "categorization_reason": "Mathematics problem solving practice"
+        },
+        {
+          "subject": "Tamil",
+          "code": "தமிழ்",
+          "task": "இயல் - 1 குரு - 1, 2, சிறுவினா 1",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": true,
+          "raw_source": "தமிழ்: இயல் - 1 குரு - 1, 2, சிறுவினா 1",
+          "match_source": "Prefix 'தமிழ்:'",
+          "categorization_reason": "Written exercise / question-answers"
+        },
+        {
+          "subject": "Biology",
+          "code": "Bio",
+          "task": "Ch-5 Q7-a,b",
+          "task_type": "written",
+          "est_mins": 15,
+          "completed": true,
+          "raw_source": "Bio: Ch-5 Q7-a,b",
+          "match_source": "Prefix 'Bio:'",
+          "categorization_reason": "Written chapter questions"
+        },
+        {
+          "subject": "Chemistry",
+          "code": "Chem",
+          "task": "Pg no: 12 Revision zone",
+          "task_type": "reading",
+          "est_mins": 15,
+          "completed": true,
+          "raw_source": "Chem: Pg no: 12 Revision zone",
+          "match_source": "Prefix 'Chem:'",
+          "categorization_reason": "Textbook revision zone review"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "display_date": "08/10/2026",
+      "efficiency_split_core": true,
+      "items": [
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Ex: 9.1 Q1, 2",
+          "task_type": "written",
+          "est_mins": 30,
+          "completed": false,
+          "raw_source": "Math: Ex: 9.1 1, 2",
+          "match_source": "Prefix 'Math:'",
+          "categorization_reason": "Mathematics problem solving practice"
+        },
+        {
+          "subject": "Physics",
+          "code": "Phy",
+          "task": "Kinetic theory of matter write",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Phy: Kinetic theory of matter write",
+          "match_source": "Prefix 'Phy:'",
+          "categorization_reason": "Physics notes & definitions written practice"
+        },
+        {
+          "subject": "English",
+          "code": "Eng",
+          "task": "Ln: 1- Textual lines & make notes",
+          "task_type": "reading",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Eng: Ln: 1- Textual lines & make notes",
+          "match_source": "Prefix 'Eng:'",
+          "categorization_reason": "English textual reading & note making"
+        },
+        {
+          "subject": "Hindi",
+          "code": "Hindi",
+          "task": "Write Ln - 9 शब्दार्थ",
+          "task_type": "written",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Hin: Write Ln - 9 शब्दार्थ",
+          "match_source": "Prefix 'Hin:'",
+          "categorization_reason": "Hindi word meanings & spelling written practice"
+        },
+        {
+          "subject": "Language Clinic",
+          "code": "Lang",
+          "task": "Handwriting practice: Eng, Tam, Hin, Science, Social",
+          "task_type": "written",
+          "est_mins": 15,
+          "completed": false,
+          "raw_source": "Handwrite: Eng, Tam, Hin, Science, Social",
+          "match_source": "Keyword 'Handwrite'",
+          "categorization_reason": "Multi-subject handwriting speed & neatness drill"
+        }
+      ]
+    }
+  ]
+}

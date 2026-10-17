@@ -1,0 +1,301 @@
+================================================================================
+SCHOLASTICPULSE V2 - PROJECT WORKFLOW & FULL IMPLEMENTATION STATUS
+================================================================================
+Target Student: Tharun (Class 8 CBSE, Senthil Public School, Dharmapuri)
+Application Name: ScholasticPulse - Tharun's Habit & Time Management Architect
+Workspace Directory: D:\THARUN PROJECT\VERSION_2_WORKPLACE
+Primary Files:
+  - Web App: D:\THARUN PROJECT\VERSION_2_WORKPLACE\index.html
+  - Desktop App: D:\THARUN PROJECT\VERSION_2_WORKPLACE\study_balancer.py
+  - Desktop Executable: D:\THARUN PROJECT\VERSION_2_WORKPLACE\dist\ScholasticPulse_V2.exe
+Specification Date: October 2026
+Language & Locale Rule: 100% English Text (Strict Zero Kanji / Zero Japanese Characters)
+================================================================================
+
+1. PROJECT OVERVIEW & ARCHITECTURAL FOUNDATION
+--------------------------------------------------------------------------------
+ScholasticPulse V2 is a dual-platform pedagogical productivity system designed
+specifically for an 8th-grade CBSE student. It pairs anime-inspired motivation
+(Naruto Shinobi theme) with rigorous academic routine design, cognitive variance
+auditing, and automated school timetable balancing.
+
+Dual Platforms:
+1. Web Application (index.html):
+   - Fully client-side SPA written in vanilla HTML5, CSS3, Tailwind CSS (CDN),
+     and high-performance vanilla JavaScript.
+   - Persistent via localStorage.
+   - Complete 9-section UI redesign approved and functional.
+
+2. Desktop Application (study_balancer.py):
+   - Standalone Python 3.10+ Tkinter application with custom Canvas vector
+     drawing, Windows Win32 API integration, and native audio.
+   - Self-contained executable built via PyInstaller (ScholasticPulse_V2.spec).
+   - Local JSON persistence (study_routine_data.json, tharun_diary_format.json,
+     time_extension_audit.json, student_error_bank.json).
+
+Pedagogical Core Rules:
+- Inviolable 10:00 PM Bedtime Protection: Overruns dynamically compress breaks
+  or non-critical slabs, never pushing sleep past 10:00 PM.
+- Daily Cognitive Muscle: Mathematics problem-solving is scheduled every single day.
+- Cognitive Variety / Interleaving: Homework tasks are split into maximum 1 or 2
+  focused efficiency slabs with 3-4 minute micro-breaks.
+- After-School Transition: 5:40 PM - 6:30 PM is a protected "Unplugged Chill Zone"
+  with zero television before studying.
+
+
+================================================================================
+2. COMPLETE DATA FLOW & FUNCTIONAL PIPELINE
+================================================================================
+[Diary Input (Paper / OCR / JSON)] 
+       │
+       ▼
+[Diary Parser & Subject Slabs] ──> Class 8 CBSE Gravity Weighting (Math=3, Sci=3, SST=2, Lang=2)
+       │
+       ▼
+[Routine Balancer Algorithm] ────> 3 Modes:
+                                    1. Balanced Daily Routine (Levels 1-4)
+                                    2. Pre-Exam 21-Day Revision Roadmap
+                                    3. Exam Eve 4-Stage Sprint
+       │
+       ▼
+[Dual Timetable Output] ─────────> Evening Study Slabs (7:00 PM - 10:00 PM)
+                                    Morning Priming Window (6:00 AM - 7:30 AM)
+       │
+       ▼
+[Chakra Focus Timer] ────────────> Circular Ring Gauge with Animated Flame Tongues
+                                    +5m / +10m / +15m Extensions logged to Audit
+                                    "Done Early" bonus banked to Freedom Bank
+       │
+       ▼
+[Cognitive Variance Audit] ──────> Tracks friction, subject velocity, and bedtime protection.
+
+
+================================================================================
+3. THE 9 UI/UX REDESIGN SECTIONS & IMPLEMENTATION STATUS
+================================================================================
+
+--------------------------------------------------------------------------------
+SECTION 1: TOP HEADER BAR
+--------------------------------------------------------------------------------
+- Design Option Chosen: Option C — "Sage Mode Modern"
+- Web Status: COMPLETED & VERIFIED
+- Desktop Status: COMPLETED & VERIFIED (Screenshot: scratch\desktop_step1.png)
+- Implementation Details:
+  * Dark glassmorphism container (#0b111e) with gold-to-orange glowing border.
+  * Gold spiral emblem logo on the left.
+  * Title: "THARUN'S SHINOBI HABIT BALANCER" with cyan "CLASS 8" pill badge.
+  * Subtitle: "SENTHIL PUBLIC SCHOOL DIARY IMPORTER • TIMETABLE & FOCUS TIMER".
+  * Right streak badge: "🔥 Will of Fire: Day 4 Streak" with 7-day progress dots.
+  * Month dropdown selector styled as a sleek dark pill.
+
+--------------------------------------------------------------------------------
+SECTION 2: SHINOBI CHARACTER CARD (HERO BANNER)
+--------------------------------------------------------------------------------
+- Design Option Chosen: Option A — "Hero Portrait"
+- Web Status: COMPLETED & VERIFIED
+- Desktop Status: COMPLETED & VERIFIED (Screenshot: scratch\desktop_step2.png)
+- Implementation Details:
+  * Left-aligned 122x122 high-resolution portrait of Sage Mode Naruto with glowing
+    golden chakra aura and gold-bordered frame.
+  * Subheading: "SHINOBI SCROLL".
+  * Main Title: "NARUTO UZUMAKI • SEVENTH HOKAGE • MASTER SAGE" in bold amber.
+  * Quote: Large legible white text with quotation marks:
+    "I never go back on my word! That's my nindo, my ninja way! Dattebayo!"
+  * Bottom Strip: Glowing Jutsu pill ("⚡ Jutsu: Sage Art: Massive Rasengan & Kurama Link")
+    and metallic golden rank badge ("RANK: HOKAGE").
+
+--------------------------------------------------------------------------------
+SECTION 3: COMMAND GRID DECK (SETTINGS & ACTION DECK)
+--------------------------------------------------------------------------------
+- Design Option Chosen: Option A — "Settings + Action Deck"
+- Web Status: COMPLETED & VERIFIED
+- Desktop Status: COMPLETED & VERIFIED (Screenshot: scratch\desktop_step3.png)
+- Implementation Details:
+  * Top Grid: 4 dark glass setting pills:
+    1. Mode (Balanced Routine / Pre-Exam Roadmap / Exam Eve Sprint)
+    2. Execution Level (Genin, Chunin, Jonin, Hokage)
+    3. Start Time Selector (7:00 PM default)
+    4. Shinobi Mentor Selector (Naruto Sage, Sasuke, Kakashi, Minato, Itachi, Rock Lee)
+  * Pre-Exam Day Counter: Cyan badge displaying active day (e.g., "Prep: Day 1/14: ...").
+  * Bottom Action Bar: Dark glass utility tiles (Rotate, Guides, Digest, Wisdom,
+    V1 Audit, Error Bank) anchored by a Solid Gold Primary CTA: "⚡ Schedule".
+
+--------------------------------------------------------------------------------
+SECTION 4: TAB NAVIGATION BAR
+--------------------------------------------------------------------------------
+- Design Option Chosen: Option B — "Ninja Scroll Tabs"
+- Web Status: COMPLETED & VERIFIED
+- Desktop Status: COMPLETED & VERIFIED (Screenshot: scratch\desktop_step4.png)
+- Implementation Details:
+  * Active Tab: Styled as an authentic unfurled parchment scroll (cream #f5e4c3
+    background, deep mahogany #1f1206 bold text, dark red/gold scroll borders).
+  * Inactive Tabs: Sleek dark navy slate pills with subtle border hover states.
+  * Tab 1: "📜 📅 Daily Schedule"
+  * Tab 2: "📜 📖 School Diary & Slabs"
+  * Tab 3: "📜 📑 Exam Portions & Pre-Exam Tracker"
+
+--------------------------------------------------------------------------------
+SECTION 5A: 30-DAY CONSISTENCY HEATMAP
+--------------------------------------------------------------------------------
+- Design Option Chosen: Option A — "Chakra Tile Strip"
+- Web Status: COMPLETED & VERIFIED
+- Desktop Status: COMPLETED & VERIFIED (Integrated in Header & Deck)
+- Implementation Details:
+  * Title: "30-DAY SHINOBI CONSISTENCY HEATMAP" with flame icon.
+  * 3 big metric cards: Current Streak (4d), Best Streak (4d), 30D Study (260m).
+  * Single horizontal row of 30 square day tiles colored by study minutes.
+  * Today's tile highlighted with a glowing gold ring.
+
+--------------------------------------------------------------------------------
+SECTION 5B: CHAKRA FOCUS TIMER SIDE PANEL
+--------------------------------------------------------------------------------
+- Design Option Chosen: Option A — "Circular Chakra Ring Timer"
+- Web Status: COMPLETED & VERIFIED
+- Desktop Status: COMPLETED & VERIFIED (Screenshot: scratch\desktop_step5.png)
+- Implementation Details:
+  * Hero Circular Chakra Ring Canvas:
+    - 16 dynamic radial chakra flame tongues around the outer perimeter.
+    - Outer aura glow rings matching active character theme colors.
+    - Thick circular progress gauge arc showing elapsed/remaining percentage.
+    - Huge crisp digital countdown ("15:00") and slot phase in the center.
+  * Active Slot Card: Companion portrait, slot badge, title, and timing.
+  * 2-Row Control Buttons: Solid gold primary "Resume Focus" + glass "Reset"
+    and "Next Slot", followed by "Done Early!" and "Day Complete".
+  * Time Extension Chips: Readable dark glass pills (+5m, +10m, +15m, Custom).
+  * Compact Sound Bar: Sound toggle, audio preset dropdown, and test button.
+  * 2x4 Study Tools Grid: Formatted in 2 rows of 4 uniform glass buttons with
+    zero clipping (Rescue Slip, Doubt, Parent X-Ray, 60s Demo, Error Bank, Diksha QR, Vault).
+
+--------------------------------------------------------------------------------
+SECTION 6: TAB 1 — DAILY SCHEDULE LIST
+--------------------------------------------------------------------------------
+- Design Option Chosen: Option C — "Scroll & Chakra Ledger"
+- Web Status: COMPLETED & VERIFIED
+- Desktop Status: COMPLETED & VERIFIED (Screenshot: scratch\desktop_step6.png)
+- Implementation Details:
+  * Unfurled Parchment Scroll Banners via `_create_parchment_scroll_banner()`
+    separating Evening Study Slabs and Morning Priming Window.
+  * Dark Navy Chakra Ledger Cards (#0e172a) with metallic gold borders (#d4af5a).
+  * Left Time Plaques: Golden borders with start/end time and duration.
+  * Right Badges: Mini parchment scroll badges with dark red accents.
+  * Micro-break strips styled in emerald-teal with relaxing break instructions.
+
+--------------------------------------------------------------------------------
+SECTION 7: TAB 2 — SCHOOL DIARY & SUBJECT SLABS
+--------------------------------------------------------------------------------
+- Design Option Chosen: Option B — "Scroll & Chakra Ledger"
+- Web Status: COMPLETED & VERIFIED
+- Desktop Status: COMPLETED & VERIFIED (Screenshot: scratch\desktop_step7.png)
+- Implementation Details:
+  * Top Action Deck: Gold-bordered dark ledger card with date selector,
+    "Apply to Schedule", "Audit", "Save", "Import", and "Photo Assistant".
+  * Single-Row Quick-Add Slab Bar: Compact input fields for quick homework entry.
+  * Unfurled Parchment Scroll Banner: "OFFICIAL SENTHIL PUBLIC SCHOOL DIARY • CLASS VIII".
+  * 2-Column Grid of Homework Slab Cards:
+    - Metallic gold subject plaque (#161006 background, #facc15 text).
+    - Status badges (Active / Completed) and mini parchment duration pills.
+    - Interactive completion checkbox with instant sync to schedule.
+
+--------------------------------------------------------------------------------
+SECTION 8: TAB 3 — EXAM PORTIONS & SYLLABUS TRACKER
+--------------------------------------------------------------------------------
+- Design Option Chosen: Option B — "Scroll & Chakra Ledger"
+- Web Status: COMPLETED & VERIFIED
+- Desktop Status: COMPLETED & VERIFIED (Screenshot: scratch\desktop_step8.png)
+- Implementation Details:
+  * Top Command & Progress Deck:
+    - Gold-bordered dark ledger card (#0e172a, border #d4af5a).
+    - Title: "📜 PORTIONS FOR TERM-I EXAMINATION" with school tag.
+    - Mastered counter: "Syllabus Mastered: X / Y Portions (Z%)".
+    - Solid gold CTA "📁 Upload Portions", "📝 Paste Syllabus", "📅 Pre-Exam Roadmap",
+      "📋 Copy Full Syllabus", "🔄 Reset".
+    - Custom Canvas progress bar with gold fill and leading glow edge.
+  * Subject Filter Chip Bar:
+    - Active pill: Parchment Scroll Pill (#f5e4c3, text #1f1206, border #991b1b).
+    - Inactive pills: Dark Ledger Pills (#131c2e, border #334155).
+  * Unfurled Parchment Banner: "TERM-I EXAMINATION PORTIONS LEDGER • SENTHIL PUBLIC SCHOOL".
+  * 2-Column Chakra Ledger Grid:
+    - Metallic gold subject plaques with subject icons.
+    - Crimson exam date pills (e.g., "📅 2026-09-11 (Fri)").
+    - Mini parchment scroll mastery badges showing completion count and gravity stars.
+    - Amber high-weightage focus strips.
+    - Chapter checklists with green checkmarks and right-aligned mini parchment page pills.
+
+--------------------------------------------------------------------------------
+SECTION 9: POP-UP MODALS SUITE
+--------------------------------------------------------------------------------
+- Design Option Chosen: Option C — "Split Sidebar Navigation Modal"
+- Web Status: COMPLETED & VERIFIED
+- Desktop Status: IN PROGRESS (Next Immediate Implementation Task)
+- Specification to Implement in `study_balancer.py`:
+  * Modals to Update:
+    1. `open_guide_modal()` (Comprehensive Class 8 System Guide)
+    2. `open_subject_study_playbook_modal()` (Subject Study Playbook)
+  * Window Styling:
+    - Dark navy container (#0b1120) with cyan HUD border (#38bdf8, 2px).
+    - HUD Header Bar (#0f172a): Cyan title, subtitle, and crimson "✕ Close" button.
+  * Split 2-Pane Layout:
+    - Left 230px Vertical Sidebar (#070b14):
+      * "NAVIGATION" cyan micro-header.
+      * Stacked vertical navigation buttons:
+        - Active: #0c2540 bg, #38bdf8 text, #38bdf8 border.
+        - Inactive: #0f172a bg, #cbd5e1 text, #1e293b border.
+      * Bottom HUD summary card (#0f172a) with student status.
+    - Right Content Pane (#0b1120):
+      * Scrollable canvas rendering the selected tab's rich instructional content.
+
+
+================================================================================
+4. CURRENT CODEBASE REPOSITORY MAP
+================================================================================
+Directory: D:\THARUN PROJECT\
+  ├── study_balancer.py                  # V1 root file (historical baseline)
+  ├── VERSION_2_WORKPLACE\
+  │   ├── index.html                     # 100% COMPLETE V2 Web Application
+  │   ├── study_balancer.py              # Primary V2 Python Tkinter App (Steps 1-8 Done)
+  │   ├── ScholasticPulse_V2.spec        # PyInstaller specification file
+  │   ├── dist\
+  │   │   └── ScholasticPulse_V2.exe     # Standalone frozen executable
+  │   ├── diary_importer.py              # Photo & JSON Diary Importer engine
+  │   ├── exam_portion_parser.py         # PDF / OCR Exam circular parser
+  │   ├── assets\
+  │   │   ├── naruto\                    # Character portraits & celebration seals
+  │   │   └── naruto_audio\              # 43 MP3 voice clips & quotes manifest
+  │   ├── study_routine_data.json        # Schedule configuration & persistent settings
+  │   ├── tharun_diary_format.json       # Active school diary entries
+  │   ├── tharun_exam_portions.json      # Official Term-I exam portions
+  │   ├── time_extension_audit.json      # Cognitive variance & overrun log
+  │   └── student_error_bank.json        # Subject-specific doubt & error log
+
+
+================================================================================
+5. REMAINING WORKFLOW TO COMPLETE SCHOLASTICPULSE V2
+================================================================================
+
+Step 1: Implement Section 9 (Split Sidebar Modals) in `study_balancer.py`
+  - Locate `open_guide_modal()` (~line 4348) and `open_subject_study_playbook_modal()` (~line 6240).
+  - Refactor both dialogs to use the Option C Split Sidebar layout:
+    * Left frame (230px, bg="#070b14") with vertical category buttons.
+    * Right frame (bg="#0b1120") with dynamic page switching and scrollable content.
+    * Top cyan HUD header bar with close button.
+
+Step 2: Live Screenshot Capture & Visual Audit of Section 9
+  - Run verification script:
+    `python scratch\snap_desktop.py scratch\desktop_step9_guide.png balanced schedule naruto_sage guide`
+    `python scratch\snap_desktop.py scratch\desktop_step9_playbook.png balanced schedule naruto_sage playbook`
+  - Audit screenshots to verify styling, English text, and zero UI clipping.
+
+Step 3: Syntax Verification & Rebuild Executable
+  - Run syntax check:
+    `python -m py_compile "D:\THARUN PROJECT\VERSION_2_WORKPLACE\study_balancer.py"`
+  - Compile standalone executable via PyInstaller:
+    `pyinstaller --clean "D:\THARUN PROJECT\VERSION_2_WORKPLACE\ScholasticPulse_V2.spec"`
+  - Verify `dist\ScholasticPulse_V2.exe` runs cleanly.
+
+Step 4: Copy Executable to Root & Update Desktop Shortcut
+  - Copy `VERSION_2_WORKPLACE\dist\ScholasticPulse_V2.exe` to `D:\THARUN PROJECT\dist\`.
+  - Execute `CREATE_V2_DESKTOP_SHORTCUT.ps1` to ensure Tharun's desktop shortcut
+    points to the newly minted V2 executable.
+================================================================================
+END OF WORKFLOW & STATUS DOCUMENT
+================================================================================

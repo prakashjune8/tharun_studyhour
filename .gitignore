@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.bak
+
+# PyInstaller build and distribution artifacts (can be rebuilt via pyinstaller spec)
+build/
+**/build/
+dist/
+**/dist/
+
+# OS and Editor files
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# Temporary scratch files
+*.log
+temp_*

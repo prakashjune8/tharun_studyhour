@@ -1,0 +1,207 @@
+{
+  "subjects": [
+    {
+      "id": "sub_tamil",
+      "name": "Tamil",
+      "gravity": 2,
+      "exam_soon": false,
+      "exam_date": "2026-09-09",
+      "exam_day": "Wednesday",
+      "notes": "செய்யுள் (6 பாடல்கள்), உரைநடை (3 இயல்கள்), திருக்குறள் (1-10), துணைப்பாடம், இலக்கணம் (இயல் 1,2,3), பொதுப்பகுதி"
+    },
+    {
+      "id": "sub_math",
+      "name": "Mathematics",
+      "gravity": 3,
+      "exam_soon": false,
+      "exam_date": "2026-09-11",
+      "exam_day": "Friday",
+      "notes": "Ch 1-8: Rational Numbers, Squares/Cubes, Ratio, Shapes, Data Handling, Sets, Functions, Matrices"
+    },
+    {
+      "id": "sub_phy_sci",
+      "name": "Physical Science",
+      "gravity": 3,
+      "exam_soon": false,
+      "exam_date": "2026-09-16",
+      "exam_day": "Wednesday",
+      "notes": "Physics (Refraction, Lenses, Static Elec) & Chemistry (Atom I & II, Periodic Properties)"
+    },
+    {
+      "id": "sub_soc_sci",
+      "name": "Social Science",
+      "gravity": 2,
+      "exam_soon": false,
+      "exam_date": "2026-09-18",
+      "exam_day": "Friday",
+      "notes": "History (1857 Revolt, Company Power), Geography (Soil, Water, Agriculture), Civics (Constitution) & Map"
+    },
+    {
+      "id": "sub_hindi",
+      "name": "Hindi",
+      "gravity": 2,
+      "exam_soon": false,
+      "exam_date": "2026-09-22",
+      "exam_day": "Tuesday",
+      "notes": "Lessons 1,2,3,4,7, General Writing (Ad, Paragraph, Picture), Lab & Spoken Sentences 1-25"
+    },
+    {
+      "id": "sub_bio_sci",
+      "name": "Biological Science",
+      "gravity": 3,
+      "exam_soon": false,
+      "exam_date": "2026-09-24",
+      "exam_day": "Thursday",
+      "notes": "Transportation in Animals & Plants, Control & Coordination (Neuron/Brain), Animal Reproduction & Development"
+    },
+    {
+      "id": "sub_eng",
+      "name": "English",
+      "gravity": 2,
+      "exam_soon": false,
+      "exam_date": "2026-09-26",
+      "exam_day": "Saturday",
+      "notes": "Literature (6 chapters), Grammar (Parts of speech, Tenses, Modals, Gerunds), Composition (Letters, Story, Article)"
+    }
+  ],
+  "theme": "itachi_uchiha",
+  "last_naruto_theme_index": 4,
+  "tharun_level": 2,
+  "selected_language": "English (Language)",
+  "habit_streak": 4,
+  "study_history": {
+    "2026-10-08": {
+      "total_minutes": 60,
+      "completed_slots": 2,
+      "feynman_notes": [
+        {
+          "time": "07:30 PM",
+          "subject": "Mathematics",
+          "slot_title": "Core Slab: Maths Muscle",
+          "duration_mins": 40,
+          "mastery": "100%",
+          "notes": "Solved Rational Numbers Ex 1.4 Q3-8 on number line and closure properties.",
+          "tags": [
+            "[🔢 Solved Problems]"
+          ]
+        },
+        {
+          "time": "08:30 PM",
+          "subject": "Physical Science",
+          "slot_title": "Supporting Slab: Science",
+          "duration_mins": 20,
+          "mastery": "80%",
+          "notes": "Studied Refraction laws and Snell's law formula.",
+          "tags": [
+            "[📖 Memorized Concepts]"
+          ]
+        }
+      ]
+    },
+    "2026-10-09": {
+      "total_minutes": 75,
+      "completed_slots": 3,
+      "feynman_notes": [
+        {
+          "time": "07:15 PM",
+          "subject": "Tamil",
+          "slot_title": "Language Clinic: Tamil",
+          "duration_mins": 30,
+          "mastery": "100%",
+          "notes": "Memorized Thirukkural 1-5 with flawless seeru and meaning.",
+          "tags": [
+            "[📖 Memorized Concepts]"
+          ]
+        },
+        {
+          "time": "08:10 PM",
+          "subject": "Biological Science",
+          "slot_title": "Core Slab: Biology",
+          "duration_mins": 30,
+          "mastery": "100%",
+          "notes": "Drew labeled diagram of Human Heart internal circulation.",
+          "tags": [
+            "[🎨 Labeled Diagram]"
+          ]
+        },
+        {
+          "time": "09:00 PM",
+          "subject": "Mathematics",
+          "slot_title": "Maths Revision",
+          "duration_mins": 15,
+          "mastery": "80%",
+          "notes": "Squares and square roots long division method revision.",
+          "tags": [
+            "[🔢 Solved Problems]"
+          ]
+        }
+      ]
+    },
+    "2026-10-10": {
+      "total_minutes": 85,
+      "completed_slots": 3,
+      "feynman_notes": [
+        {
+          "time": "07:00 PM",
+          "subject": "Mathematics",
+          "slot_title": "Core Slab: Maths Muscle",
+          "duration_mins": 45,
+          "mastery": "100%",
+          "notes": "Solved Squares & Square Roots Ex 2.2 prime factorization method Q1-10.",
+          "tags": [
+            "[🔢 Solved Problems]"
+          ]
+        },
+        {
+          "time": "08:05 PM",
+          "subject": "Social Science",
+          "slot_title": "Supporting Slab: Social",
+          "duration_mins": 25,
+          "mastery": "100%",
+          "notes": "Revised 1857 Revolt causes & leaders (Mangal Pandey, Rani Lakshmibai).",
+          "tags": [
+            "[📖 Memorized Concepts]"
+          ]
+        },
+        {
+          "time": "08:50 PM",
+          "subject": "Hindi",
+          "slot_title": "Language Clinic: Hindi",
+          "duration_mins": 15,
+          "mastery": "80%",
+          "notes": "Wrote 5 spoken Hindi sentences and vocabulary word meanings.",
+          "tags": [
+            "[📝 Practice Test]"
+          ]
+        }
+      ]
+    },
+    "2026-10-11": {
+      "total_minutes": 40,
+      "completed_slots": 1,
+      "feynman_notes": [
+        {
+          "time": "07:10 PM",
+          "subject": "Mathematics",
+          "slot_title": "Core Slab: Maths Muscle",
+          "duration_mins": 40,
+          "mastery": "100%",
+          "notes": "Mastered Cube roots estimation and prime factor grouping.",
+          "tags": [
+            "[🔢 Solved Problems]"
+          ]
+        }
+      ]
+    }
+  },
+  "best_streak": 4,
+  "active_diary_date": "2026-10-08",
+  "is_exam_mode": false,
+  "is_pre_exam_mode": true,
+  "pre_exam_day": 3,
+  "pre_exam_duration_days": 14,
+  "selected_exam_subject": "Physical Science",
+  "schedule_start_time": "19:00",
+  "sound_preset": "char_kakashi",
+  "last_saved": "2026-10-16T19:07:38.690214"
+}
