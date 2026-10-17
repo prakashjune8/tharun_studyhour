@@ -74,3 +74,9 @@ All 9 desktop sections are visually audited on Windows via Win32 print window ca
 3. **Standalone Production Binary**:
    - `VERSION_2_WORKPLACE\dist\ScholasticPulse_V2.exe` (61.5 MB, compiled October 17, 2026, 14:45:05).
    - Synced to root `dist\ScholasticPulse_V2.exe`.
+
+4. **GitHub Public Repository Sync (Mandatory Post-Change Policy)**:
+   - **Repository URL**: `https://github.com/prakashjune8/tharun_studyhour`
+   - **Active Branch**: `main`
+   - **Policy**: Every subsequent change made to code, documentation, or assets is committed and pushed directly to `origin/main`.
+
