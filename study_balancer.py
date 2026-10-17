@@ -2797,8 +2797,9 @@ class ShinobiPillSelector(tk.Frame):
     Replaces clunky Win32 ttk.Combobox with high-polish dark card (radius=12, bg=#131c2e, border=#334155).
     Fully compatible with ttk.Combobox methods: ['values'], .current(), .set(), .get(), .configure().
     """
-    def __init__(self, parent, title="", values=None, initial_value="", on_select_callback=None, textvariable=None, width=120, height=None, **kwargs):
+    def __init__(self, parent, title="", values=None, initial_value="", on_select_callback=None, textvariable=None, width=120, height=None, title_color=None, **kwargs):
         self.title = title or ""
+        self.title_color = title_color
         self.values = list(values) if values else []
         self.current_value = str(initial_value) if initial_value else ""
         self.on_select_callback = on_select_callback
@@ -2823,7 +2824,7 @@ class ShinobiPillSelector(tk.Frame):
         self.pack_propagate(False)
 
         if self.title:
-            self.lbl_title = tk.Label(self, text=self.title, font=("Segoe UI", 7, "bold"), fg="#fb923c", bg=bg_col, anchor="w")
+            self.lbl_title = tk.Label(self, text=self.title, font=("Segoe UI", 7, "bold"), fg=self.title_color or "#fb923c", bg=bg_col, anchor="w")
             self.lbl_title.pack(anchor="w", padx=6, pady=(2, 0))
         else:
             self.lbl_title = None
@@ -5121,29 +5122,26 @@ class DesktopApp:
         # Dynamic Mode Tile (Row 2, Col 2)
         self.sub_prep_container = tk.Frame(
             self.matrix_command_frame,
-            bg="#131c2e",
-            padx=6,
-            pady=3,
-            bd=1,
-            relief=tk.SOLID,
-            highlightbackground="#334155",
-            highlightthickness=1
+            bg="#161f30",
+            bd=0,
+            highlightthickness=0
         )
-        self.lbl_exam_sub = tk.Label(self.sub_prep_container, text="Exam:", font=("Segoe UI", 7, "bold"), fg="#fb923c", bg="#131c2e")
+        self.lbl_exam_sub = tk.Label(self.sub_prep_container, text="Exam:", font=("Segoe UI", 7, "bold"), fg="#fb923c", bg="#161f30")
         self.exam_sub_var = tk.StringVar(value=self.selected_exam_subject)
         def _on_pill_exam_sub_selected(v):
             self.exam_sub_var.set(v)
             self.on_exam_subject_changed()
         self.exam_sub_combo = ShinobiPillSelector(
             self.sub_prep_container,
-            title="Exam:",
+            title="EXAM",
             values=["Tamil", "Mathematics", "Physical Science", "Social Science", "Hindi", "Biological Science", "English"],
             initial_value=self.selected_exam_subject,
             textvariable=self.exam_sub_var,
-            on_select_callback=_on_pill_exam_sub_selected
+            on_select_callback=_on_pill_exam_sub_selected,
+            title_color="#f59e0b"
         )
 
-        self.lbl_pre_exam_day = tk.Label(self.sub_prep_container, text="Prep:", font=("Segoe UI", 7, "bold"), fg="#38bdf8", bg="#131c2e")
+        self.lbl_pre_exam_day = tk.Label(self.sub_prep_container, text="Prep:", font=("Segoe UI", 7, "bold"), fg="#38bdf8", bg="#161f30")
         roadmap_init = self.get_pre_exam_roadmap_for_duration()
         init_day_idx = max(0, min(len(roadmap_init) - 1, self.pre_exam_day - 1))
         self.pre_exam_day_var = tk.StringVar(value=f"Day {self.pre_exam_day}/{self.pre_exam_duration_days}: {roadmap_init[init_day_idx]['title']}")
@@ -5152,31 +5150,42 @@ class DesktopApp:
             self.on_pre_exam_day_changed()
         self.pre_exam_day_combo = ShinobiPillSelector(
             self.sub_prep_container,
-            title="Prep:",
+            title="PREP",
             values=[f"Day {d['day']}/{len(roadmap_init)}: {d['title']}" for d in roadmap_init],
             initial_value=f"Day {self.pre_exam_day}/{self.pre_exam_duration_days}: {roadmap_init[init_day_idx]['title']}",
             textvariable=self.pre_exam_day_var,
-            on_select_callback=_on_pill_pre_day_selected
+            on_select_callback=_on_pill_pre_day_selected,
+            title_color="#38bdf8"
         )
 
-        self.lbl_daily_mode_tag = tk.Label(
+        self.daily_mode_card = tk.Frame(
             self.sub_prep_container,
+            bg="#161f30",
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#2e3b52",
+            highlightthickness=1,
+            height=54
+        )
+        self.daily_mode_card.pack_propagate(False)
+        self.lbl_daily_mode_tag = tk.Label(
+            self.daily_mode_card,
             text="☑️  CBSE Daily",
             font=("Segoe UI", 9, "bold"),
             fg="#f8fafc",
-            bg="#131c2e"
+            bg="#161f30"
         )
+        self.lbl_daily_mode_tag.pack(expand=True)
 
         if self.is_exam_mode:
-            self.lbl_exam_sub.pack(side=tk.LEFT, padx=(2, 2))
-            self.exam_sub_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            self.exam_sub_combo.pack(fill=tk.BOTH, expand=True)
         elif self.is_pre_exam_mode:
-            self.lbl_pre_exam_day.pack(side=tk.LEFT, padx=(2, 2))
-            self.pre_exam_day_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            self.pre_exam_day_combo.pack(fill=tk.BOTH, expand=True)
         else:
-            self.lbl_daily_mode_tag.pack(expand=True)
-        self.sub_prep_container.pack_propagate(False)
+            self.daily_mode_card.pack(fill=tk.BOTH, expand=True)
         self.sub_prep_container.grid(row=2, column=2, padx=3, pady=2, sticky="nsew")
+        if hasattr(self, "setting_pills"):
+            self.setting_pills.extend([self.exam_sub_combo, self.pre_exam_day_combo])
 
         # Row 2, Col 3: Solid Amber-Gold Primary Schedule CTA Card
         self.btn_quick_focus = _make_stacked_action_card(
@@ -8789,18 +8798,19 @@ class DesktopApp:
 
     def update_timeline_header_mode_view(self):
         if hasattr(self, "sub_prep_container") and self.sub_prep_container.winfo_exists():
-            for w_attr in ["lbl_exam_sub", "exam_sub_combo", "lbl_pre_exam_day", "pre_exam_day_combo", "lbl_daily_mode_tag"]:
+            for w_attr in ["lbl_exam_sub", "exam_sub_combo", "lbl_pre_exam_day", "pre_exam_day_combo", "lbl_daily_mode_tag", "daily_mode_card"]:
                 w_obj = getattr(self, w_attr, None)
                 if w_obj and w_obj.winfo_exists():
                     w_obj.pack_forget()
             if self.is_exam_mode:
-                self.lbl_exam_sub.pack(side=tk.LEFT, padx=(2, 2))
-                self.exam_sub_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                self.exam_sub_combo.pack(fill=tk.BOTH, expand=True)
             elif self.is_pre_exam_mode:
-                self.lbl_pre_exam_day.pack(side=tk.LEFT, padx=(2, 2))
-                self.pre_exam_day_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                self.pre_exam_day_combo.pack(fill=tk.BOTH, expand=True)
             else:
-                self.lbl_daily_mode_tag.pack(expand=True)
+                if hasattr(self, "daily_mode_card") and self.daily_mode_card.winfo_exists():
+                    self.daily_mode_card.pack(fill=tk.BOTH, expand=True)
+                else:
+                    self.lbl_daily_mode_tag.pack(expand=True)
 
         if not hasattr(self, "balanced_controls_frame"):
             return
@@ -12965,25 +12975,6 @@ class DesktopApp:
         self.is_exam_mode = ("exam sprint" in val.lower())
         self.is_pre_exam_mode = ("3-week" in val.lower() or "pre-exam" in val.lower())
 
-        if self.is_exam_mode:
-            if hasattr(self, "lbl_daily_mode_tag"): self.lbl_daily_mode_tag.pack_forget()
-            self.lbl_pre_exam_day.pack_forget()
-            self.pre_exam_day_combo.pack_forget()
-            self.lbl_exam_sub.pack(side=tk.LEFT, padx=(2, 2))
-            self.exam_sub_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        elif self.is_pre_exam_mode:
-            if hasattr(self, "lbl_daily_mode_tag"): self.lbl_daily_mode_tag.pack_forget()
-            self.lbl_exam_sub.pack_forget()
-            self.exam_sub_combo.pack_forget()
-            self.lbl_pre_exam_day.pack(side=tk.LEFT, padx=(2, 2))
-            self.pre_exam_day_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        else:
-            self.lbl_exam_sub.pack_forget()
-            self.exam_sub_combo.pack_forget()
-            self.lbl_pre_exam_day.pack_forget()
-            self.pre_exam_day_combo.pack_forget()
-            if hasattr(self, "lbl_daily_mode_tag"): self.lbl_daily_mode_tag.pack(side=tk.LEFT, padx=2)
-
         self.update_timeline_header_mode_view()
         self.update_notebook_tabs_for_mode()
         self.save_data()
@@ -14248,17 +14239,14 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
                     for sch in pill.winfo_children():
                         if isinstance(sch, tk.Label):
                             if sch == getattr(pill, "lbl_title", None):
-                                sch.configure(bg="#161f30", fg=primary_col)
+                                tc = getattr(pill, "title_color", None)
+                                sch.configure(bg="#161f30", fg=tc if tc else primary_col)
                             else:
                                 sch.configure(bg="#161f30")
 
-            if hasattr(self, "sub_prep_container") and self.sub_prep_container.winfo_exists():
-                self.sub_prep_container.configure(bg="#161f30", highlightbackground="#2e3b52")
-            if hasattr(self, "lbl_exam_sub"):
-                self.lbl_exam_sub.configure(bg="#161f30", fg=primary_col)
-            if hasattr(self, "lbl_pre_exam_day"):
-                self.lbl_pre_exam_day.configure(bg="#161f30", fg="#38bdf8")
-            if hasattr(self, "lbl_daily_mode_tag"):
+            if hasattr(self, "daily_mode_card") and self.daily_mode_card.winfo_exists():
+                self.daily_mode_card.configure(bg="#161f30", highlightbackground="#2e3b52")
+            if hasattr(self, "lbl_daily_mode_tag") and self.lbl_daily_mode_tag.winfo_exists():
                 self.lbl_daily_mode_tag.configure(bg="#161f30", fg="#f8fafc")
 
         # Synchronize Theme Selector Pill label & StringVar
