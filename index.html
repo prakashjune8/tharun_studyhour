@@ -3080,15 +3080,8 @@
               <option value="English">English (26.09)</option>
             </select>
           </span>
-          <span id="fieldPreExamDay" style="display: none; align-items: center; gap: 6px;">
-            <span class="control-label" style="color: #38bdf8;">Term</span>
-            <select class="control-select" id="commandTermSelect" onchange="changeActiveTermWeb(this.value)" style="max-width: 105px;">
-              <option value="Term-I">Term-I</option>
-              <option value="Term-II" selected>Term-II</option>
-              <option value="Periodic Test-2">Periodic Test-2</option>
-              <option value="Annual Exam">Annual Exam</option>
-            </select>
-            <span class="control-label" style="color: #38bdf8;">Day</span>
+          <span id="fieldPreExamDay" style="display: none;">
+            <span class="control-label" style="color: #38bdf8;">Prep</span>
             <select class="control-select" id="preExamDaySelect" onchange="changePreExamDay(parseInt(this.value))"></select>
           </span>
           <span id="fieldBalancedStandard" class="status-ok" style="display: flex;">
@@ -7029,94 +7022,19 @@
 
     function getPreExamRoadmap(totalDays) {
       totalDays = Math.max(3, Math.min(45, parseInt(totalDays) || 21));
-
-      const activeTerm = (typeof portionsMeta !== "undefined" && portionsMeta.active_term) ? portionsMeta.active_term : "Term-II";
-      let termPortions = (typeof currentPortionsData !== "undefined" && currentPortionsData) ? currentPortionsData : [];
-
-      let coreCycle = [];
-      if (termPortions && termPortions.length > 0) {
-        const subMap = {};
-        termPortions.forEach(s => { if (s && s.subject) subMap[s.subject] = s; });
-
-        function getSubTopics(subName, fallbackList) {
-          const sObj = subMap[subName];
-          if (!sObj) return fallbackList;
-          const items = [];
-          if (sObj.components) {
-            sObj.components.forEach(c => {
-              const cName = c.name || "";
-              if (c.topics && c.topics.length > 0) {
-                c.topics.forEach(t => items.push(`${cName}: ${t}`));
-              } else if (cName) {
-                items.push(cName);
-              }
-            });
-          }
-          if (sObj.chapters && items.length === 0) {
-            sObj.chapters.forEach(ch => items.push(`${ch.code}: ${ch.name}`));
-          }
-          if (sObj.sub_branches && items.length === 0) {
-            sObj.sub_branches.forEach(b => {
-              (b.lessons || []).forEach(l => items.push(`${b.branch} ${l.code}: ${l.name}`));
-            });
-          }
-          return items.length > 0 ? items : fallbackList;
-        }
-
-        let mathItems = getSubTopics("Mathematics", ["Ch-7 Comparing Quantities", "Ch-8 Algebraic Expressions", "Ch-9 Mensuration", "Ch-10 Exponents & Powers", "Ch-11 Direct & Inverse", "Ch-12 Factorisation"]);
-        let phyItems = getSubTopics("Physical Science", ["Physics: Force & Pressure", "Physics: Friction & Sound", "Chemistry: Chemical Effects", "Physics: Light"]);
-        let bioItems = getSubTopics("Biological Science", ["Biology: Crop Production", "Biology: Microorganisms", "Biology: Cell Structure", "Biology: Reproduction"]);
-        let socItems = getSubTopics("Social Science", ["History: 1857 Revolt", "History: Women & Caste", "Geography: Agriculture", "Civics: Judicial System"]);
-        let tamItems = getSubTopics("Tamil", ["செய்யுள்: வாழ்த்து & திருக்குறள்", "உரைநடை: தமிழர் மருத்துவம்", "இலக்கணம்: எழுத்துகளின் பிறப்பு"]);
-        let engItems = getSubTopics("English", ["Literature: Prose & Poems", "Grammar: Tenses, Modals, Voice", "Composition: Formal Letters"]);
-        let hinItems = getSubTopics("Hindi", ["Lessons 1-4 & Vigyapan Lekhan", "Grammar: Sandhi, Karak", "Language Lab & Spoken Sentences"]);
-
-        if (typeof portionProgress !== "undefined" && portionProgress) {
-          function sortUnmastered(itemList, subPrefix) {
-            const unmastered = [];
-            const mastered = [];
-            itemList.forEach(it => {
-              const key = `${subPrefix}_${it}`;
-              if (portionProgress[key]) mastered.push(`✅ ${it}`);
-              else unmastered.push(it);
-            });
-            return unmastered.length > 0 ? unmastered.concat(mastered) : itemList;
-          }
-          mathItems = sortUnmastered(mathItems, "sub_math");
-          phyItems = sortUnmastered(phyItems, "sub_phy_sci");
-          bioItems = sortUnmastered(bioItems, "sub_bio_sci");
-          socItems = sortUnmastered(socItems, "sub_soc_sci");
-          tamItems = sortUnmastered(tamItems, "sub_tamil");
-          engItems = sortUnmastered(engItems, "sub_eng");
-          hinItems = sortUnmastered(hinItems, "sub_hindi");
-        }
-
-        const cycleLen = Math.max(mathItems.length, phyItems.length, bioItems.length, socItems.length, 7);
-        for (let i = 0; i < cycleLen; i++) {
-          const mTop = mathItems[i % mathItems.length];
-          const tTop = tamItems[i % tamItems.length];
-          const pTop = phyItems[i % phyItems.length];
-          const sTop = socItems[i % socItems.length];
-          const bTop = bioItems[i % bioItems.length];
-          const eTop = engItems[i % engItems.length];
-          const hTop = hinItems[i % hinItems.length];
-
-          coreCycle.push({ core: "Mathematics", cTopic: `${activeTerm}: ${mTop}`, sec: "Tamil", sTopic: `${activeTerm}: ${tTop}`, morn: `Math ${mTop} solving + Tamil recall` });
-          coreCycle.push({ core: "Physical Science", cTopic: `${activeTerm}: ${pTop}`, sec: "Social Science", sTopic: `${activeTerm}: ${sTop}`, morn: `Physics/Chem ${pTop} + Social key points` });
-          coreCycle.push({ core: "Mathematics", cTopic: `${activeTerm}: ${mathItems[(i+1)%mathItems.length]}`, sec: "English", sTopic: `${activeTerm}: ${eTop}`, morn: `Math step drills + English grammar drills` });
-          coreCycle.push({ core: "Biological Science", cTopic: `${activeTerm}: ${bTop}`, sec: "Hindi", sTopic: `${activeTerm}: ${hTop}`, morn: `Biology ${bTop} diagram + Hindi spelling check` });
-        }
-      } else {
-        coreCycle = [
-          { core: "Mathematics", cTopic: "Ch-1 Rational Numbers & Squares", sec: "Tamil", sTopic: "செய்யுள் & திருக்குறள் (1-10)", morn: "Math speed-sums + Thirukkural error check" },
-          { core: "Physical Science", cTopic: "Physics: Refraction & Lenses", sec: "Social Science", sTopic: "History: Revolt of 1857 Causes", morn: "Lens ray diagrams + 1857 timeline recall" },
-          { core: "Mathematics", cTopic: "Ch-3 Ratio, Shapes & Mensuration", sec: "English", sTopic: "Grammar (Tenses, Articles, Modals)", morn: "Formula sheet blurting + 10 articles test" },
-          { core: "Biological Science", cTopic: "Heart Circulation & Neurons", sec: "Hindi", sTopic: "Lessons 1-4 & Vigyapan Lekhan", morn: "Blind Human Heart diagram + Hindi spelling test" },
-          { core: "Mathematics", cTopic: "Ch-5 Data Handling, Sets & Functions", sec: "Social Science", sTopic: "Geography: Resources & Agriculture", morn: "Sets Venn diagram solving + Map pointing" },
-          { core: "Physical Science", cTopic: "Chemistry: Structure of Atom & Periodic", sec: "Tamil", sTopic: "உரைநடை & இலக்கணம் (எழுத்துகளின் பிறப்பு)", morn: "Atomic models sketch + Tamil grammar recall" },
-          { core: "Biological Science", cTopic: "Plant Circulation (Xylem/Phloem) & Growth", sec: "English", sTopic: "Composition & Literature Question-Answers", morn: "Plant vascular bundle sketch + Formal letter draft" }
-        ];
+      if (totalDays === 21) {
+        return PRE_EXAM_21_DAYS;
       }
+
+      const coreCycle = [
+        { core: "Mathematics", cTopic: "Ch-1 Rational Numbers & Squares", sec: "Tamil", sTopic: "செய்யுள் & திருக்குறள் (1-10)", morn: "Math speed-sums + Thirukkural error check" },
+        { core: "Physical Science", cTopic: "Physics: Refraction & Lenses", sec: "Social Science", sTopic: "History: Revolt of 1857 Causes", morn: "Lens ray diagrams + 1857 timeline recall" },
+        { core: "Mathematics", cTopic: "Ch-3 Ratio, Shapes & Mensuration", sec: "English", sTopic: "Grammar (Tenses, Articles, Modals)", morn: "Formula sheet blurting + 10 articles test" },
+        { core: "Biological Science", cTopic: "Heart Circulation & Neurons", sec: "Hindi", sTopic: "Lessons 1-4 & Vigyapan Lekhan", morn: "Blind Human Heart diagram + Hindi spelling test" },
+        { core: "Mathematics", cTopic: "Ch-5 Data Handling, Sets & Functions", sec: "Social Science", sTopic: "Geography: Resources & Agriculture", morn: "Sets Venn diagram solving + Map pointing" },
+        { core: "Physical Science", cTopic: "Chemistry: Structure of Atom & Periodic", sec: "Tamil", sTopic: "உரைநடை & இலக்கணம் (எழுத்துகளின் பிறப்பு)", morn: "Atomic models sketch + Tamil grammar recall" },
+        { core: "Biological Science", cTopic: "Plant Circulation (Xylem/Phloem) & Growth", sec: "English", sTopic: "Composition & Literature Question-Answers", morn: "Plant vascular bundle sketch + Formal letter draft" }
+      ];
 
       const roadmap = [];
       for (let d = 1; d <= totalDays; d++) {
@@ -7355,16 +7273,12 @@
       }
     ];
 
-    const SENTHIL_TERMS_MAP = {"Term-I": {"title": "Portions for Term-I Examination (Completed)", "portions": [{"id": "sub_tamil", "s_no": 1, "subject": "Tamil", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#ea580c", "category": "language", "high_weightage_focus": "திருக்குறள் 1-10 எழுத்துப்பிழையின்றி எழுதுதல், இலக்கணம் (எழுத்துகளின் பிறப்பு, எச்சம், யாப்பு), உரைநடை வினா-விடை.", "components": [{"name": "செய்யுள் (Poetry)", "topics": ["தமிழ்மொழி வாழ்த்து", "தமிழ்மொழி மரபு", "ஓடை", "கோணக்காத்துப் பாட்டு", "நோயும் மருந்தும்", "வருமுன் காப்போம்"]}, {"name": "உரைநடை (Prose)", "topics": ["தமிழ் வரிவடிவ வளர்ச்சி", "நிலம் பொது", "தமிழர் மருத்துவம்"]}, {"name": "மனப்பாடப் பகுதி", "topics": ["திருக்குறள் (1-10)"]}, {"name": "துணைப்பாடம்", "topics": ["பால் மனம்", "வெட்டுக்கிளியும் சருகுமானும்", "அயோத்திதாசர் சிந்தனைகள்"]}, {"name": "இலக்கணம்", "topics": ["எழுத்துகளின் பிறப்பு", "வினைமுற்று", "எச்சம்", "யாப்பு இலக்கணம்"]}, {"name": "பொதுப்பகுதி", "topics": ["பத்தி", "படம் பார்த்து எழுது", "கடிதம்", "பொதுக் கட்டுரை"]}]}, {"id": "sub_math", "subject": "Mathematics", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#2563eb", "category": "core_heavy", "chapters": [{"code": "Ch-1", "name": "Rational Numbers [Ex.1.4]", "pages": ""}, {"code": "Ch-2", "name": "Squares and Square Roots, Cubes and Cube Roots", "pages": ""}, {"code": "Ch-3", "name": "Ratio and Proportion", "pages": ""}, {"code": "Ch-4", "name": "Understanding Shapes", "pages": ""}, {"code": "Ch-5", "name": "Data Handling", "pages": ""}, {"code": "Ch-6", "name": "Sets", "pages": ""}, {"code": "Ch-7", "name": "Functions", "pages": ""}, {"code": "Ch-8", "name": "Matrices", "pages": ""}], "high_weightage_focus": "Step-by-step hand calculations, formulas, long division, and exercise proofs.", "s_no": 2}, {"id": "sub_phy_sci", "subject": "Physical Science", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#7c3aed", "category": "core_heavy", "sub_branches": [{"branch": "Physics", "lessons": [{"code": "Item-79", "name": "Date &", "pages": ""}, {"code": "Item-364", "name": "5ffüCuffLö.", "pages": ""}, {"code": "Item-635", "name": "ajrjla.1146).J QUITS], Yi-fi9j", "pages": ""}, {"code": "Item-130", "name": "(1-10)", "pages": ""}, {"code": "Item-594", "name": "LD6öTLÖ, 616fi)u-4Lb", "pages": ""}, {"code": "Ln-1", "name": "Refraction of Light", "pages": ""}, {"code": "Ln-2", "name": "Lenses", "pages": ""}, {"code": "Ln-3", "name": "Static Electricity", "pages": ""}, {"code": "Ln-1", "name": "Structure of the Atom I", "pages": ""}, {"code": "Ln-2", "name": "Structure of the Atom 11", "pages": ""}, {"code": "Ln-3", "name": "Periodic Properties of Elements", "pages": ""}, {"code": "Item-703", "name": "Social & Political life:", "pages": ""}, {"code": "Item-624", "name": "General Writing:", "pages": ""}, {"code": "Item-228", "name": "General writing:", "pages": ""}, {"code": "Item-753", "name": "73 ¯ 8 7", "pages": ""}, {"code": "Item-79", "name": "Date &", "pages": ""}, {"code": "Item-465", "name": "Advertise, Paragraph, Picture Description", "pages": ""}, {"code": "Ln-ay", "name": ", Greeting words", "pages": ""}, {"code": "Item-335", "name": "Mai....Hoon", "pages": ""}, {"code": "Item-546", "name": "I......want", "pages": ""}, {"code": "Item-749", "name": "This, That", "pages": ""}, {"code": "Item-41", "name": "Spoken: 1-25 Sentences", "pages": ""}, {"code": "Item-473", "name": "Literature:", "pages": ""}, {"code": "Ln-8", "name": "The value", "pages": ""}, {"code": "Item-154", "name": "Grammar:", "pages": ""}, {"code": "Ln-4", "name": "The Present", "pages": ""}, {"code": "Ln-5", "name": "The Past", "pages": ""}, {"code": "Ln-6", "name": "The Future", "pages": ""}, {"code": "Item-464", "name": "writing", "pages": ""}, {"code": "Item-536", "name": "Composition", "pages": ""}]}], "high_weightage_focus": "Ray diagrams for Lenses, chemical equations, Rutherford/Bohr models, and definitions.", "s_no": 3}, {"id": "sub_bio_sci", "subject": "Biological Science", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#16a34a", "category": "core_heavy", "chapters": [{"code": "Ln-1", "name": "Transportation of food and minerals in Animals", "pages": ""}, {"code": "Ln-2", "name": "Transportation of Food and minerals in Plants", "pages": ""}, {"code": "Ln-3", "name": "Control and coordination", "pages": ""}, {"code": "Ln-4", "name": "Reproduction, Development and Growth in Animals", "pages": ""}], "high_weightage_focus": "Blind Diagram Protocol (Human Heart, Neuron, Brain, Reflex Arc, Xylem/Phloem).", "s_no": 4}, {"id": "sub_soc_sci", "subject": "Social Science", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#d97706", "category": "core_moderate", "sub_branches": [{"branch": "History", "lessons": [{"code": "Ln-1", "name": "The Establishment of Company power", "pages": ""}, {"code": "Ln-2", "name": "Rural life and Society", "pages": ""}, {"code": "Ln-3", "name": "Revolt of 1857", "pages": ""}]}, {"branch": "Geography", "lessons": [{"code": "Ln-1", "name": "Resources", "pages": ""}, {"code": "Ln-2", "name": "Land, Soil, Water, Natural Vegetation and Wildlife resources", "pages": ""}, {"code": "Ln-3", "name": "Agriculture", "pages": ""}, {"code": "Ln-1", "name": "The Indian Constitution", "pages": ""}]}], "high_weightage_focus": "Causes & consequences of 1857, Indian Constitution key features, Map pointing (centers & crops).", "s_no": 5}, {"id": "sub_hindi", "subject": "Hindi", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#dc2626", "category": "language", "components": [{"name": "पाठ (Lessons)", "topics": ["Ln-2 Pariksha", "Ln-3 Himalaya ke ped", "Ln-4 Jal Chakra", "Ln-7 Mann mei Hai vishwas"]}], "high_weightage_focus": "पाठ्यपुस्तक प्रश्नोत्तर, व्याकरण, विज्ञापन एवं अनुच्छेद लेखन, स्पोकन 1-25 वाक्य।", "s_no": 6}, {"id": "sub_eng", "subject": "English", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#0284c7", "category": "language", "components": [{"name": "Literature", "topics": ["Ch-1 Tales of Historic Delhi", "Ch-2 Entertainment"]}, {"name": "Composition & Writing", "topics": ["Ch-3 The letter A", "Ch-4 Frosty, The showman", "Ch-7 Kitemaker", "Ch-1 Parts of speech", "Ch-2 Countable and Uncountable", "Ch-3 Articles", "Ch-7 Infinitive, Gerund participle", "Ch-8 Modals", "Comprehension, Formal and Informal Letter, Story writing, Article"]}], "high_weightage_focus": "Grammar accuracy (Tenses, Modals, Gerunds), Formal Letter & Article format, Literature self-writing.", "s_no": 7}]}, "Term-II": {"title": "Portions for Term-II Examination (Upcoming)", "portions": [{"id": "sub_tamil", "s_no": 1, "subject": "Tamil", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#ea580c", "category": "language", "high_weightage_focus": "திருக்குறள் 1-10 எழுத்துப்பிழையின்றி எழுதுதல், இலக்கணம் (எழுத்துகளின் பிறப்பு, எச்சம், யாப்பு), உரைநடை வினா-விடை.", "components": [{"name": "செய்யுள் (Poetry)", "topics": ["வளரும் செல்வம்", "திருக்குறள் (11-20)", "ஒன்றுபட்டால் உண்டு வாழ்வு", "புறநானூறு"]}, {"name": "உரைநடை (Prose)", "topics": ["கணிப்பொறி பயன்பாடுகள்", "கல்வியே அழியாச் செல்வம்"]}, {"name": "இலக்கணம்", "topics": ["வேற்றுமை உருபுகள்", "புணர்ச்சி விதிகள்", "வல்லினம் மிகும் இடங்கள்"]}]}, {"id": "sub_math", "subject": "Mathematics", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#2563eb", "category": "core_heavy", "chapters": [{"code": "Ch-1", "name": "Rational Numbers [Ex.1.4]", "pages": ""}, {"code": "Ch-2", "name": "Squares and Square Roots, Cubes and Cube Roots", "pages": ""}, {"code": "Ch-3", "name": "Ratio and Proportion", "pages": ""}, {"code": "Ch-4", "name": "Understanding Shapes", "pages": ""}, {"code": "Ch-5", "name": "Data Handling", "pages": ""}, {"code": "Ch-6", "name": "Sets", "pages": ""}, {"code": "Ch-7", "name": "Functions", "pages": ""}, {"code": "Ch-8", "name": "Matrices", "pages": ""}], "high_weightage_focus": "Step-by-step hand calculations, formulas, long division, and exercise proofs.", "s_no": 2, "components": [{"name": "Chapter 7: Comparing Quantities", "topics": ["Ex 7.1 Compound Interest", "Ex 7.2 Applications of CI"]}, {"name": "Chapter 8: Algebraic Expressions", "topics": ["Ex 8.1 Addition & Subtraction", "Ex 8.2 Multiplication", "Ex 8.3 Standard Identities"]}, {"name": "Chapter 9: Mensuration", "topics": ["Ex 9.1 Area of Trapezium & Polygons", "Ex 9.2 Surface Area of Cube/Cuboid/Cylinder", "Ex 9.3 Volume Calculation"]}, {"name": "Chapter 10: Exponents and Powers", "topics": ["Ex 10.1 Negative Exponents & Laws", "Ex 10.2 Standard Form"]}, {"name": "Chapter 11: Direct and Inverse Proportions", "topics": ["Ex 11.1 Direct Proportion", "Ex 11.2 Inverse Proportion"]}, {"name": "Chapter 12: Factorisation", "topics": ["Ex 12.1 Common Factors", "Ex 12.2 Factorisation using Identities", "Ex 12.3 Division of Polynomials"]}]}, {"id": "sub_phy_sci", "subject": "Physical Science", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#7c3aed", "category": "core_heavy", "sub_branches": [{"branch": "Physics", "lessons": [{"code": "Item-79", "name": "Date &", "pages": ""}, {"code": "Item-364", "name": "5ffüCuffLö.", "pages": ""}, {"code": "Item-635", "name": "ajrjla.1146).J QUITS], Yi-fi9j", "pages": ""}, {"code": "Item-130", "name": "(1-10)", "pages": ""}, {"code": "Item-594", "name": "LD6öTLÖ, 616fi)u-4Lb", "pages": ""}, {"code": "Ln-1", "name": "Refraction of Light", "pages": ""}, {"code": "Ln-2", "name": "Lenses", "pages": ""}, {"code": "Ln-3", "name": "Static Electricity", "pages": ""}, {"code": "Ln-1", "name": "Structure of the Atom I", "pages": ""}, {"code": "Ln-2", "name": "Structure of the Atom 11", "pages": ""}, {"code": "Ln-3", "name": "Periodic Properties of Elements", "pages": ""}, {"code": "Item-703", "name": "Social & Political life:", "pages": ""}, {"code": "Item-624", "name": "General Writing:", "pages": ""}, {"code": "Item-228", "name": "General writing:", "pages": ""}, {"code": "Item-753", "name": "73 ¯ 8 7", "pages": ""}, {"code": "Item-79", "name": "Date &", "pages": ""}, {"code": "Item-465", "name": "Advertise, Paragraph, Picture Description", "pages": ""}, {"code": "Ln-ay", "name": ", Greeting words", "pages": ""}, {"code": "Item-335", "name": "Mai....Hoon", "pages": ""}, {"code": "Item-546", "name": "I......want", "pages": ""}, {"code": "Item-749", "name": "This, That", "pages": ""}, {"code": "Item-41", "name": "Spoken: 1-25 Sentences", "pages": ""}, {"code": "Item-473", "name": "Literature:", "pages": ""}, {"code": "Ln-8", "name": "The value", "pages": ""}, {"code": "Item-154", "name": "Grammar:", "pages": ""}, {"code": "Ln-4", "name": "The Present", "pages": ""}, {"code": "Ln-5", "name": "The Past", "pages": ""}, {"code": "Ln-6", "name": "The Future", "pages": ""}, {"code": "Item-464", "name": "writing", "pages": ""}, {"code": "Item-536", "name": "Composition", "pages": ""}]}], "high_weightage_focus": "Ray diagrams for Lenses, chemical equations, Rutherford/Bohr models, and definitions.", "s_no": 3, "components": [{"name": "Chapter 9: Friction", "topics": ["Types of Friction (Static, Sliding, Rolling)", "Friction: A Necessary Evil", "Fluid Friction"]}, {"name": "Chapter 10: Sound", "topics": ["Sound Produced by Vibrating Body", "Sound Needs a Medium", "Audible & Inaudible Sounds", "Noise & Noise Pollution"]}, {"name": "Chapter 11: Chemical Effects of Electric Current", "topics": ["Liquids as Conductors", "Chemical Effects", "Electroplating & Applications"]}]}, {"id": "sub_bio_sci", "subject": "Biological Science", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#16a34a", "category": "core_heavy", "chapters": [{"code": "Ln-1", "name": "Transportation of food and minerals in Animals", "pages": ""}, {"code": "Ln-2", "name": "Transportation of Food and minerals in Plants", "pages": ""}, {"code": "Ln-3", "name": "Control and coordination", "pages": ""}, {"code": "Ln-4", "name": "Reproduction, Development and Growth in Animals", "pages": ""}], "high_weightage_focus": "Blind Diagram Protocol (Human Heart, Neuron, Brain, Reflex Arc, Xylem/Phloem).", "s_no": 4, "components": [{"name": "Chapter 6: Reproduction in Animals", "topics": ["Modes of Reproduction", "Sexual Reproduction & Fertilisation", "Asexual Reproduction: Budding & Binary Fission"]}, {"name": "Chapter 7: Reaching the Age of Adolescence", "topics": ["Changes at Puberty", "Role of Hormones in Initiating Reproductive Function", "Nutritional Needs of Adolescents"]}]}, {"id": "sub_soc_sci", "subject": "Social Science", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#d97706", "category": "core_moderate", "sub_branches": [{"branch": "History", "lessons": [{"code": "Ln-1", "name": "The Establishment of Company power", "pages": ""}, {"code": "Ln-2", "name": "Rural life and Society", "pages": ""}, {"code": "Ln-3", "name": "Revolt of 1857", "pages": ""}]}, {"branch": "Geography", "lessons": [{"code": "Ln-1", "name": "Resources", "pages": ""}, {"code": "Ln-2", "name": "Land, Soil, Water, Natural Vegetation and Wildlife resources", "pages": ""}, {"code": "Ln-3", "name": "Agriculture", "pages": ""}, {"code": "Ln-1", "name": "The Indian Constitution", "pages": ""}]}], "high_weightage_focus": "Causes & consequences of 1857, Indian Constitution key features, Map pointing (centers & crops).", "s_no": 5}, {"id": "sub_hindi", "subject": "Hindi", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#dc2626", "category": "language", "components": [{"name": "वसंत भाग-3 (गद्य एवं पद्य)", "topics": ["अध्याय 6: भगवान के डाकिए (रामधारी सिंह दिनकर)", "अध्याय 7: क्या निराश हुआ जाए (हजारीप्रसाद द्विवेदी)", "अध्याय 8: यह सबसे कठिन समय नहीं (जया जादवानी)"]}, {"name": "भारत की खोज", "topics": ["अध्याय 4: युगों का दौर", "अध्याय 5: नयी समस्याएँ"]}, {"name": "व्याकरण एवं रचना", "topics": ["संधि (स्वर संधि के भेद)", "समास (तत्पुरुष, द्वंद्व, द्विगु)", "अनौपचारिक पत्र एवं संवाद लेखन"]}], "high_weightage_focus": "पाठ्यपुस्तक प्रश्नोत्तर, व्याकरण, विज्ञापन एवं अनुच्छेद लेखन, स्पोकन 1-25 वाक्य।", "s_no": 6}, {"id": "sub_eng", "subject": "English", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#0284c7", "category": "language", "components": [{"name": "Honeydew Prose & Poetry", "topics": ["Chapter 5: The Summit Within", "Chapter 6: This is Jody’s Fawn", "Poem: The School Boy"]}, {"name": "It So Happened (Supplementary)", "topics": ["Chapter 4: The Treasure Within", "Chapter 5: Princess September"]}, {"name": "Grammar & Creative Writing", "topics": ["Reported Speech (Direct & Indirect)", "Active and Passive Voice", "Formal Letter Writing & Diary Entry"]}], "high_weightage_focus": "Grammar accuracy (Tenses, Modals, Gerunds), Formal Letter & Article format, Literature self-writing.", "s_no": 7}]}, "Periodic Test-2": {"title": "Portions for Periodic Test-2 (Mid-Term)", "portions": [{"id": "sub_tamil", "s_no": 1, "subject": "Tamil", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#ea580c", "category": "language", "high_weightage_focus": "திருக்குறள் 1-10 எழுத்துப்பிழையின்றி எழுதுதல், இலக்கணம் (எழுத்துகளின் பிறப்பு, எச்சம், யாப்பு), உரைநடை வினா-விடை.", "components": [{"name": "செய்யுள் (Poetry)", "topics": ["வளரும் செல்வம்", "திருக்குறள் (11-20)", "ஒன்றுபட்டால் உண்டு வாழ்வு", "புறநானூறு"]}, {"name": "உரைநடை (Prose)", "topics": ["கணிப்பொறி பயன்பாடுகள்", "கல்வியே அழியாச் செல்வம்"]}, {"name": "இலக்கணம்", "topics": ["வேற்றுமை உருபுகள்", "புணர்ச்சி விதிகள்", "வல்லினம் மிகும் இடங்கள்"]}]}, {"id": "sub_math", "subject": "Mathematics", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#2563eb", "category": "core_heavy", "chapters": [{"code": "Ch-1", "name": "Rational Numbers [Ex.1.4]", "pages": ""}, {"code": "Ch-2", "name": "Squares and Square Roots, Cubes and Cube Roots", "pages": ""}, {"code": "Ch-3", "name": "Ratio and Proportion", "pages": ""}, {"code": "Ch-4", "name": "Understanding Shapes", "pages": ""}, {"code": "Ch-5", "name": "Data Handling", "pages": ""}, {"code": "Ch-6", "name": "Sets", "pages": ""}, {"code": "Ch-7", "name": "Functions", "pages": ""}, {"code": "Ch-8", "name": "Matrices", "pages": ""}], "high_weightage_focus": "Step-by-step hand calculations, formulas, long division, and exercise proofs.", "s_no": 2, "components": [{"name": "Chapter 7: Comparing Quantities", "topics": ["Ex 7.1 Compound Interest", "Ex 7.2 Applications of CI"]}, {"name": "Chapter 8: Algebraic Expressions", "topics": ["Ex 8.1 Addition & Subtraction", "Ex 8.2 Multiplication", "Ex 8.3 Standard Identities"]}, {"name": "Chapter 9: Mensuration", "topics": ["Ex 9.1 Area of Trapezium & Polygons", "Ex 9.2 Surface Area of Cube/Cuboid/Cylinder", "Ex 9.3 Volume Calculation"]}, {"name": "Chapter 10: Exponents and Powers", "topics": ["Ex 10.1 Negative Exponents & Laws", "Ex 10.2 Standard Form"]}, {"name": "Chapter 11: Direct and Inverse Proportions", "topics": ["Ex 11.1 Direct Proportion", "Ex 11.2 Inverse Proportion"]}, {"name": "Chapter 12: Factorisation", "topics": ["Ex 12.1 Common Factors", "Ex 12.2 Factorisation using Identities", "Ex 12.3 Division of Polynomials"]}]}, {"id": "sub_phy_sci", "subject": "Physical Science", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#7c3aed", "category": "core_heavy", "sub_branches": [{"branch": "Physics", "lessons": [{"code": "Item-79", "name": "Date &", "pages": ""}, {"code": "Item-364", "name": "5ffüCuffLö.", "pages": ""}, {"code": "Item-635", "name": "ajrjla.1146).J QUITS], Yi-fi9j", "pages": ""}, {"code": "Item-130", "name": "(1-10)", "pages": ""}, {"code": "Item-594", "name": "LD6öTLÖ, 616fi)u-4Lb", "pages": ""}, {"code": "Ln-1", "name": "Refraction of Light", "pages": ""}, {"code": "Ln-2", "name": "Lenses", "pages": ""}, {"code": "Ln-3", "name": "Static Electricity", "pages": ""}, {"code": "Ln-1", "name": "Structure of the Atom I", "pages": ""}, {"code": "Ln-2", "name": "Structure of the Atom 11", "pages": ""}, {"code": "Ln-3", "name": "Periodic Properties of Elements", "pages": ""}, {"code": "Item-703", "name": "Social & Political life:", "pages": ""}, {"code": "Item-624", "name": "General Writing:", "pages": ""}, {"code": "Item-228", "name": "General writing:", "pages": ""}, {"code": "Item-753", "name": "73 ¯ 8 7", "pages": ""}, {"code": "Item-79", "name": "Date &", "pages": ""}, {"code": "Item-465", "name": "Advertise, Paragraph, Picture Description", "pages": ""}, {"code": "Ln-ay", "name": ", Greeting words", "pages": ""}, {"code": "Item-335", "name": "Mai....Hoon", "pages": ""}, {"code": "Item-546", "name": "I......want", "pages": ""}, {"code": "Item-749", "name": "This, That", "pages": ""}, {"code": "Item-41", "name": "Spoken: 1-25 Sentences", "pages": ""}, {"code": "Item-473", "name": "Literature:", "pages": ""}, {"code": "Ln-8", "name": "The value", "pages": ""}, {"code": "Item-154", "name": "Grammar:", "pages": ""}, {"code": "Ln-4", "name": "The Present", "pages": ""}, {"code": "Ln-5", "name": "The Past", "pages": ""}, {"code": "Ln-6", "name": "The Future", "pages": ""}, {"code": "Item-464", "name": "writing", "pages": ""}, {"code": "Item-536", "name": "Composition", "pages": ""}]}], "high_weightage_focus": "Ray diagrams for Lenses, chemical equations, Rutherford/Bohr models, and definitions.", "s_no": 3, "components": [{"name": "Chapter 9: Friction", "topics": ["Types of Friction (Static, Sliding, Rolling)", "Friction: A Necessary Evil", "Fluid Friction"]}, {"name": "Chapter 10: Sound", "topics": ["Sound Produced by Vibrating Body", "Sound Needs a Medium", "Audible & Inaudible Sounds", "Noise & Noise Pollution"]}, {"name": "Chapter 11: Chemical Effects of Electric Current", "topics": ["Liquids as Conductors", "Chemical Effects", "Electroplating & Applications"]}]}, {"id": "sub_bio_sci", "subject": "Biological Science", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#16a34a", "category": "core_heavy", "chapters": [{"code": "Ln-1", "name": "Transportation of food and minerals in Animals", "pages": ""}, {"code": "Ln-2", "name": "Transportation of Food and minerals in Plants", "pages": ""}, {"code": "Ln-3", "name": "Control and coordination", "pages": ""}, {"code": "Ln-4", "name": "Reproduction, Development and Growth in Animals", "pages": ""}], "high_weightage_focus": "Blind Diagram Protocol (Human Heart, Neuron, Brain, Reflex Arc, Xylem/Phloem).", "s_no": 4, "components": [{"name": "Chapter 6: Reproduction in Animals", "topics": ["Modes of Reproduction", "Sexual Reproduction & Fertilisation", "Asexual Reproduction: Budding & Binary Fission"]}, {"name": "Chapter 7: Reaching the Age of Adolescence", "topics": ["Changes at Puberty", "Role of Hormones in Initiating Reproductive Function", "Nutritional Needs of Adolescents"]}]}, {"id": "sub_soc_sci", "subject": "Social Science", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#d97706", "category": "core_moderate", "sub_branches": [{"branch": "History", "lessons": [{"code": "Ln-1", "name": "The Establishment of Company power", "pages": ""}, {"code": "Ln-2", "name": "Rural life and Society", "pages": ""}, {"code": "Ln-3", "name": "Revolt of 1857", "pages": ""}]}, {"branch": "Geography", "lessons": [{"code": "Ln-1", "name": "Resources", "pages": ""}, {"code": "Ln-2", "name": "Land, Soil, Water, Natural Vegetation and Wildlife resources", "pages": ""}, {"code": "Ln-3", "name": "Agriculture", "pages": ""}, {"code": "Ln-1", "name": "The Indian Constitution", "pages": ""}]}], "high_weightage_focus": "Causes & consequences of 1857, Indian Constitution key features, Map pointing (centers & crops).", "s_no": 5}, {"id": "sub_hindi", "subject": "Hindi", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#dc2626", "category": "language", "components": [{"name": "वसंत भाग-3 (गद्य एवं पद्य)", "topics": ["अध्याय 6: भगवान के डाकिए (रामधारी सिंह दिनकर)", "अध्याय 7: क्या निराश हुआ जाए (हजारीप्रसाद द्विवेदी)", "अध्याय 8: यह सबसे कठिन समय नहीं (जया जादवानी)"]}, {"name": "भारत की खोज", "topics": ["अध्याय 4: युगों का दौर", "अध्याय 5: नयी समस्याएँ"]}, {"name": "व्याकरण एवं रचना", "topics": ["संधि (स्वर संधि के भेद)", "समास (तत्पुरुष, द्वंद्व, द्विगु)", "अनौपचारिक पत्र एवं संवाद लेखन"]}], "high_weightage_focus": "पाठ्यपुस्तक प्रश्नोत्तर, व्याकरण, विज्ञापन एवं अनुच्छेद लेखन, स्पोकन 1-25 वाक्य।", "s_no": 6}, {"id": "sub_eng", "subject": "English", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#0284c7", "category": "language", "components": [{"name": "Honeydew Prose & Poetry", "topics": ["Chapter 5: The Summit Within", "Chapter 6: This is Jody’s Fawn", "Poem: The School Boy"]}, {"name": "It So Happened (Supplementary)", "topics": ["Chapter 4: The Treasure Within", "Chapter 5: Princess September"]}, {"name": "Grammar & Creative Writing", "topics": ["Reported Speech (Direct & Indirect)", "Active and Passive Voice", "Formal Letter Writing & Diary Entry"]}], "high_weightage_focus": "Grammar accuracy (Tenses, Modals, Gerunds), Formal Letter & Article format, Literature self-writing.", "s_no": 7}]}, "Annual Exam": {"title": "Portions for Annual Final Examination", "portions": [{"id": "sub_tamil", "s_no": 1, "subject": "Tamil", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#ea580c", "category": "language", "high_weightage_focus": "திருக்குறள் 1-10 எழுத்துப்பிழையின்றி எழுதுதல், இலக்கணம் (எழுத்துகளின் பிறப்பு, எச்சம், யாப்பு), உரைநடை வினா-விடை.", "components": [{"name": "செய்யுள் (Poetry)", "topics": ["வளரும் செல்வம்", "திருக்குறள் (11-20)", "ஒன்றுபட்டால் உண்டு வாழ்வு", "புறநானூறு"]}, {"name": "உரைநடை (Prose)", "topics": ["கணிப்பொறி பயன்பாடுகள்", "கல்வியே அழியாச் செல்வம்"]}, {"name": "இலக்கணம்", "topics": ["வேற்றுமை உருபுகள்", "புணர்ச்சி விதிகள்", "வல்லினம் மிகும் இடங்கள்"]}]}, {"id": "sub_math", "subject": "Mathematics", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#2563eb", "category": "core_heavy", "chapters": [{"code": "Ch-1", "name": "Rational Numbers [Ex.1.4]", "pages": ""}, {"code": "Ch-2", "name": "Squares and Square Roots, Cubes and Cube Roots", "pages": ""}, {"code": "Ch-3", "name": "Ratio and Proportion", "pages": ""}, {"code": "Ch-4", "name": "Understanding Shapes", "pages": ""}, {"code": "Ch-5", "name": "Data Handling", "pages": ""}, {"code": "Ch-6", "name": "Sets", "pages": ""}, {"code": "Ch-7", "name": "Functions", "pages": ""}, {"code": "Ch-8", "name": "Matrices", "pages": ""}], "high_weightage_focus": "Step-by-step hand calculations, formulas, long division, and exercise proofs.", "s_no": 2, "components": [{"name": "Chapter 7: Comparing Quantities", "topics": ["Ex 7.1 Compound Interest", "Ex 7.2 Applications of CI"]}, {"name": "Chapter 8: Algebraic Expressions", "topics": ["Ex 8.1 Addition & Subtraction", "Ex 8.2 Multiplication", "Ex 8.3 Standard Identities"]}, {"name": "Chapter 9: Mensuration", "topics": ["Ex 9.1 Area of Trapezium & Polygons", "Ex 9.2 Surface Area of Cube/Cuboid/Cylinder", "Ex 9.3 Volume Calculation"]}, {"name": "Chapter 10: Exponents and Powers", "topics": ["Ex 10.1 Negative Exponents & Laws", "Ex 10.2 Standard Form"]}, {"name": "Chapter 11: Direct and Inverse Proportions", "topics": ["Ex 11.1 Direct Proportion", "Ex 11.2 Inverse Proportion"]}, {"name": "Chapter 12: Factorisation", "topics": ["Ex 12.1 Common Factors", "Ex 12.2 Factorisation using Identities", "Ex 12.3 Division of Polynomials"]}]}, {"id": "sub_phy_sci", "subject": "Physical Science", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#7c3aed", "category": "core_heavy", "sub_branches": [{"branch": "Physics", "lessons": [{"code": "Item-79", "name": "Date &", "pages": ""}, {"code": "Item-364", "name": "5ffüCuffLö.", "pages": ""}, {"code": "Item-635", "name": "ajrjla.1146).J QUITS], Yi-fi9j", "pages": ""}, {"code": "Item-130", "name": "(1-10)", "pages": ""}, {"code": "Item-594", "name": "LD6öTLÖ, 616fi)u-4Lb", "pages": ""}, {"code": "Ln-1", "name": "Refraction of Light", "pages": ""}, {"code": "Ln-2", "name": "Lenses", "pages": ""}, {"code": "Ln-3", "name": "Static Electricity", "pages": ""}, {"code": "Ln-1", "name": "Structure of the Atom I", "pages": ""}, {"code": "Ln-2", "name": "Structure of the Atom 11", "pages": ""}, {"code": "Ln-3", "name": "Periodic Properties of Elements", "pages": ""}, {"code": "Item-703", "name": "Social & Political life:", "pages": ""}, {"code": "Item-624", "name": "General Writing:", "pages": ""}, {"code": "Item-228", "name": "General writing:", "pages": ""}, {"code": "Item-753", "name": "73 ¯ 8 7", "pages": ""}, {"code": "Item-79", "name": "Date &", "pages": ""}, {"code": "Item-465", "name": "Advertise, Paragraph, Picture Description", "pages": ""}, {"code": "Ln-ay", "name": ", Greeting words", "pages": ""}, {"code": "Item-335", "name": "Mai....Hoon", "pages": ""}, {"code": "Item-546", "name": "I......want", "pages": ""}, {"code": "Item-749", "name": "This, That", "pages": ""}, {"code": "Item-41", "name": "Spoken: 1-25 Sentences", "pages": ""}, {"code": "Item-473", "name": "Literature:", "pages": ""}, {"code": "Ln-8", "name": "The value", "pages": ""}, {"code": "Item-154", "name": "Grammar:", "pages": ""}, {"code": "Ln-4", "name": "The Present", "pages": ""}, {"code": "Ln-5", "name": "The Past", "pages": ""}, {"code": "Ln-6", "name": "The Future", "pages": ""}, {"code": "Item-464", "name": "writing", "pages": ""}, {"code": "Item-536", "name": "Composition", "pages": ""}]}], "high_weightage_focus": "Ray diagrams for Lenses, chemical equations, Rutherford/Bohr models, and definitions.", "s_no": 3, "components": [{"name": "Chapter 9: Friction", "topics": ["Types of Friction (Static, Sliding, Rolling)", "Friction: A Necessary Evil", "Fluid Friction"]}, {"name": "Chapter 10: Sound", "topics": ["Sound Produced by Vibrating Body", "Sound Needs a Medium", "Audible & Inaudible Sounds", "Noise & Noise Pollution"]}, {"name": "Chapter 11: Chemical Effects of Electric Current", "topics": ["Liquids as Conductors", "Chemical Effects", "Electroplating & Applications"]}]}, {"id": "sub_bio_sci", "subject": "Biological Science", "exam_date": "", "exam_day": "", "gravity": 3, "color": "#16a34a", "category": "core_heavy", "chapters": [{"code": "Ln-1", "name": "Transportation of food and minerals in Animals", "pages": ""}, {"code": "Ln-2", "name": "Transportation of Food and minerals in Plants", "pages": ""}, {"code": "Ln-3", "name": "Control and coordination", "pages": ""}, {"code": "Ln-4", "name": "Reproduction, Development and Growth in Animals", "pages": ""}], "high_weightage_focus": "Blind Diagram Protocol (Human Heart, Neuron, Brain, Reflex Arc, Xylem/Phloem).", "s_no": 4, "components": [{"name": "Chapter 6: Reproduction in Animals", "topics": ["Modes of Reproduction", "Sexual Reproduction & Fertilisation", "Asexual Reproduction: Budding & Binary Fission"]}, {"name": "Chapter 7: Reaching the Age of Adolescence", "topics": ["Changes at Puberty", "Role of Hormones in Initiating Reproductive Function", "Nutritional Needs of Adolescents"]}]}, {"id": "sub_soc_sci", "subject": "Social Science", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#d97706", "category": "core_moderate", "sub_branches": [{"branch": "History", "lessons": [{"code": "Ln-1", "name": "The Establishment of Company power", "pages": ""}, {"code": "Ln-2", "name": "Rural life and Society", "pages": ""}, {"code": "Ln-3", "name": "Revolt of 1857", "pages": ""}]}, {"branch": "Geography", "lessons": [{"code": "Ln-1", "name": "Resources", "pages": ""}, {"code": "Ln-2", "name": "Land, Soil, Water, Natural Vegetation and Wildlife resources", "pages": ""}, {"code": "Ln-3", "name": "Agriculture", "pages": ""}, {"code": "Ln-1", "name": "The Indian Constitution", "pages": ""}]}], "high_weightage_focus": "Causes & consequences of 1857, Indian Constitution key features, Map pointing (centers & crops).", "s_no": 5}, {"id": "sub_hindi", "subject": "Hindi", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#dc2626", "category": "language", "components": [{"name": "वसंत भाग-3 (गद्य एवं पद्य)", "topics": ["अध्याय 6: भगवान के डाकिए (रामधारी सिंह दिनकर)", "अध्याय 7: क्या निराश हुआ जाए (हजारीप्रसाद द्विवेदी)", "अध्याय 8: यह सबसे कठिन समय नहीं (जया जादवानी)"]}, {"name": "भारत की खोज", "topics": ["अध्याय 4: युगों का दौर", "अध्याय 5: नयी समस्याएँ"]}, {"name": "व्याकरण एवं रचना", "topics": ["संधि (स्वर संधि के भेद)", "समास (तत्पुरुष, द्वंद्व, द्विगु)", "अनौपचारिक पत्र एवं संवाद लेखन"]}], "high_weightage_focus": "पाठ्यपुस्तक प्रश्नोत्तर, व्याकरण, विज्ञापन एवं अनुच्छेद लेखन, स्पोकन 1-25 वाक्य।", "s_no": 6}, {"id": "sub_eng", "subject": "English", "exam_date": "", "exam_day": "", "gravity": 2, "color": "#0284c7", "category": "language", "components": [{"name": "Honeydew Prose & Poetry", "topics": ["Chapter 5: The Summit Within", "Chapter 6: This is Jody’s Fawn", "Poem: The School Boy"]}, {"name": "It So Happened (Supplementary)", "topics": ["Chapter 4: The Treasure Within", "Chapter 5: Princess September"]}, {"name": "Grammar & Creative Writing", "topics": ["Reported Speech (Direct & Indirect)", "Active and Passive Voice", "Formal Letter Writing & Diary Entry"]}], "high_weightage_focus": "Grammar accuracy (Tenses, Modals, Gerunds), Formal Letter & Article format, Literature self-writing.", "s_no": 7}]}};
-
+    let currentPortionsData = JSON.parse(localStorage.getItem("tharun_exam_portions_data")) || SENTHIL_PORTIONS_DATA;
     let portionsMeta = JSON.parse(localStorage.getItem("tharun_portions_meta")) || {
-      active_term: "Term-II",
-      examination: "Portions for Term-II Examination (Upcoming) - Class VIII CSK",
+      examination: "Portions for Term-I Examination - Class VIII (2026 - 27) CSK",
       school_name: "Senthil Public School",
       stream: "Montessori & CBSE Stream, Adhiyamankottai, Dharmapuri"
     };
-
-    let currentPortionsData = JSON.parse(localStorage.getItem("tharun_exam_portions_data")) || (SENTHIL_TERMS_MAP[portionsMeta.active_term || "Term-II"] ? (SENTHIL_TERMS_MAP[portionsMeta.active_term || "Term-II"].portions || SENTHIL_TERMS_MAP[portionsMeta.active_term || "Term-II"].subjects) : SENTHIL_PORTIONS_DATA);
 
     let diaryData = {
       "student_name": "Tharun",
@@ -8956,34 +8870,19 @@
       const tabPort = document.getElementById("tabBtnPortions");
 
       if (mode === "exam") {
-        if (tabSched) {
-          tabSched.style.display = "inline-flex";
-          tabSched.innerHTML = `⏱️ Daily Schedule`;
-        }
+        if (tabSched) tabSched.style.display = "inline-flex";
         if (tabDiary) tabDiary.style.display = "none";
         if (tabPort) tabPort.style.display = "none";
         switchTab("tab-schedule", tabSched);
       } else if (mode === "pre_exam") {
-        if (tabPort) {
-          tabPort.style.display = "inline-flex";
-          tabPort.innerHTML = `📜 Exam Portions & Revision Roadmap`;
-        }
-        if (tabSched) {
-          tabSched.style.display = "inline-flex";
-          tabSched.innerHTML = `⏱️ Revision Daily Timetable`;
-        }
+        if (tabSched) tabSched.style.display = "inline-flex";
+        if (tabPort) tabPort.style.display = "inline-flex";
         if (tabDiary) tabDiary.style.display = "none";
-        switchTab("tab-portions", tabPort);
+        switchTab("tab-schedule", tabSched);
       } else {
         // Balanced Daily
-        if (tabSched) {
-          tabSched.style.display = "inline-flex";
-          tabSched.innerHTML = `⏱️ Daily Schedule`;
-        }
-        if (tabDiary) {
-          tabDiary.style.display = "inline-flex";
-          tabDiary.innerHTML = `📖 School Diary & Subject Slabs`;
-        }
+        if (tabSched) tabSched.style.display = "inline-flex";
+        if (tabDiary) tabDiary.style.display = "inline-flex";
         if (tabPort) tabPort.style.display = "none";
         switchTab("tab-schedule", tabSched);
       }
@@ -11339,12 +11238,6 @@
       portionProgress[key] = !portionProgress[key];
       localStorage.setItem("tharun_portion_progress", JSON.stringify(portionProgress));
       renderPortionsTab();
-      if (isPreExamMode) {
-        initPreExamDayDropdown();
-        generateSchedule();
-        renderTimetable();
-        selectSlot(getInitialSlotIndex());
-      }
     }
 
     function updatePortionStats() {
@@ -12102,7 +11995,7 @@
           renderDiaryList();
           generateSchedule();
           renderTimetable();
-          renderPortionsTab();
+          renderPortions();
           updatePortionStats();
           renderSyncAuditDetails();
 
@@ -12130,28 +12023,11 @@ State updated & synchronized with Web App localStorage.`);
       portionsMeta.examination = titleMap[newTerm] || `Portions for ${newTerm} - Class VIII CSK`;
       localStorage.setItem("tharun_portions_meta", JSON.stringify(portionsMeta));
 
-      const termSelWeb = document.getElementById("termSelectorWeb");
-      if (termSelWeb && termSelWeb.value !== newTerm) termSelWeb.value = newTerm;
-      const cmdTermSel = document.getElementById("commandTermSelect");
-      if (cmdTermSel && cmdTermSel.value !== newTerm) cmdTermSel.value = newTerm;
-
-      if (typeof SENTHIL_TERMS_MAP !== "undefined" && SENTHIL_TERMS_MAP[newTerm]) {
-        currentPortionsData = SENTHIL_TERMS_MAP[newTerm].portions || SENTHIL_TERMS_MAP[newTerm].subjects || [];
-        localStorage.setItem("tharun_exam_portions_data", JSON.stringify(currentPortionsData));
-      }
-
       const titleEl = document.getElementById("portionExamTitle");
       if (titleEl) titleEl.textContent = "📜 " + portionsMeta.examination;
 
-      renderPortionsTab();
+      renderPortions();
       updatePortionStats();
-
-      if (isPreExamMode) {
-        initPreExamDayDropdown();
-        generateSchedule();
-        renderTimetable();
-        selectSlot(getInitialSlotIndex());
-      }
     }
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -12166,11 +12042,6 @@ State updated & synchronized with Web App localStorage.`);
       loadAuditData();
       updateDiaryDropdown();
       renderDiaryList();
-      const activeT = (typeof portionsMeta !== "undefined" && portionsMeta.active_term) ? portionsMeta.active_term : "Term-II";
-      const termSelWeb = document.getElementById("termSelectorWeb");
-      if (termSelWeb) termSelWeb.value = activeT;
-      const cmdTermSel = document.getElementById("commandTermSelect");
-      if (cmdTermSel) cmdTermSel.value = activeT;
       initPreExamDayDropdown();
       renderPortionsTab();
       changeLevel(2);

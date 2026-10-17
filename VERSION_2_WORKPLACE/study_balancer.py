@@ -458,96 +458,25 @@ PRE_EXAM_21_DAYS = [
 ]
 
 
-def build_dynamic_pre_exam_roadmap(total_days=21, portions_data=None, portion_progress=None):
+def build_dynamic_pre_exam_roadmap(total_days=21, portions_data=None):
     """
     Dynamically generates an optimal, phased Pre-Exam preparation roadmap
     for ANY duration (e.g. 7-day sprint, 10-day crash, 14-day mid-term, 21-day standard, 28-day comprehensive).
-    Adapts according to teachers' variable announcement timelines, exam date proximity,
-    and dynamically indexes the active academic term's syllabus portions and checklist completions.
+    Adapts according to teachers' variable announcement timelines and exam date proximity.
     """
     total_days = max(3, min(45, int(total_days)))
+    if total_days == 21 and not portions_data:
+        return PRE_EXAM_21_DAYS
 
-    term_portions = []
-    active_term = "Term-II"
-    if portions_data:
-        active_term = portions_data.get("active_term", "Term-II")
-        terms_map = portions_data.get("terms", {})
-        if active_term in terms_map:
-            term_portions = terms_map[active_term].get("portions", terms_map[active_term].get("subjects", []))
-        elif "subjects" in portions_data:
-            term_portions = portions_data.get("subjects", [])
-
-    core_cycle = []
-    if term_portions:
-        sub_map = {s.get("subject", ""): s for s in term_portions}
-
-        def _get_topics(sub_name, fallback_list):
-            s_obj = sub_map.get(sub_name, {})
-            comps = s_obj.get("components", [])
-            items = []
-            for c in comps:
-                c_name = c.get("name", "")
-                c_topics = c.get("topics", [])
-                if c_topics:
-                    for t in c_topics:
-                        items.append(f"{c_name}: {t}")
-                elif c_name:
-                    items.append(c_name)
-            return items if items else fallback_list
-
-        math_items = _get_topics("Mathematics", ["Ch-1 Comparing Quantities", "Ch-2 Algebraic Expressions", "Ch-3 Mensuration", "Ch-4 Exponents & Powers", "Ch-5 Direct & Inverse", "Ch-6 Factorisation", "Ch-7 Graphs"])
-        phy_items = _get_topics("Physical Science", ["Physics: Force & Pressure", "Physics: Friction & Sound", "Chemistry: Chemical Effects", "Physics: Light & Natural Phenomena"])
-        bio_items = _get_topics("Biological Science", ["Biology: Crop Production", "Biology: Microorganisms", "Biology: Cell Structure & Functions", "Biology: Reproduction in Animals"])
-        soc_items = _get_topics("Social Science", ["History: 1857 Revolt", "History: Women, Caste & Reform", "Geography: Agriculture & Industries", "Civics: Judicial System & Marginalisation"])
-        tam_items = _get_topics("Tamil", ["செய்யுள்: வாழ்த்து & திருக்குறள்", "உரைநடை: தமிழர் மருத்துவம்", "இலக்கணம்: எழுத்துகளின் பிறப்பு", "துணைப்பாடம்: சிந்தனைகள்"])
-        eng_items = _get_topics("English", ["Literature: Prose & Poems", "Grammar: Tenses, Modals, Voice", "Composition: Formal Letters & Articles"])
-        hin_items = _get_topics("Hindi", ["Lessons 1-4 & Vigyapan Lekhan", "Grammar: Sandhi, Karak, Muhavare", "Language Lab & Spoken Sentences"])
-
-        # Prioritize pending/unmastered items if portion_progress provided
-        if portion_progress:
-            def _sort_unmastered(item_list, sub_prefix):
-                unmastered = []
-                mastered = []
-                for it in item_list:
-                    key = f"{sub_prefix}_{it}"
-                    if portion_progress.get(key, False):
-                        mastered.append(f"✅ {it}")
-                    else:
-                        unmastered.append(it)
-                return unmastered + mastered if unmastered else item_list
-
-            math_items = _sort_unmastered(math_items, "sub_math")
-            phy_items = _sort_unmastered(phy_items, "sub_phy_sci")
-            bio_items = _sort_unmastered(bio_items, "sub_bio_sci")
-            soc_items = _sort_unmastered(soc_items, "sub_soc_sci")
-            tam_items = _sort_unmastered(tam_items, "sub_tamil")
-            eng_items = _sort_unmastered(eng_items, "sub_eng")
-            hin_items = _sort_unmastered(hin_items, "sub_hindi")
-
-        cycle_len = max(len(math_items), len(phy_items), len(bio_items), len(soc_items), 7)
-        for i in range(cycle_len):
-            m_top = math_items[i % len(math_items)]
-            t_top = tam_items[i % len(tam_items)]
-            p_top = phy_items[i % len(phy_items)]
-            s_top = soc_items[i % len(soc_items)]
-            b_top = bio_items[i % len(bio_items)]
-            e_top = eng_items[i % len(eng_items)]
-            h_top = hin_items[i % len(hin_items)]
-
-            core_cycle.append(("Mathematics", f"{active_term}: {m_top}", "Tamil", f"{active_term}: {t_top}", f"Math {m_top} solving + Tamil recall"))
-            core_cycle.append(("Physical Science", f"{active_term}: {p_top}", "Social Science", f"{active_term}: {s_top}", f"Physics/Chem {p_top} + Social key points"))
-            core_cycle.append(("Mathematics", f"{active_term}: {math_items[(i+1)%len(math_items)]}", "English", f"{active_term}: {e_top}", f"Math step drills + English grammar drills"))
-            core_cycle.append(("Biological Science", f"{active_term}: {b_top}", "Hindi", f"{active_term}: {h_top}", f"Biology {b_top} diagram + Hindi spelling check"))
-    else:
-        core_cycle = [
-            ("Mathematics", "Ch-1 Rational Numbers & Squares", "Tamil", "செய்யுள் & திருக்குறள் (1-10)", "Math speed-sums + Thirukkural error check"),
-            ("Physical Science", "Physics: Refraction & Lenses", "Social Science", "History: Revolt of 1857 Causes", "Lens ray diagrams + 1857 timeline recall"),
-            ("Mathematics", "Ch-3 Ratio, Shapes & Mensuration", "English", "Grammar (Tenses, Articles, Modals)", "Formula sheet blurting + 10 articles test"),
-            ("Biological Science", "Heart Circulation & Neurons", "Hindi", "Lessons 1-4 & Vigyapan Lekhan", "Blind Human Heart diagram + Hindi spelling test"),
-            ("Mathematics", "Ch-5 Data Handling, Sets & Functions", "Social Science", "Geography: Resources & Agriculture", "Sets Venn diagram solving + Map pointing"),
-            ("Physical Science", "Chemistry: Structure of Atom & Periodic", "Tamil", "உரைநடை & இலக்கணம் (எழுத்துகளின் பிறப்பு)", "Atomic models sketch + Tamil grammar recall"),
-            ("Biological Science", "Plant Circulation (Xylem/Phloem) & Growth", "English", "Composition & Literature Question-Answers", "Plant vascular bundle sketch + Formal letter draft")
-        ]
+    core_cycle = [
+        ("Mathematics", "Ch-1 Rational Numbers & Squares", "Tamil", "செய்யுள் & திருக்குறள் (1-10)", "Math speed-sums + Thirukkural error check"),
+        ("Physical Science", "Physics: Refraction & Lenses", "Social Science", "History: Revolt of 1857 Causes", "Lens ray diagrams + 1857 timeline recall"),
+        ("Mathematics", "Ch-3 Ratio, Shapes & Mensuration", "English", "Grammar (Tenses, Articles, Modals)", "Formula sheet blurting + 10 articles test"),
+        ("Biological Science", "Heart Circulation & Neurons", "Hindi", "Lessons 1-4 & Vigyapan Lekhan", "Blind Human Heart diagram + Hindi spelling test"),
+        ("Mathematics", "Ch-5 Data Handling, Sets & Functions", "Social Science", "Geography: Resources & Agriculture", "Sets Venn diagram solving + Map pointing"),
+        ("Physical Science", "Chemistry: Structure of Atom & Periodic", "Tamil", "உரைநடை & இலக்கணம் (எழுத்துகளின் பிறப்பு)", "Atomic models sketch + Tamil grammar recall"),
+        ("Biological Science", "Plant Circulation (Xylem/Phloem) & Growth", "English", "Composition & Literature Question-Answers", "Plant vascular bundle sketch + Formal letter draft")
+    ]
 
     roadmap = []
     for d in range(1, total_days + 1):
@@ -571,20 +500,20 @@ def build_dynamic_pre_exam_roadmap(total_days=21, portions_data=None, portion_pr
                 phase_name = "Phase 3: Mock Papers & Active Blurting"
 
         if d == total_days:
-            title = f"{active_term} Final Pre-Exam Confidence Run & Sleep Protocol"
+            title = "Final Pre-Exam Confidence Run & Sleep Protocol"
             focus_core = "Mathematics & Science"
-            core_topic = f"{active_term} Formula Lock & Mistake Diary Review"
+            core_topic = "Formula Lock & Mistake Diary Review"
             focus_sec = "Languages"
-            sec_topic = f"{active_term} Spelling Bank & Active Recall"
+            sec_topic = "Spelling Bank & Active Recall"
             morn = "Final active blurting sheet + 10:00 PM sleep boundary lock"
             g_core = "Review error log and key formulas without cramming."
             g_sec = "Spelling accuracy and calm mental priming."
         elif d == total_days - 1 and total_days >= 5:
-            title = f"{active_term} Full Exam Simulation & Timed Mock Papers"
+            title = "Full Exam Simulation & Timed Mock Papers"
             focus_core = "Mathematics"
-            core_topic = f"{active_term} Timed 2.5-hour Question Paper Hand-Solving"
+            core_topic = "Timed 2.5-hour Question Paper Hand-Solving"
             focus_sec = "Science"
-            sec_topic = f"{active_term} Blind Diagram Test & Definitions"
+            sec_topic = "Blind Diagram Test & Definitions"
             morn = "Timed paper simulation on lined paper"
             g_core = "Strict timed conditions, handwriting speed, and step presentation."
             g_sec = "Blind diagram accuracy without guidebook help."
@@ -3018,11 +2947,11 @@ class TharunScheduleBalancer:
     """
 
     @classmethod
-    def generate_schedule(cls, subjects, diary_items, current_level=2, selected_language="English (Language)", exam_mode=False, exam_subject="Mathematics", start_time_str="19:00", pre_exam_mode=False, pre_exam_day=1, pre_exam_duration_days=21, bedtime_rollovers=None, portions_data=None, portion_progress=None):
+    def generate_schedule(cls, subjects, diary_items, current_level=2, selected_language="English (Language)", exam_mode=False, exam_subject="Mathematics", start_time_str="19:00", pre_exam_mode=False, pre_exam_day=1, pre_exam_duration_days=21, bedtime_rollovers=None):
         lvl = EXECUTION_LEVELS.get(current_level, EXECUTION_LEVELS[2])
 
         if pre_exam_mode:
-            return cls._generate_pre_exam_prep_schedule(subjects, day_num=pre_exam_day, current_level=current_level, start_time_str=start_time_str, duration_days=pre_exam_duration_days, portions_data=portions_data, portion_progress=portion_progress)
+            return cls._generate_pre_exam_prep_schedule(subjects, day_num=pre_exam_day, current_level=current_level, start_time_str=start_time_str, duration_days=pre_exam_duration_days)
 
         if exam_mode:
             return cls._generate_exam_sprint_schedule(subjects, diary_items, exam_subject, lvl, start_time_str=start_time_str)
@@ -3876,8 +3805,8 @@ class TharunScheduleBalancer:
         return evening_slots, morning_slots
 
     @classmethod
-    def _generate_pre_exam_prep_schedule(cls, subjects, day_num=1, current_level=2, start_time_str="19:00", duration_days=21, portions_data=None, portion_progress=None):
-        roadmap = build_dynamic_pre_exam_roadmap(duration_days, portions_data=portions_data, portion_progress=portion_progress)
+    def _generate_pre_exam_prep_schedule(cls, subjects, day_num=1, current_level=2, start_time_str="19:00", duration_days=21):
+        roadmap = build_dynamic_pre_exam_roadmap(duration_days)
         day_idx = max(0, min(len(roadmap) - 1, day_num - 1))
         day_data = roadmap[day_idx]
         lvl = EXECUTION_LEVELS.get(current_level, EXECUTION_LEVELS[2])
@@ -4275,8 +4204,7 @@ class DesktopApp:
             exam_mode=self.is_exam_mode, exam_subject=self.selected_exam_subject,
             start_time_str=self.schedule_start_time,
             pre_exam_mode=self.is_pre_exam_mode, pre_exam_day=self.pre_exam_day,
-            pre_exam_duration_days=self.pre_exam_duration_days,
-            portions_data=self.portions_data, portion_progress=self.portion_progress
+            pre_exam_duration_days=self.pre_exam_duration_days
         )
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
 
@@ -4428,7 +4356,7 @@ class DesktopApp:
 
     def get_pre_exam_roadmap_for_duration(self, duration_days=None):
         dur = duration_days if duration_days is not None else getattr(self, "pre_exam_duration_days", 21)
-        return build_dynamic_pre_exam_roadmap(dur, getattr(self, "portions_data", None), getattr(self, "portion_progress", None))
+        return build_dynamic_pre_exam_roadmap(dur, getattr(self, "portions_data", None))
 
     def get_active_pre_exam_day_data(self):
         roadmap = self.get_pre_exam_roadmap_for_duration()
@@ -5119,22 +5047,6 @@ class DesktopApp:
             on_select_callback=_on_pill_exam_sub_selected
         )
 
-        active_t = self.portions_data.get("active_term", "Term-II") if self.portions_data else "Term-II"
-        terms_map = self.portions_data.get("terms", {}) if self.portions_data else {}
-        available_terms = list(terms_map.keys()) if terms_map else ["Term-I", "Term-II", "Periodic Test-2", "Annual Exam"]
-        self.pre_exam_term_var = tk.StringVar(value=active_t)
-        def _on_pill_pre_term_selected(v):
-            self.pre_exam_term_var.set(v)
-            self.on_pre_exam_term_changed(v)
-        self.pre_exam_term_combo = ShinobiPillSelector(
-            self.sub_prep_container,
-            title="Term:",
-            values=available_terms,
-            initial_value=active_t,
-            on_select_callback=_on_pill_pre_term_selected,
-            width=80
-        )
-
         self.lbl_pre_exam_day = tk.Label(self.sub_prep_container, text="Prep:", font=("Segoe UI", 7, "bold"), fg="#38bdf8", bg="#131c2e")
         roadmap_init = self.get_pre_exam_roadmap_for_duration()
         init_day_idx = max(0, min(len(roadmap_init) - 1, self.pre_exam_day - 1))
@@ -5162,7 +5074,6 @@ class DesktopApp:
             self.lbl_exam_sub.pack(side=tk.LEFT, padx=(2, 2))
             self.exam_sub_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         elif self.is_pre_exam_mode:
-            self.pre_exam_term_combo.pack(side=tk.LEFT, padx=(2, 2))
             self.lbl_pre_exam_day.pack(side=tk.LEFT, padx=(2, 2))
             self.pre_exam_day_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         else:
@@ -5224,36 +5135,20 @@ class DesktopApp:
         for tab_id in self.notebook.tabs():
             self.notebook.forget(tab_id)
 
-        if getattr(self, "is_pre_exam_mode", False):
-            visible_tabs = [
-                ("tab_portions", self.tab_portions, "📜", "Exam Portions & Revision Roadmap"),
-                ("tab_schedule", self.tab_schedule, "⏱️", "Revision Daily Timetable"),
-                ("tab_diary", self.tab_diary, "📖", "School Diary")
-            ]
-            self.notebook.add(self.tab_portions, text="Exam Portions & Revision Roadmap")
-            self.notebook.add(self.tab_schedule, text="Revision Daily Timetable")
-            self.notebook.add(self.tab_diary, text="School Diary")
+        visible_tabs = [
+            ("tab_schedule", self.tab_schedule, "📅", "Daily Schedule"),
+            ("tab_diary", self.tab_diary, "📖", "School Diary"),
+            ("tab_portions", self.tab_portions, "📑", "Exam Portions")
+        ]
+        self.notebook.add(self.tab_schedule, text="Daily Schedule")
+        self.notebook.add(self.tab_diary, text="School Diary")
+        self.notebook.add(self.tab_portions, text="Exam Portions")
 
-            if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
-                self.custom_tab_bar.set_tabs(visible_tabs)
-                self.custom_tab_bar.select_tab("tab_portions")
+        if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
+            self.custom_tab_bar.set_tabs(visible_tabs)
+            self.custom_tab_bar.select_tab("tab_schedule")
 
-            self.notebook.select(self.tab_portions)
-        else:
-            visible_tabs = [
-                ("tab_schedule", self.tab_schedule, "⏱️", "Daily Schedule"),
-                ("tab_diary", self.tab_diary, "📖", "School Diary"),
-                ("tab_portions", self.tab_portions, "📜", "Exam Portions")
-            ]
-            self.notebook.add(self.tab_schedule, text="Daily Schedule")
-            self.notebook.add(self.tab_diary, text="School Diary")
-            self.notebook.add(self.tab_portions, text="Exam Portions")
-
-            if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
-                self.custom_tab_bar.set_tabs(visible_tabs)
-                self.custom_tab_bar.select_tab("tab_schedule")
-
-            self.notebook.select(self.tab_schedule)
+        self.notebook.select(self.tab_schedule)
 
     def _create_hud_toplevel(self, title, subtitle="", width=850, height=600, min_width=720, min_height=500):
         """
@@ -8779,7 +8674,7 @@ class DesktopApp:
 
     def update_timeline_header_mode_view(self):
         if hasattr(self, "sub_prep_container") and self.sub_prep_container.winfo_exists():
-            for w_attr in ["lbl_exam_sub", "exam_sub_combo", "pre_exam_term_combo", "lbl_pre_exam_day", "pre_exam_day_combo", "lbl_daily_mode_tag"]:
+            for w_attr in ["lbl_exam_sub", "exam_sub_combo", "lbl_pre_exam_day", "pre_exam_day_combo", "lbl_daily_mode_tag"]:
                 w_obj = getattr(self, w_attr, None)
                 if w_obj and w_obj.winfo_exists():
                     w_obj.pack_forget()
@@ -8787,8 +8682,6 @@ class DesktopApp:
                 self.lbl_exam_sub.pack(side=tk.LEFT, padx=(2, 2))
                 self.exam_sub_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
             elif self.is_pre_exam_mode:
-                if hasattr(self, "pre_exam_term_combo") and self.pre_exam_term_combo:
-                    self.pre_exam_term_combo.pack(side=tk.LEFT, padx=(2, 2))
                 self.lbl_pre_exam_day.pack(side=tk.LEFT, padx=(2, 2))
                 self.pre_exam_day_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
             else:
@@ -10234,9 +10127,6 @@ class DesktopApp:
 
     def on_term_selected(self, event=None):
         new_term = self.cmb_term_selector.get()
-        if hasattr(self, "pre_exam_term_combo") and self.pre_exam_term_combo:
-            if self.pre_exam_term_combo.get() != new_term:
-                self.pre_exam_term_combo.set(new_term)
         if self.portions_data:
             self.portions_data["active_term"] = new_term
             terms_map = self.portions_data.get("terms", {})
@@ -10248,37 +10138,9 @@ class DesktopApp:
                     json.dump(self.portions_data, f, indent=2, ensure_ascii=False)
             except Exception:
                 pass
-            if hasattr(self, "lbl_portion_header_title") and self.lbl_portion_header_title:
-                self.lbl_portion_header_title.config(text=f"📜 {self.portions_data.get('examination', new_term).upper()}")
+            self.lbl_portion_header_title.config(text=f"📜 {self.portions_data.get('examination', new_term).upper()}")
             self.render_portion_cards()
             self.update_portion_progress_bar()
-        if getattr(self, "is_pre_exam_mode", False):
-            self.update_pre_exam_day_combo_values()
-            self.handle_generate_schedule(silent=True)
-
-    def on_pre_exam_term_changed(self, new_term):
-        if hasattr(self, "cmb_term_selector") and self.cmb_term_selector:
-            if self.cmb_term_selector.get() != new_term:
-                self.cmb_term_selector.set(new_term)
-        if self.portions_data:
-            self.portions_data["active_term"] = new_term
-            terms_map = self.portions_data.get("terms", {})
-            term_info = terms_map.get(new_term, {})
-            if "title" in term_info:
-                self.portions_data["examination"] = term_info["title"]
-            try:
-                with open(PORTIONS_FILE, "w", encoding="utf-8") as f:
-                    json.dump(self.portions_data, f, indent=2, ensure_ascii=False)
-            except Exception:
-                pass
-            if hasattr(self, "lbl_portion_header_title") and self.lbl_portion_header_title:
-                self.lbl_portion_header_title.config(text=f"📜 {self.portions_data.get('examination', new_term).upper()}")
-            if hasattr(self, "render_portion_cards"):
-                self.render_portion_cards()
-            if hasattr(self, "update_portion_progress_bar"):
-                self.update_portion_progress_bar()
-        self.update_pre_exam_day_combo_values()
-        self.handle_generate_schedule(silent=True)
 
     def set_portion_filter(self, sub_name):
         self.portion_filter = sub_name
@@ -10730,9 +10592,6 @@ class DesktopApp:
         self.portion_progress[item_key] = var.get()
         self.save_portion_progress()
         self.update_portion_progress_bar()
-        if getattr(self, "is_pre_exam_mode", False):
-            self.update_pre_exam_day_combo_values()
-            self.handle_generate_schedule(silent=True)
 
     def update_portion_progress_bar(self):
         total_items = 0
@@ -13316,9 +13175,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             start_time_str=self.schedule_start_time,
             pre_exam_mode=self.is_pre_exam_mode, pre_exam_day=self.pre_exam_day,
             pre_exam_duration_days=self.pre_exam_duration_days,
-            bedtime_rollovers=active_rollovers,
-            portions_data=self.portions_data,
-            portion_progress=self.portion_progress
+            bedtime_rollovers=active_rollovers
         )
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
         self.render_timetable_cards()
