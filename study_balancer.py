@@ -5212,7 +5212,8 @@ class DesktopApp:
             initial_value=self.selected_exam_subject,
             textvariable=self.exam_sub_var,
             on_select_callback=_on_pill_exam_sub_selected,
-            title_color="#f59e0b"
+            title_color="#f59e0b",
+            height=54
         )
 
         self.lbl_pre_exam_day = tk.Label(self.sub_prep_container, text="Prep:", font=("Segoe UI", 7, "bold"), fg="#38bdf8", bg="#161f30")
@@ -5224,12 +5225,13 @@ class DesktopApp:
             self.on_pre_exam_day_changed()
         self.pre_exam_day_combo = ShinobiPillSelector(
             self.sub_prep_container,
-            title="PREP",
+            title="PREPARATION",
             values=[f"Day {d['day']}/{len(roadmap_init)}: {d['title']}" for d in roadmap_init],
             initial_value=f"Day {self.pre_exam_day}/{self.pre_exam_duration_days}: {roadmap_init[init_day_idx]['title']}",
             textvariable=self.pre_exam_day_var,
             on_select_callback=_on_pill_pre_day_selected,
-            title_color="#38bdf8"
+            title_color="#38bdf8",
+            height=54
         )
 
         self.daily_mode_card = tk.Frame(
@@ -5253,10 +5255,8 @@ class DesktopApp:
 
         if self.is_exam_mode:
             self.exam_sub_combo.pack(fill=tk.BOTH, expand=True)
-        elif self.is_pre_exam_mode:
-            self.pre_exam_day_combo.pack(fill=tk.BOTH, expand=True)
         else:
-            self.daily_mode_card.pack(fill=tk.BOTH, expand=True)
+            self.pre_exam_day_combo.pack(fill=tk.BOTH, expand=True)
         self.sub_prep_container.grid(row=2, column=2, padx=3, pady=2, sticky="nsew")
         if hasattr(self, "setting_pills"):
             self.setting_pills.extend([self.exam_sub_combo, self.pre_exam_day_combo])
@@ -8878,13 +8878,8 @@ class DesktopApp:
                     w_obj.pack_forget()
             if self.is_exam_mode:
                 self.exam_sub_combo.pack(fill=tk.BOTH, expand=True)
-            elif self.is_pre_exam_mode:
-                self.pre_exam_day_combo.pack(fill=tk.BOTH, expand=True)
             else:
-                if hasattr(self, "daily_mode_card") and self.daily_mode_card.winfo_exists():
-                    self.daily_mode_card.pack(fill=tk.BOTH, expand=True)
-                else:
-                    self.lbl_daily_mode_tag.pack(expand=True)
+                self.pre_exam_day_combo.pack(fill=tk.BOTH, expand=True)
 
         if not hasattr(self, "balanced_controls_frame"):
             return
@@ -9005,7 +9000,7 @@ class DesktopApp:
                 highlightthickness=1,
                 padx=8,
                 pady=4,
-                cursor="default"
+                cursor="arrow"
             )
             card.pack(fill=tk.X, pady=2)
             self.slot_frames.append(card)
@@ -13096,12 +13091,19 @@ class DesktopApp:
             self.pre_exam_day = max(1, min(self.pre_exam_duration_days, day_num))
         except Exception:
             self.pre_exam_day = 1
+
+        if not self.is_pre_exam_mode:
+            self.is_pre_exam_mode = True
+            self.is_exam_mode = False
+            if hasattr(self, "pill_mode"):
+                self.pill_mode.set(f"📅 Pre-Exam Planner ({self.pre_exam_duration_days}d)")
+            self.update_notebook_tabs_for_mode()
+
         self.update_timeline_header_mode_view()
         self.save_data()
-        if self.is_pre_exam_mode:
-            self.handle_generate_schedule(silent=True)
-            day_data = self.get_active_pre_exam_day_data()
-            messagebox.showinfo("Pre-Exam Day Updated", f"Timetable regenerated for Day {self.pre_exam_day}/{self.pre_exam_duration_days}: {day_data['title']}!")
+        self.handle_generate_schedule(silent=True)
+        day_data = self.get_active_pre_exam_day_data()
+        messagebox.showinfo("Pre-Exam Day Updated", f"Timetable regenerated for Day {self.pre_exam_day}/{self.pre_exam_duration_days}: {day_data['title']}!")
 
     def on_exam_subject_changed(self, event=None):
         self.selected_exam_subject = self.exam_sub_var.get()

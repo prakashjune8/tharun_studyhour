@@ -3138,11 +3138,11 @@
               <option value="English">English (26.09)</option>
             </select>
           </span>
-          <span id="fieldPreExamDay" style="display: none;">
+          <span id="fieldPreExamDay" style="display: flex;">
             <span class="control-label" style="color: #38bdf8;">Prep</span>
             <select class="control-select" id="preExamDaySelect" onchange="changePreExamDay(parseInt(this.value))"></select>
           </span>
-          <span id="fieldBalancedStandard" class="status-ok" style="display: flex;">
+          <span id="fieldBalancedStandard" class="status-ok" style="display: none;">
             <svg class="ic" viewBox="0 0 24 24"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             <span>CBSE Daily</span>
           </span>
@@ -9021,22 +9021,14 @@
         if (lblPrep) lblPrep.style.display = "none";
         if (selPrep) selPrep.style.display = "none";
         if (fieldPrep) fieldPrep.style.display = "none";
-      } else if (isPreExamMode) {
+      } else {
         if (fieldBalanced) fieldBalanced.style.display = "none";
         if (lblExam) lblExam.style.display = "none";
         if (selExam) selExam.style.display = "none";
         if (fieldExam) fieldExam.style.display = "none";
         if (lblPrep) lblPrep.style.display = "inline";
         if (selPrep) selPrep.style.display = "inline";
-        if (fieldPrep) fieldPrep.style.display = "inline";
-      } else {
-        if (fieldBalanced) fieldBalanced.style.display = "flex";
-        if (lblExam) lblExam.style.display = "none";
-        if (selExam) selExam.style.display = "none";
-        if (fieldExam) fieldExam.style.display = "none";
-        if (lblPrep) lblPrep.style.display = "none";
-        if (selPrep) selPrep.style.display = "none";
-        if (fieldPrep) fieldPrep.style.display = "none";
+        if (fieldPrep) fieldPrep.style.display = "flex";
       }
       updateTimelineControls();
       updateTabsForMode(mode);
@@ -9048,8 +9040,12 @@
     function changePreExamDay(day) {
       preExamDay = day;
       localStorage.setItem("tharun_pre_exam_day", preExamDay);
-      updateTimelineControls();
-      if (isPreExamMode) {
+      if (!isPreExamMode) {
+        const modeSel = document.getElementById("modeSelect");
+        if (modeSel) modeSel.value = "pre_exam";
+        changeRoutineMode("pre_exam");
+      } else {
+        updateTimelineControls();
         generateSchedule();
         renderTimetable();
         selectSlot(getInitialSlotIndex());
