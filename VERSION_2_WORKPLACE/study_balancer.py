@@ -2842,9 +2842,6 @@ class ShinobiPillSelector(tk.Frame):
         self.lbl_chev = tk.Label(val_row, text="▾", font=("Segoe UI", 8, "bold"), fg="#fb923c", bg=bg_col)
         self.lbl_chev.pack(side=tk.RIGHT)
 
-        self.menu = tk.Menu(self, tearoff=0, bg="#0f172a", fg="#f8fafc", activebackground="#d97706", activeforeground="#0f172a", font=("Segoe UI", 9))
-        self._rebuild_menu()
-
         widgets = [self, self.val_row, self.lbl_val, self.lbl_chev]
         if self.lbl_title:
             widgets.append(self.lbl_title)
@@ -2862,18 +2859,237 @@ class ShinobiPillSelector(tk.Frame):
             if self.textvariable.get():
                 self.set(self.textvariable.get())
 
+    _active_popup = None
+
+    @classmethod
+    def close_active_popup(cls):
+        if cls._active_popup and cls._active_popup.winfo_exists():
+            try:
+                cls._active_popup.destroy()
+            except Exception:
+                pass
+        cls._active_popup = None
+
+    @staticmethod
+    def _parse_dropdown_item_info(val):
+        txt = str(val).strip()
+        DROPDOWN_ITEM_METADATA = {
+            "🌿 Balanced Daily": ("🌿", "Balanced Daily Routine", "CBSE Senthil Diary Balanced Routine (Levels 1–3)"),
+            "🔥 Exam Sprint": ("🔥", "Exam Eve Sprint", "3-Stage Cognitive Mastery & Kit Audit"),
+            "Level 1: 🔰 Genin": ("🔰", "Level 1: Genin", "15m Focus Slabs • Sitting Endurance Building"),
+            "Level 2: ⚡ Chunin": ("⚡", "Level 2: Chunin", "30m Standard Slabs • Balanced Daily Study Habit"),
+            "Level 3: 🔥 Jonin": ("🔥", "Level 3: Jonin", "45m Deep Work • Peak Cognitive Mastery"),
+            "7:00 PM": ("🕒", "7:00 PM Focus", "Standard Evening Focus Routine (Default)"),
+            "5:00 PM": ("🕒", "5:00 PM Focus", "Early Evening Focus Session"),
+            "10:00 AM": ("☀️", "10:00 AM Focus", "Holiday & Weekend Morning Session"),
+            "2:00 PM": ("🌤️", "2:00 PM Focus", "Weekend Afternoon Study Block"),
+            "⚡ Start Now": ("⚡", "Start Right Now", "Align Schedule Start with Live System Clock"),
+            "Tamil": ("📖", "Tamil (09.09)", "Grammar, Prose & Thirukkural Memorization"),
+            "Mathematics": ("📐", "Mathematics (11.09)", "Ch 1-8 Concepts, Formulas & Hand Solving"),
+            "Physical Science": ("🔬", "Physical Science (16.09)", "Physics Laws, Equations & Numerical Practice"),
+            "Social Science": ("🌍", "Social Science (18.09)", "History, Geography Maps & Civics Concepts"),
+            "Hindi": ("📝", "Hindi (22.09)", "Grammar, Comprehension & Essay Writing"),
+            "Biological Science": ("🧬", "Biological Science (24.09)", "Labeled Anatomy Diagrams & Recall"),
+            "English": ("📚", "English (26.09)", "Literature, Formal Writing & Vocabulary"),
+        }
+        if txt in DROPDOWN_ITEM_METADATA:
+            return DROPDOWN_ITEM_METADATA[txt]
+
+        for k, meta in NARUTO_METADATA.items():
+            if meta.get("display_name") == txt:
+                icon_map = {
+                    "naruto_sage": "🍥", "sasuke_chidori": "⚡", "kakashi_hatake": "👁️",
+                    "minato_flash": "🟡", "itachi_uchiha": "🔴", "leaf_village": "🍃",
+                    "dark": "🌑", "light": "📜"
+                }
+                icon = icon_map.get(k, "🍥")
+                title = meta.get("display_name", txt)
+                sub = meta.get("jutsu", "")
+                return icon, title, sub
+
+        if txt.startswith("Day ") and ":" in txt:
+            parts = txt.split(":", 1)
+            day_tag = parts[0].strip()
+            day_title = parts[1].strip()
+            return "🎯", day_tag, day_title
+
+        if "Pre-Exam Planner" in txt:
+            return "📅", txt, "Dynamic Multi-Day Horizon & Exam Portions"
+
+        if "(" in txt and ")" in txt:
+            idx = txt.index("(")
+            dt = txt[:idx].strip()
+            subs = txt[idx+1:txt.rindex(")")].strip()
+            return "📅", dt, f"Subjects: {subs}"
+
+        emojis = ['🌿', '🔥', '📅', '⚡', '🍥', '👁️', '🟡', '🔴', '🍃', '🌑', '📜', '🔰', '🕒', '☀️', '🌤️', '📐', '🔬', '🌍', '📝', '🧬', '📚', '📖', '🎨', '🎯']
+        for em in emojis:
+            if txt.startswith(em):
+                rem = txt[len(em):].strip()
+                return em, rem, ""
+
+        return "✦", txt, ""
+
     def _rebuild_menu(self):
-        self.menu.delete(0, tk.END)
-        for val in self.values:
-            self.menu.add_command(label=val, command=lambda v=val: self._select_val(v))
+        pass
 
     def _popup_menu(self, event=None):
+        if ShinobiPillSelector._active_popup:
+            prev = ShinobiPillSelector._active_popup
+            ShinobiPillSelector.close_active_popup()
+            if getattr(prev, "_owner_pill", None) == self:
+                return
+
+        if not self.values:
+            return
+
+        popup = tk.Toplevel(self)
+        popup._owner_pill = self
+        ShinobiPillSelector._active_popup = popup
+
+        popup.overrideredirect(True)
         try:
-            x = self.winfo_rootx()
-            y = self.winfo_rooty() + self.winfo_height()
-            self.menu.tk_popup(x, y)
+            popup.attributes("-topmost", True)
         except Exception:
             pass
+
+        popup.configure(bg="#0c1322", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#d97706")
+
+        x = self.winfo_rootx()
+        y = self.winfo_rooty() + self.winfo_height() + 2
+        screen_w = self.winfo_screenwidth()
+        screen_h = self.winfo_screenheight()
+        popup_w = max(self.winfo_width(), 290)
+
+        item_h = 44
+        total_items_h = len(self.values) * item_h + 8
+        popup_h = min(360, max(50, total_items_h))
+
+        if x + popup_w > screen_w - 10:
+            x = screen_w - popup_w - 10
+        if y + popup_h > screen_h - 40:
+            y = self.winfo_rooty() - popup_h - 2
+
+        popup.geometry(f"{popup_w}x{popup_h}+{x}+{y}")
+
+        use_scroll = total_items_h > popup_h
+        if use_scroll:
+            canvas = tk.Canvas(popup, bg="#0c1322", highlightthickness=0)
+            inner = tk.Frame(canvas, bg="#0c1322")
+            inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=popup_w)
+            canvas.pack(fill=tk.BOTH, expand=True)
+
+            def _on_cfg(e):
+                canvas.configure(scrollregion=canvas.bbox("all"))
+                canvas.itemconfig(inner_id, width=e.width)
+            inner.bind("<Configure>", _on_cfg)
+            canvas.bind("<Configure>", lambda e: canvas.itemconfig(inner_id, width=e.width))
+
+            def _on_wheel(e):
+                canvas.yview_scroll(int(-1 * (e.delta / 120)), "units")
+            popup.bind_all("<MouseWheel>", _on_wheel)
+            container = inner
+        else:
+            container = tk.Frame(popup, bg="#0c1322", padx=4, pady=4)
+            container.pack(fill=tk.BOTH, expand=True)
+
+        for val in self.values:
+            self._create_dropdown_item_card(container, val, popup)
+
+        def _check_click_outside(e):
+            if not popup.winfo_exists():
+                return
+            try:
+                px = popup.winfo_rootx()
+                py = popup.winfo_rooty()
+                pw = popup.winfo_width()
+                ph = popup.winfo_height()
+                if not (px <= e.x_root <= px + pw and py <= e.y_root <= py + ph):
+                    ShinobiPillSelector.close_active_popup()
+            except Exception:
+                ShinobiPillSelector.close_active_popup()
+
+        popup.bind("<FocusOut>", lambda e: ShinobiPillSelector.close_active_popup())
+        popup.bind("<Escape>", lambda e: ShinobiPillSelector.close_active_popup())
+        try:
+            self.winfo_toplevel().bind("<Button-1>", _check_click_outside, add="+")
+        except Exception:
+            pass
+        popup.focus_set()
+
+    def _create_dropdown_item_card(self, container, val, popup):
+        is_selected = (str(val).strip() == str(self.current_value).strip())
+        icon, title, sub = self._parse_dropdown_item_info(val)
+
+        item_bg = "#162032" if is_selected else "#0f172a"
+        border_col = "#f59e0b" if is_selected else "#1e293b"
+
+        card = tk.Frame(
+            container,
+            bg=item_bg,
+            bd=1,
+            relief=tk.SOLID,
+            highlightthickness=1,
+            highlightbackground=border_col,
+            cursor="hand2"
+        )
+        card.pack(fill=tk.X, padx=4, pady=2)
+
+        badge_frame = tk.Frame(card, bg="#1e293b", width=28, height=28)
+        badge_frame.pack_propagate(False)
+        badge_frame.pack(side=tk.LEFT, padx=(6, 8), pady=4)
+        lbl_icon = tk.Label(badge_frame, text=icon, font=("Segoe UI Emoji", 11), fg="#f59e0b", bg="#1e293b")
+        lbl_icon.pack(expand=True)
+
+        txt_box = tk.Frame(card, bg=item_bg)
+        txt_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, pady=3)
+
+        title_col = "#fbbf24" if is_selected else "#f8fafc"
+        lbl_t = tk.Label(txt_box, text=title, font=("Segoe UI", 8, "bold"), fg=title_col, bg=item_bg, anchor="w")
+        lbl_t.pack(anchor="w")
+
+        lbl_s = None
+        if sub:
+            lbl_s = tk.Label(txt_box, text=sub, font=("Segoe UI", 7), fg="#94a3b8", bg=item_bg, anchor="w")
+            lbl_s.pack(anchor="w")
+
+        check_txt = "✓" if is_selected else ""
+        lbl_chk = tk.Label(card, text=check_txt, font=("Segoe UI", 9, "bold"), fg="#f59e0b", bg=item_bg, width=3)
+        lbl_chk.pack(side=tk.RIGHT, padx=(0, 6))
+
+        all_widgets = [card, badge_frame, lbl_icon, txt_box, lbl_t, lbl_chk]
+        if lbl_s:
+            all_widgets.append(lbl_s)
+
+        def _on_enter(e):
+            card.configure(bg="#1e293b", highlightbackground="#f59e0b")
+            txt_box.configure(bg="#1e293b")
+            lbl_t.configure(bg="#1e293b", fg="#fbbf24")
+            if lbl_s: lbl_s.configure(bg="#1e293b")
+            lbl_chk.configure(bg="#1e293b")
+
+        def _on_leave(e):
+            if is_selected:
+                card.configure(bg="#162032", highlightbackground="#f59e0b")
+                txt_box.configure(bg="#162032")
+                lbl_t.configure(bg="#162032", fg="#fbbf24")
+                if lbl_s: lbl_s.configure(bg="#162032")
+                lbl_chk.configure(bg="#162032")
+            else:
+                card.configure(bg="#0f172a", highlightbackground="#1e293b")
+                txt_box.configure(bg="#0f172a")
+                lbl_t.configure(bg="#0f172a", fg="#f8fafc")
+                if lbl_s: lbl_s.configure(bg="#0f172a")
+                lbl_chk.configure(bg="#0f172a")
+
+        def _on_click(e):
+            ShinobiPillSelector.close_active_popup()
+            self._select_val(val)
+
+        for w in all_widgets:
+            w.bind("<Enter>", _on_enter)
+            w.bind("<Leave>", _on_leave)
+            w.bind("<Button-1>", _on_click)
 
     def _select_val(self, val):
         self.set(val)

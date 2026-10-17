@@ -849,6 +849,120 @@
       color: var(--text);
     }
 
+    /* ==============================================================
+       SHINOBI CUSTOM DROPDOWN SYSTEM (INDIVIDUAL ITEM CARDS)
+       ============================================================== */
+    .shinobi-floating-dropdown {
+      position: fixed;
+      z-index: 999999;
+      min-width: 290px;
+      max-width: 360px;
+      max-height: 380px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: rgba(11, 17, 32, 0.98);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(217, 119, 6, 0.65);
+      border-radius: 12px;
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.88), 0 0 24px rgba(217, 119, 6, 0.22);
+      padding: 6px;
+      display: none;
+      box-sizing: border-box;
+      animation: shinobiDropdownFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes shinobiDropdownFadeIn {
+      from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .shinobi-floating-dropdown::-webkit-scrollbar {
+      width: 5px;
+    }
+    .shinobi-floating-dropdown::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+
+    .shinobi-dd-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      margin: 3px 0;
+      border-radius: 8px;
+      background: rgba(22, 31, 48, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      box-sizing: border-box;
+    }
+
+    .shinobi-dd-item:hover {
+      background: rgba(245, 158, 11, 0.18);
+      border-color: rgba(245, 158, 11, 0.55);
+      transform: translateX(3px);
+    }
+
+    .shinobi-dd-item.active {
+      background: rgba(245, 158, 11, 0.22);
+      border-color: rgba(245, 158, 11, 0.85);
+    }
+
+    .shinobi-dd-item .dd-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .shinobi-dd-item .dd-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .shinobi-dd-item .dd-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #f8fafc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .shinobi-dd-item:hover .dd-title,
+    .shinobi-dd-item.active .dd-title {
+      color: #fbbf24;
+    }
+
+    .shinobi-dd-item .dd-sub {
+      font-size: 0.69rem;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+
+    .shinobi-dd-item .dd-check {
+      color: #f59e0b;
+      font-size: 0.95rem;
+      font-weight: 800;
+      width: 18px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
     /* Action button: uniform dark glass, orange line icon on top, white label below */
     .matrix-btn {
       background: rgba(255, 255, 255, 0.05);
@@ -12783,6 +12897,180 @@ function copyV1AuditSummaryWeb() {
     if (pill) new MutationObserver(updateStreakDots).observe(pill, { childList: true, subtree: true, characterData: true });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+<!-- Floating Shinobi Custom Dropdown Popup (Individual Item Cards) -->
+<div id="shinobiCustomDropdown" class="shinobi-floating-dropdown" role="menu"></div>
+
+<script>
+(function() {
+  const DROPDOWN_ITEM_METADATA = {
+    "balanced": { icon: "🌿", title: "Balanced Daily Routine", sub: "CBSE Senthil Diary Balanced Routine (Levels 1–3)" },
+    "exam": { icon: "🔥", title: "Exam Eve Sprint", sub: "3-Stage Cognitive Mastery & Kit Audit" },
+    "pre_exam": { icon: "📅", title: "Pre-Exam Planner", sub: "Dynamic Multi-Day Horizon & Exam Portions" },
+    "1": { icon: "🔰", title: "Level 1: Genin", sub: "15m Focus Slabs • Sitting Endurance Building" },
+    "2": { icon: "⚡", title: "Level 2: Chunin", sub: "30m Standard Slabs • Balanced Daily Study Habit" },
+    "3": { icon: "🔥", title: "Level 3: Jonin", sub: "45m Deep Work • Peak Cognitive Mastery" },
+    "19:00": { icon: "🕒", title: "7:00 PM Focus", sub: "Standard Evening Focus Routine (Default)" },
+    "17:00": { icon: "🕒", title: "5:00 PM Focus", sub: "Early Evening Focus Session" },
+    "10:00": { icon: "☀️", title: "10:00 AM Focus", sub: "Holiday & Weekend Morning Session" },
+    "14:00": { icon: "🌤️", title: "2:00 PM Focus", sub: "Weekend Afternoon Study Block" },
+    "now": { icon: "⚡", title: "Start Right Now", sub: "Align Schedule Start with Live System Clock" },
+    "naruto_sage": { icon: "🍥", title: "Naruto: Sage & Kurama", sub: "Will of Fire • Massive Rasengan (Orange & Gold)" },
+    "sasuke_chidori": { icon: "⚡", title: "Sasuke: Chidori & Rinnegan", sub: "Lightning Blade & Visual Prowess (Cyan)" },
+    "kakashi_hatake": { icon: "👁️", title: "Kakashi: Copy Ninja", sub: "Kamui & Tactical Precision (Slate & Cyan)" },
+    "minato_flash": { icon: "🟡", title: "Minato: Yellow Flash", sub: "Flying Raijin & Teleportation (Golden Yellow)" },
+    "itachi_uchiha": { icon: "🔴", title: "Itachi: Mangekyo Sharingan", sub: "Tsukuyomi & Calm Analysis (Crimson & Shadow)" },
+    "leaf_village": { icon: "🍃", title: "Leaf Village: Genin Green", sub: "Konohagakure Academy • Forest Emerald" },
+    "dark": { icon: "🌑", title: "Obsidian Stealth (Dark)", sub: "Pure Minimal Dark Mode • Deep Navy" },
+    "light": { icon: "📜", title: "Ninja Parchment (Light)", sub: "Classic Parchment Scroll • High-Contrast Ink" },
+    "Tamil": { icon: "📖", title: "Tamil (09.09)", sub: "Grammar, Prose & Thirukkural Memorization" },
+    "Mathematics": { icon: "📐", title: "Mathematics (11.09)", sub: "Ch 1-8 Concepts, Formulas & Hand Solving" },
+    "Physical Science": { icon: "🔬", title: "Physical Science (16.09)", sub: "Physics Laws, Equations & Numerical Practice" },
+    "Social Science": { icon: "🌍", title: "Social Science (18.09)", sub: "History, Geography Maps & Civics Concepts" },
+    "Hindi": { icon: "📝", title: "Hindi (22.09)", sub: "Grammar, Comprehension & Essay Writing" },
+    "Biological Science": { icon: "🧬", title: "Biological Science (24.09)", sub: "Labeled Anatomy Diagrams & Recall" },
+    "English": { icon: "📚", title: "English (26.09)", sub: "Literature, Formal Writing & Vocabulary" }
+  };
+
+  function parseOptionInfo(opt) {
+    const val = opt.value;
+    const txt = (opt.textContent || opt.text || "").trim();
+
+    if (DROPDOWN_ITEM_METADATA[val]) {
+      return DROPDOWN_ITEM_METADATA[val];
+    }
+    if (DROPDOWN_ITEM_METADATA[txt]) {
+      return DROPDOWN_ITEM_METADATA[txt];
+    }
+
+    if (txt.startsWith("Day ") && txt.includes(":")) {
+      const parts = txt.split(":");
+      return { icon: "🎯", title: parts[0].trim(), sub: parts.slice(1).join(":").trim() };
+    }
+
+    if (txt.includes("(") && txt.includes(")")) {
+      const p1 = txt.indexOf("(");
+      const p2 = txt.lastIndexOf(")");
+      return { icon: "📅", title: txt.substring(0, p1).trim(), sub: "Subjects: " + txt.substring(p1 + 1, p2).trim() };
+    }
+
+    const emojis = ['🌿', '🔥', '📅', '⚡', '🍥', '👁️', '🟡', '🔴', '🍃', '🌑', '📜', '🔰', '🕒', '☀️', '🌤️', '📐', '🔬', '🌍', '📝', '🧬', '📚', '📖', '🎨', '🎯'];
+    for (let em of emojis) {
+      if (txt.startsWith(em)) {
+        return { icon: em, title: txt.substring(em.length).trim(), sub: "" };
+      }
+    }
+
+    return { icon: "✦", title: txt, sub: "" };
+  }
+
+  let activeSelect = null;
+  const dd = document.getElementById("shinobiCustomDropdown");
+
+  function closeDropdown() {
+    if (dd) {
+      dd.style.display = "none";
+      dd.innerHTML = "";
+    }
+    activeSelect = null;
+  }
+
+  function openDropdown(selectEl, anchorEl) {
+    if (!dd || !selectEl || !selectEl.options || selectEl.options.length === 0) return;
+    if (activeSelect === selectEl && dd.style.display === "block") {
+      closeDropdown();
+      return;
+    }
+
+    activeSelect = selectEl;
+    dd.innerHTML = "";
+
+    const rect = anchorEl.getBoundingClientRect();
+    const currentVal = String(selectEl.value);
+
+    Array.from(selectEl.options).forEach(opt => {
+      const info = parseOptionInfo(opt);
+      const isSelected = (String(opt.value) === currentVal);
+
+      const item = document.createElement("div");
+      item.className = "shinobi-dd-item" + (isSelected ? " active" : "");
+      item.innerHTML = `
+        <div class="dd-badge">${info.icon}</div>
+        <div class="dd-content">
+          <div class="dd-title">${info.title}</div>
+          ${info.sub ? `<div class="dd-sub">${info.sub}</div>` : ""}
+        </div>
+        <div class="dd-check">${isSelected ? "✓" : ""}</div>
+      `;
+
+      item.addEventListener("click", function(e) {
+        e.stopPropagation();
+        selectEl.value = opt.value;
+        selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+        closeDropdown();
+      });
+
+      dd.appendChild(item);
+    });
+
+    const popupW = Math.max(rect.width, 290);
+    let leftPos = rect.left;
+    if (leftPos + popupW > window.innerWidth - 12) {
+      leftPos = Math.max(8, window.innerWidth - popupW - 12);
+    }
+
+    let topPos = rect.bottom + 4;
+    const estH = Math.min(360, selectEl.options.length * 46 + 12);
+    if (topPos + estH > window.innerHeight - 10) {
+      topPos = Math.max(10, rect.top - estH - 4);
+    }
+
+    dd.style.width = popupW + "px";
+    dd.style.left = leftPos + "px";
+    dd.style.top = topPos + "px";
+    dd.style.display = "block";
+  }
+
+  function initShinobiDropdowns() {
+    const containers = document.querySelectorAll(".control-field-matrix, .schedule-ctrl-pill");
+    containers.forEach(container => {
+      const sel = container.querySelector("select");
+      if (!sel) return;
+
+      container.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openDropdown(sel, container);
+      });
+
+      sel.addEventListener("mousedown", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openDropdown(sel, container);
+      });
+    });
+
+    document.addEventListener("click", function(e) {
+      if (dd && dd.style.display === "block") {
+        if (!dd.contains(e.target)) {
+          closeDropdown();
+        }
+      }
+    });
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") closeDropdown();
+    });
+
+    window.addEventListener("resize", closeDropdown);
+    window.addEventListener("scroll", closeDropdown, true);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initShinobiDropdowns);
+  } else {
+    initShinobiDropdowns();
+  }
 })();
 </script>
 
