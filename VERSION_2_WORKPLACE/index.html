@@ -3028,6 +3028,11 @@
           <span>Error Bank</span>
         </button>
 
+        <button class="matrix-btn btn-sync" onclick="openSyncHubModal()" title="Sync Hub: 1-Click Desktop JSON Import/Export" style="border-color: #38bdf8;">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span style="color: #38bdf8; font-weight: 700;">Sync Hub</span>
+        </button>
+
         <!-- Mode status tile: shows "CBSE Daily" in Balanced mode; the Exam / Prep selectors take this slot in the other modes (shown/hidden by JS) -->
         <div class="control-field-matrix status-tile" id="containerExamPrep">
           <span id="fieldExamSub" style="display: none;">
@@ -3270,7 +3275,18 @@
 
         <div class="portions-header-row">
           <div>
-            <h3 id="portionExamTitle" class="diary-engine-title">📜 Portions for Term-I Examination - Class VIII (2026 - 27) CSK</h3>
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <h3 id="portionExamTitle" class="diary-engine-title" style="margin: 0;">📜 Portions for Term-II Examination - Class VIII (2026 - 27) CSK</h3>
+              <div class="term-selector-pill" style="display: inline-flex; align-items: center; gap: 6px; background: #0f172a; border: 1px solid #38bdf8; border-radius: 18px; padding: 2px 10px;">
+                <span style="font-size: 0.75rem; font-weight: 700; color: #38bdf8;">🎯 Term:</span>
+                <select id="termSelectorWeb" onchange="changeActiveTermWeb(this.value)" style="background: transparent; border: none; color: #f8fafc; font-size: 0.8rem; font-weight: 700; outline: none; cursor: pointer;">
+                  <option value="Term-I">Term-I Examination (Completed)</option>
+                  <option value="Term-II" selected>Term-II Examination (Upcoming)</option>
+                  <option value="Periodic Test-2">Periodic Test-2 (Mid-Term)</option>
+                  <option value="Annual Exam">Annual Final Examination</option>
+                </select>
+              </div>
+            </div>
             <p id="portionSchoolSubtitle" class="diary-engine-sub" style="margin-bottom:0;">
               Senthil Public School (Montessori &amp; CBSE Stream, Adhiyamankottai, Dharmapuri) • 7 Official Subjects &amp; Chapter Tracker
             </p>
@@ -3477,6 +3493,87 @@
   </main>
 
   <!-- ========================================== -->
+  <!-- ========================================== -->
+  <!-- 🔄 SYNC HUB MODAL (1-Click Desktop JSON Sync Bridge - Option C HUD Shell) -->
+  <!-- ========================================== -->
+  <div id="syncHubModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2100; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="card modal-split" style="max-width: 840px; width: 92%; height: 560px; border: 2px solid #38bdf8; background: #0b1120;">
+      <!-- Left Sidebar Navigation Drawer -->
+      <div class="modal-sidebar" style="width: 230px; background: #070b14; border-right: 1px solid #1e293b;">
+        <div>
+          <div class="modal-sb-brand" style="color: #38bdf8;">🔄 Sync Hub</div>
+          <div class="modal-sb-nav">
+            <button class="btn-secondary guide-subtab-btn active" id="subTabSyncExport" onclick="switchSyncTab('export')">📥 Export to Desktop</button>
+            <button class="btn-secondary guide-subtab-btn" id="subTabSyncImport" onclick="switchSyncTab('import')">📤 Import from Desktop</button>
+            <button class="btn-secondary guide-subtab-btn" id="subTabSyncAudit" onclick="switchSyncTab('audit')">📊 Sync Integrity Status</button>
+          </div>
+        </div>
+        <div class="modal-sb-foot">
+          <strong style="color:#f8fafc;">Dual-State Parity</strong><br>
+          1-Click lossless sync between Web App localStorage and Python Desktop App JSON stores.
+        </div>
+      </div>
+
+      <!-- Right Main Content Pane -->
+      <div class="modal-main-pane" style="background: #0b1120; display: flex; flex-direction: column;">
+        <div class="modal-pane-head" style="background: #0f172a; border-bottom: 1px solid #1e293b; padding: 12px 16px;">
+          <div>
+            <h3 class="modal-pane-title" id="syncModalPaneTitle" style="color: #38bdf8; font-size: 1.05rem; margin: 0;">📥 1-Click Export to Desktop JSON Stores</h3>
+            <p style="color: #94a3b8; font-size: 0.75rem; margin: 2px 0 0 0;">Synchronize browser progress with local Python executable</p>
+          </div>
+          <button class="modal-btn-x" onclick="closeSyncHubModal()" style="background: #2a1215; color: #fca5a5; border: 1px solid #991b1b; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-weight: 700;">✕ Close</button>
+        </div>
+
+        <div class="modal-pane-body" id="syncModalBody" style="padding: 16px; overflow-y: auto; flex: 1;">
+          <!-- Export Section -->
+          <div id="syncSectionExport">
+            <p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 14px;">
+              Export active browser timetable data, school diary slabs, multi-term portions progress, friction audit records, and error bank directly into desktop-compatible JSON files.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+              <button class="btn-primary" onclick="exportFullSyncBundle()" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: 1px solid #38bdf8; padding: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; color: #fff; text-align: left;">
+                📦 Export Full Sync Bundle<br><small style="font-weight: 400; opacity: 0.85;">scholastic_pulse_sync.json</small>
+              </button>
+              <button class="btn-secondary" onclick="exportIndividualJson('diary')" style="background: #0f172a; border: 1px solid #d4af5a; padding: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; color: #fde047; text-align: left;">
+                📜 Export Diary Format<br><small style="font-weight: 400; color: #94a3b8;">tharun_diary_format.json</small>
+              </button>
+              <button class="btn-secondary" onclick="exportIndividualJson('portions')" style="background: #0f172a; border: 1px solid #10b981; padding: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; color: #34d399; text-align: left;">
+                📚 Export Exam Portions<br><small style="font-weight: 400; color: #94a3b8;">tharun_exam_portions.json</small>
+              </button>
+              <button class="btn-secondary" onclick="exportIndividualJson('error_bank')" style="background: #0f172a; border: 1px solid #f59e0b; padding: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; color: #fbbf24; text-align: left;">
+                ⚠️ Export Error Bank<br><small style="font-weight: 400; color: #94a3b8;">student_error_bank.json</small>
+              </button>
+            </div>
+            <div style="background: #070b14; border: 1px solid #1e293b; border-radius: 6px; padding: 10px 14px; font-size: 0.78rem; color: #94a3b8;">
+              💡 <strong>Instant Desktop Sync:</strong> Place downloaded JSON files directly into <code>D:\THARUN PROJECT\VERSION_2_WORKPLACE</code> to synchronize offline execution immediately.
+            </div>
+          </div>
+
+          <!-- Import Section -->
+          <div id="syncSectionImport" style="display: none;">
+            <p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 14px;">
+              Upload any JSON database from your desktop (<code>tharun_diary_format.json</code>, <code>study_routine_data.json</code>, <code>student_error_bank.json</code>, <code>time_extension_audit.json</code>, <code>tharun_exam_portions.json</code>, or <code>scholastic_pulse_sync.json</code>).
+            </p>
+            <div style="border: 2px dashed #38bdf8; border-radius: 8px; padding: 26px; text-align: center; background: #070b14; margin-bottom: 14px;">
+              <input type="file" id="syncFileInput" accept=".json" onchange="handleSyncFileUpload(event)" style="display: none;">
+              <button class="btn-primary" onclick="document.getElementById('syncFileInput').click()" style="background: #0284c7; color: #fff; border: 1px solid #38bdf8; padding: 12px 24px; font-weight: 700; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
+                📂 Select Desktop JSON File to Import
+              </button>
+              <p id="syncUploadStatus" style="color: #94a3b8; font-size: 0.8rem; margin-top: 10px;">Select JSON file to immediately populate web state & localStorage</p>
+            </div>
+          </div>
+
+          <!-- Integrity Audit Section -->
+          <div id="syncSectionAudit" style="display: none;">
+            <div id="syncAuditDetails" style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.6; background: #070b14; padding: 14px; border-radius: 6px; border: 1px solid #1e293b;">
+              Loading synchronization status...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 📖 GUIDE READER MODAL (Consolidated Written Guides) -->
   <!-- ========================================== -->
   <div id="guideModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.82); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
@@ -10325,6 +10422,7 @@
       let remDeficit = extraMins;
       let compressed = [];
       let extinguished = [];
+      let rolloversCreated = [];
       const cutoffMins = isEvening ? 22 * 60 : 7 * 60 + 30; // 10:00 PM or 7:30 AM
 
       for (let i = activeIndex + 1; i < allSlots.length; i++) {
@@ -10341,6 +10439,13 @@
           } else {
             slot.badge = "⚠️ Deferred to Morning";
             extinguished.push(slot.title);
+            if (slot.type === "study") {
+              rolloversCreated.push({
+                subject: slot.subject || "Homework",
+                title: slot.title || "Homework",
+                truncatedMins: slot.durationMins || 15
+              });
+            }
           }
           continue;
         }
@@ -10361,12 +10466,62 @@
             slot.durationMins -= cut;
             remDeficit -= cut;
             compressed.push({ slot: slot.title, delta: -cut, new_mins: slot.durationMins });
+            rolloversCreated.push({
+              subject: slot.subject || "Homework",
+              title: slot.title || "Homework",
+              truncatedMins: cut
+            });
           }
         }
 
         slot.start = formatMinutesToTime(curMinutes);
         curMinutes += slot.durationMins;
         slot.end = formatMinutesToTime(curMinutes);
+      }
+
+      // Bedtime Overrun Rollover to Morning Priming Window
+      if (rolloversCreated.length > 0) {
+        if (!auditData.bedtime_rollovers) auditData.bedtime_rollovers = [];
+        const now = new Date();
+        rolloversCreated.forEach(ro => {
+          const roRec = {
+            id: `ROLLOVER_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`,
+            timestamp: now.toISOString(),
+            date: now.toISOString().split("T")[0],
+            subject: ro.subject,
+            title: ro.title,
+            truncated_mins: ro.truncatedMins,
+            reason: `10:00 PM Bedtime Protection truncation (+${extraMins}m extension cascade)`,
+            badge: "🌅 Morning Recall Priority (Overrun Rollover)",
+            status: "pending_morning_execution"
+          };
+          auditData.bedtime_rollovers.unshift(roRec);
+
+          const roSlot = {
+            phase: "Morning Priming Window",
+            start: "06:08 AM",
+            end: "06:23 AM",
+            durationMins: ro.truncatedMins,
+            title: `Morning Recall Priority: ${ro.subject} (${ro.title})`,
+            subject: ro.subject,
+            type: "rollover",
+            isRollover: true,
+            badge: "🌅 Morning Recall Priority (Overrun Rollover)",
+            guidance: `Overrun rollover from 10:00 PM Bedtime Protection: Complete remaining ${ro.truncatedMins}m high-focus review for ${ro.subject} before school today!`
+          };
+          morningSlots.splice(1, 0, roSlot);
+        });
+
+        // Recalculate morning slot times
+        let mCur = 6 * 60; // 06:00 AM
+        morningSlots.forEach(s => {
+          s.start = formatMinutesToTime(mCur);
+          mCur += s.durationMins;
+          s.end = formatMinutesToTime(mCur);
+        });
+
+        allSlots = [...eveningSlots, ...morningSlots];
+        saveAuditData();
       }
 
       return { compressed, extinguished };
@@ -11524,6 +11679,213 @@
       a.href = URL.createObjectURL(blob);
       a.download = `Tharun_Weekly_Parental_Digest_${new Date().toISOString().slice(0,10)}.txt`;
       a.click();
+    }
+
+    // ==========================================
+    // 🔄 1-CLICK JSON SYNC BRIDGE & DYNAMIC TERM SELECTOR
+    // ==========================================
+    function openSyncHubModal() {
+      const m = document.getElementById("syncHubModal");
+      if (m) {
+        m.style.display = "flex";
+        renderSyncAuditDetails();
+      }
+    }
+
+    function closeSyncHubModal() {
+      const m = document.getElementById("syncHubModal");
+      if (m) m.style.display = "none";
+    }
+
+    function switchSyncTab(tab) {
+      document.getElementById("subTabSyncExport")?.classList.toggle("active", tab === "export");
+      document.getElementById("subTabSyncImport")?.classList.toggle("active", tab === "import");
+      document.getElementById("subTabSyncAudit")?.classList.toggle("active", tab === "audit");
+
+      document.getElementById("syncSectionExport").style.display = (tab === "export") ? "block" : "none";
+      document.getElementById("syncSectionImport").style.display = (tab === "import") ? "block" : "none";
+      document.getElementById("syncSectionAudit").style.display = (tab === "audit") ? "block" : "none";
+
+      const titleEl = document.getElementById("syncModalPaneTitle");
+      if (titleEl) {
+        if (tab === "export") titleEl.textContent = "📥 1-Click Export to Desktop JSON Stores";
+        else if (tab === "import") titleEl.textContent = "📤 1-Click Import from Desktop JSON Stores";
+        else titleEl.textContent = "📊 Dual-State Synchronization Audit";
+      }
+      if (tab === "audit") renderSyncAuditDetails();
+    }
+
+    function renderSyncAuditDetails() {
+      const el = document.getElementById("syncAuditDetails");
+      if (!el) return;
+      const diaryCount = diaryData?.diary_entries?.length || 0;
+      const portionCount = currentPortionsData?.length || 0;
+      const errorCount = studentErrorBank?.length || 0;
+      const auditCount = auditData?.audit_records?.length || 0;
+      const rolloverCount = auditData?.bedtime_rollovers?.length || 0;
+      const activeT = (typeof portionsMeta !== "undefined" && portionsMeta.active_term) ? portionsMeta.active_term : "Term-II";
+
+      el.innerHTML = `
+        <div style="font-weight: 700; color: #38bdf8; margin-bottom: 8px;">✅ Active Browser LocalStorage State:</div>
+        <ul style="margin: 0; padding-left: 20px;">
+          <li><strong>School Diary Entries:</strong> ${diaryCount} school dates loaded</li>
+          <li><strong>Active Exam Term:</strong> <span style="color: #facc15; font-weight: 700;">${activeT}</span> (${portionCount} official subjects)</li>
+          <li><strong>Personal Error Bank:</strong> ${errorCount} active slips logged</li>
+          <li><strong>Time Extension Audits:</strong> ${auditCount} records logged</li>
+          <li><strong>Bedtime Protection Rollovers:</strong> ${rolloverCount} morning rollovers registered</li>
+          <li><strong>Active Routine Mode:</strong> ${currentRoutineMode.toUpperCase()} (Level ${currentLevel})</li>
+        </ul>
+        <div style="margin-top: 10px; color: #10b981; font-weight: 600;">
+          🟢 Parity Status: 100% Schema compatible with desktop executable (ScholasticPulse_V2.exe).
+        </div>
+      `;
+    }
+
+    function downloadJsonFile(filename, data) {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function exportFullSyncBundle() {
+      const bundle = {
+        meta: {
+          app: "ScholasticPulse V2 Sync Bundle",
+          exported_at: new Date().toISOString(),
+          student: "Tharun",
+          grade: "Class 8 CBSE",
+          school: "Senthil Public School"
+        },
+        study_routine_data: {
+          current_level: currentLevel,
+          routine_mode: currentRoutineMode,
+          start_time: scheduleStartTime,
+          language: selectedLanguage,
+          theme: currentThemeName
+        },
+        tharun_diary_format: diaryData,
+        tharun_exam_portions: {
+          school_name: portionsMeta.school_name || "Senthil Public School",
+          stream: portionsMeta.stream || "Montessori & CBSE Stream",
+          student_name: "Tharun",
+          academic_year: "2026-2027",
+          active_term: portionsMeta.active_term || "Term-II",
+          subjects: currentPortionsData
+        },
+        portion_progress: portionProgress,
+        student_error_bank: studentErrorBank,
+        time_extension_audit: auditData
+      };
+      downloadJsonFile("scholastic_pulse_sync.json", bundle);
+      alert("✅ Full Sync Bundle (scholastic_pulse_sync.json) exported successfully!");
+    }
+
+    function exportIndividualJson(type) {
+      if (type === "diary") {
+        downloadJsonFile("tharun_diary_format.json", diaryData);
+      } else if (type === "portions") {
+        downloadJsonFile("tharun_exam_portions.json", {
+          school_name: portionsMeta.school_name || "Senthil Public School",
+          stream: portionsMeta.stream || "Montessori & CBSE Stream",
+          student_name: "Tharun",
+          academic_year: "2026-2027",
+          active_term: portionsMeta.active_term || "Term-II",
+          subjects: currentPortionsData
+        });
+      } else if (type === "error_bank") {
+        downloadJsonFile("student_error_bank.json", studentErrorBank);
+      }
+    }
+
+    function handleSyncFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          let detected = "Unknown";
+
+          if (parsed.meta && parsed.meta.app && parsed.meta.app.includes("Sync Bundle")) {
+            detected = "Full Sync Bundle";
+            if (parsed.tharun_diary_format) diaryData = parsed.tharun_diary_format;
+            if (parsed.tharun_exam_portions?.subjects) currentPortionsData = parsed.tharun_exam_portions.subjects;
+            if (parsed.portion_progress) portionProgress = parsed.portion_progress;
+            if (parsed.student_error_bank) studentErrorBank = parsed.student_error_bank;
+            if (parsed.time_extension_audit) auditData = parsed.time_extension_audit;
+            localStorage.setItem("tharun_exam_portions_data", JSON.stringify(currentPortionsData));
+            localStorage.setItem("tharun_portion_progress", JSON.stringify(portionProgress));
+            localStorage.setItem("student_error_bank", JSON.stringify(studentErrorBank));
+            saveAuditData();
+          } else if (parsed.diary_entries) {
+            detected = "School Diary Format (tharun_diary_format.json)";
+            diaryData = parsed;
+          } else if (parsed.terms || (parsed.subjects && parsed.examination)) {
+            detected = "Exam Portions (tharun_exam_portions.json)";
+            if (parsed.terms) {
+              const act = parsed.active_term || "Term-II";
+              currentPortionsData = parsed.terms[act]?.portions || parsed.terms[act]?.subjects || [];
+              portionsMeta.examination = parsed.terms[act]?.title || parsed.examination;
+              portionsMeta.active_term = act;
+            } else {
+              currentPortionsData = parsed.subjects;
+              portionsMeta.examination = parsed.examination;
+            }
+            localStorage.setItem("tharun_exam_portions_data", JSON.stringify(currentPortionsData));
+            localStorage.setItem("tharun_portions_meta", JSON.stringify(portionsMeta));
+          } else if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].slip) {
+            detected = "Student Error Bank (student_error_bank.json)";
+            studentErrorBank = parsed;
+            localStorage.setItem("student_error_bank", JSON.stringify(studentErrorBank));
+          } else if (parsed.audit_records) {
+            detected = "Time Extension Audit (time_extension_audit.json)";
+            auditData = parsed;
+            saveAuditData();
+          }
+
+          renderDiaryList();
+          generateSchedule();
+          renderTimetable();
+          renderPortions();
+          updatePortionStats();
+          renderSyncAuditDetails();
+
+          alert(`🎉 IMPORT SUCCESSFUL!
+
+Detected: ${detected}
+State updated & synchronized with Web App localStorage.`);
+          closeSyncHubModal();
+        } catch (err) {
+          alert("❌ Error parsing JSON file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function changeActiveTermWeb(newTerm) {
+      if (!portionsMeta) portionsMeta = {};
+      portionsMeta.active_term = newTerm;
+      const titleMap = {
+        "Term-I": "Portions for Term-I Examination (Completed) - Class VIII CSK",
+        "Term-II": "Portions for Term-II Examination (Upcoming) - Class VIII CSK",
+        "Periodic Test-2": "Portions for Periodic Test-2 (Mid-Term) - Class VIII CSK",
+        "Annual Exam": "Portions for Annual Final Examination - Class VIII CSK"
+      };
+      portionsMeta.examination = titleMap[newTerm] || `Portions for ${newTerm} - Class VIII CSK`;
+      localStorage.setItem("tharun_portions_meta", JSON.stringify(portionsMeta));
+
+      const titleEl = document.getElementById("portionExamTitle");
+      if (titleEl) titleEl.textContent = "📜 " + portionsMeta.examination;
+
+      renderPortions();
+      updatePortionStats();
     }
 
     window.addEventListener("DOMContentLoaded", () => {

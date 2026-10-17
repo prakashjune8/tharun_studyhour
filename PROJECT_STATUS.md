@@ -16,13 +16,14 @@
 | **Phase 3: Pop-up Modals Suite** | Section 9 in `study_balancer.py` | ✅ 100% Complete | `desktop_step9_guide.png` & `desktop_step9_playbook.png` |
 | **Phase 4: Executable Rebuild** | `dist\ScholasticPulse_V2.exe` | ✅ 100% Complete | Standalone EXE (61.5 MB) Rebuilt & Deployed |
 | **Phase 5: Precision Hardening** | JSON Dual-Path & Unified HUD Shell | ✅ 100% Complete | Verified Dual-Path Persistence & Option C HUD Modals |
+| **Phase 6: Final Features & Sync Hub** | Bedtime Rollover, Multi-Term Selector, 1-Click Sync | ✅ 100% Complete | Live Rollover Engine, Multi-Term Nesting, & Web/Desktop Sync |
 
 ---
 
 ## 🧩 Section-by-Section Implementation Breakdown
 
 | Section # | Component Name | Selected Design Option | Web App (`index.html`) | Desktop App (`study_balancer.py`) | Screenshot Verification |
-| :---: | :--- | :--- | :---: | :---: | :---: |
+| :---: | :--- | :--- | :--- | :---: | :---: |
 | **1** | **Top Header Bar** | **Option C: Sage Mode Modern**<br>Dark glassmorphism, gold glow border, streak counter & dots, month pill | ✅ Complete | ✅ Complete | `desktop_step1.png` |
 | **2** | **Shinobi Character Card** | **Option A: Hero Portrait**<br>122x122 Sage Naruto, golden chakra aura, large quote, jutsu & rank chips | ✅ Complete | ✅ Complete | `desktop_step2.png` |
 | **3** | **Command Grid Deck** | **Option A: Settings + Action Deck**<br>4 setting pills, prep day tag, dark glass tools, solid gold Schedule CTA | ✅ Complete | ✅ Complete | `desktop_step3.png` |
@@ -31,8 +32,10 @@
 | **5B** | **Chakra Focus Timer** | **Option A: Circular Chakra Ring**<br>16 radial flame tongues, glowing progress arc, 2-row controls, 2x4 tool grid | ✅ Complete | ✅ Complete | `desktop_step5.png` |
 | **6** | **Tab 1: Daily Schedule List** | **Option C: Scroll & Chakra Ledger**<br>Parchment scroll banners, gold-bordered ledger cards, time plaques | ✅ Complete | ✅ Complete | `desktop_step6.png` |
 | **7** | **Tab 2: School Diary & Slabs** | **Option B: Scroll & Chakra Ledger**<br>Gold ledger command deck, quick-add bar, scroll banner, 2-column slabs | ✅ Complete | ✅ Complete | `desktop_step7.png` |
-| **8** | **Tab 3: Exam Portions Tracker** | **Option B: Scroll & Chakra Ledger**<br>Command deck with progress bar, filter pills, scroll banner, 2-column cards | ✅ Complete | ✅ Complete | `desktop_step8.png` |
+| **8** | **Tab 3: Exam Portions Tracker** | **Option B: Scroll & Chakra Ledger**<br>Dynamic Term Selector (Term-I, Term-II, Periodic Test-2, Annual Exam), multi-term nesting, 2-column cards | ✅ Complete | ✅ Complete | `desktop_step8.png` |
 | **9** | **Pop-up Modals Suite** | **Option C: Split Sidebar Navigation**<br>Left 230px dark HUD navigation sidebar, Right content pane, cyan HUD header | ✅ Complete | ✅ Complete | `desktop_step9_guide.png`<br>`desktop_step9_playbook.png` |
+| **10** | **Bedtime Rollover Engine** | **10:00 PM Bedtime Protection & Morning Recall**<br>Dynamic evening slab truncation -> auto prepends Amber Parchment Badge slot in Morning Priming Window (6:00 AM – 7:30 AM) | ✅ Complete | ✅ Complete | Verified in Engine & Audit Store |
+| **11** | **Web Sync Hub** | **1-Click Desktop JSON Import/Export Bridge**<br>Export all browser stores to desktop JSON or import desktop JSON directly into web state & LocalStorage | ✅ Complete | N/A (Desktop Native) | Verified in Command Deck & Modals |
 
 ---
 
@@ -71,11 +74,29 @@ All 9 desktop sections are visually audited on Windows via Win32 print window ca
    - Enforced 100% English text with Zero Kanji / Japanese characters (verified via automated unicode check).
    - Zero UI text clipping ensured across all utility modals with responsive packing.
 
-3. **Standalone Production Binary**:
-   - `VERSION_2_WORKPLACE\dist\ScholasticPulse_V2.exe` (61.5 MB, compiled October 17, 2026, 14:45:05).
-   - Synced to root `dist\ScholasticPulse_V2.exe`.
+3. **Bedtime Overrun to Morning Priming Rollover Engine**:
+   - Integrated into both `study_balancer.py` (`cascade_adjust_schedule`) and `index.html` (`cascadeScheduleWeb`).
+   - When 10:00 PM Bedtime Protection truncates an evening homework slab due to timer extensions (+5m, +10m, +15m):
+     - Truncated duration and subject are calculated.
+     - Automatically prepends a rollover slot into next day's Morning Priming Window (6:00 AM – 7:30 AM).
+     - Styled with Amber Parchment Badge: `"🌅 Morning Recall Priority (Overrun Rollover)"`.
+     - Logged in `time_extension_audit.json` under `bedtime_rollovers`.
 
-4. **GitHub Public Repository Sync (Mandatory Post-Change Policy)**:
+4. **Dynamic Multi-Term Portions Tracker**:
+   - Portions tracker in Tab 3 supports dynamic academic milestone switching (Term-I, Term-II / Half-Yearly, Periodic Test-2, Annual Exam).
+   - Multi-term schema support with backward-compatible auto-migration from flat legacy format.
+   - Sleek dark pill dropdown in Command Deck updates subject cards and stats without losing checklist progress.
+
+5. **Web App Parity & 1-Click JSON Sync Bridge**:
+   - Added `Sync Hub` button in Command Deck Actions Zone of `index.html`.
+   - Option C HUD Split Modal providing 1-click Export to Desktop JSON bundle/individual stores and 1-click Import from Desktop JSON files with real-time UI/LocalStorage rehydration.
+
+6. **Standalone Production Binary**:
+   - `VERSION_2_WORKPLACE\dist\ScholasticPulse_V2.exe` (61.5 MB, re-compiled October 17, 2026).
+   - Synced to root `dist\ScholasticPulse_V2.exe`.
+   - Desktop shortcut verified pointing to `VERSION_2_WORKPLACE`.
+
+7. **GitHub Public Repository Sync (Mandatory Post-Change Policy)**:
    - **Repository URL**: `https://github.com/prakashjune8/tharun_studyhour`
    - **Active Branch**: `main`
    - **Policy**: Every subsequent change made to code, documentation, or assets is committed and pushed directly to `origin/main`.

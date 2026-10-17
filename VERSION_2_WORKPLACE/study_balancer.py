@@ -2314,7 +2314,7 @@ class TharunScheduleBalancer:
     """
 
     @classmethod
-    def generate_schedule(cls, subjects, diary_items, current_level=2, selected_language="English (Language)", exam_mode=False, exam_subject="Mathematics", start_time_str="19:00", pre_exam_mode=False, pre_exam_day=1, pre_exam_duration_days=21):
+    def generate_schedule(cls, subjects, diary_items, current_level=2, selected_language="English (Language)", exam_mode=False, exam_subject="Mathematics", start_time_str="19:00", pre_exam_mode=False, pre_exam_day=1, pre_exam_duration_days=21, bedtime_rollovers=None):
         lvl = EXECUTION_LEVELS.get(current_level, EXECUTION_LEVELS[2])
 
         if pre_exam_mode:
@@ -2834,6 +2834,27 @@ class TharunScheduleBalancer:
             "guidance": "Splash cool water on face, drink 1-2 glasses of warm water, gentle stretching. Zero devices."
         })
         m_cur = b_end
+
+        # Bedtime Overrun to Morning Priming Rollover Engine
+        if bedtime_rollovers:
+            for ro in bedtime_rollovers:
+                ro_dur = ro.get("truncated_mins", 15)
+                ro_end = m_cur + timedelta(minutes=ro_dur)
+                ro_sub = ro.get("subject", "Core Subject")
+                ro_title = ro.get("title", "Evening Homework Review")
+                morning_slots.append({
+                    "phase": "Morning Priming Window",
+                    "start": m_cur.strftime("%I:%M %p"),
+                    "end": ro_end.strftime("%I:%M %p"),
+                    "duration_mins": ro_dur,
+                    "title": f"Morning Recall Priority: {ro_sub} ({ro_title})",
+                    "subject": ro_sub,
+                    "type": "rollover",
+                    "is_rollover": True,
+                    "badge": "🌅 Morning Recall Priority (Overrun Rollover)",
+                    "guidance": f"Overrun rollover from 10:00 PM Bedtime Protection: Complete remaining {ro_dur}m high-focus review for {ro_sub} before school today!"
+                })
+                m_cur = ro_end
 
         core_morn_mins = 25 if current_level == 1 else 35
         cm_end = m_cur + timedelta(minutes=core_morn_mins)
@@ -3444,7 +3465,46 @@ class DesktopApp:
         if os.path.exists(PORTIONS_FILE):
             try:
                 with open(PORTIONS_FILE, "r", encoding="utf-8") as f:
-                    self.portions_data = json.load(f)
+                    raw_data = json.load(f)
+                if "terms" in raw_data:
+                    self.portions_data = raw_data
+                else:
+                    # Auto-migration of legacy portions file into multi-term structure
+                    legacy_subs = raw_data.get("subjects", [])
+                    exam_title = raw_data.get("examination", "Portions for Term-I Examination")
+                    active_t = "Term-II" if "Term-II" in exam_title else "Term-I"
+                    self.portions_data = {
+                        "school_name": raw_data.get("school_name", "Senthil Public School"),
+                        "stream": raw_data.get("stream", "Montessori & CBSE Stream"),
+                        "affiliation": raw_data.get("affiliation", "Affiliated to CBSE, New Delhi, Affiliation No.: 1930752"),
+                        "location": raw_data.get("location", "Adhiyamankottai, Dharmapuri - 636807"),
+                        "student_name": raw_data.get("student_name", "Tharun"),
+                        "academic_year": raw_data.get("academic_year", "2026-2027"),
+                        "active_term": active_t,
+                        "terms": {
+                            "Term-I": {
+                                "title": "Portions for Term-I Examination (Completed)",
+                                "portions": legacy_subs
+                            },
+                            "Term-II": {
+                                "title": "Portions for Term-II Examination (Upcoming)",
+                                "portions": legacy_subs
+                            },
+                            "Periodic Test-2": {
+                                "title": "Portions for Periodic Test-2 (Mid-Term)",
+                                "portions": legacy_subs
+                            },
+                            "Annual Exam": {
+                                "title": "Portions for Annual Final Examination",
+                                "portions": legacy_subs
+                            }
+                        }
+                    }
+                    try:
+                        with open(PORTIONS_FILE, "w", encoding="utf-8") as fw:
+                            json.dump(self.portions_data, fw, indent=2, ensure_ascii=False)
+                    except Exception:
+                        pass
             except Exception as e:
                 print(f"Error loading {PORTIONS_FILE}: {e}")
         if os.path.exists(PORTION_PROGRESS_FILE):
@@ -8132,24 +8192,30 @@ class DesktopApp:
             bg=plaque_bg
         ).pack(anchor="w")
 
-        # 2. Right Mini Parchment Scroll Badge
+        # 2. Right Mini Parchment Scroll Badge (with Amber Parchment Rollover Styling)
+        is_rollover_slot = slot.get("is_rollover", False) or "rollover" in slot.get("badge", "").lower()
+        badge_bg = "#fef3c7" if is_rollover_slot else "#f5e4c3"
+        badge_border = "#d97706" if is_rollover_slot else "#991b1b"
+        side_strip_bg = "#b45309" if is_rollover_slot else "#881b1b"
+        badge_fg = "#78350f" if is_rollover_slot else "#1f1206"
+
         scroll_badge = tk.Frame(
             card,
-            bg="#f5e4c3",
+            bg=badge_bg,
             bd=1,
             relief=tk.SOLID,
-            highlightbackground="#991b1b",
+            highlightbackground=badge_border,
             highlightthickness=1
         )
         scroll_badge.pack(side=tk.RIGHT, padx=(8, 0))
-        tk.Frame(scroll_badge, bg="#881b1b", width=4).pack(side=tk.LEFT, fill=tk.Y)
-        tk.Frame(scroll_badge, bg="#881b1b", width=4).pack(side=tk.RIGHT, fill=tk.Y)
+        tk.Frame(scroll_badge, bg=side_strip_bg, width=4).pack(side=tk.LEFT, fill=tk.Y)
+        tk.Frame(scroll_badge, bg=side_strip_bg, width=4).pack(side=tk.RIGHT, fill=tk.Y)
         tk.Label(
             scroll_badge,
             text=slot["badge"],
             font=("Segoe UI", 8, "bold"),
-            fg="#1f1206",
-            bg="#f5e4c3",
+            fg=badge_fg,
+            bg=badge_bg,
             padx=7,
             pady=2
         ).pack(side=tk.LEFT)
@@ -8973,6 +9039,8 @@ class DesktopApp:
         compressed = []
         extinguished = []
 
+        rollovers_created = []
+
         for i in range(active_index + 1, len(self.all_schedule_slots)):
             slot = self.all_schedule_slots[i]
             mins_left = int((cutoff_dt - cur_time).total_seconds() / 60)
@@ -8990,6 +9058,12 @@ class DesktopApp:
                     slot["status"] = "deferred"
                     slot["badge"] = "⚠️ Deferred to Morning"
                     extinguished.append(slot["title"])
+                    if slot.get("type") == "study":
+                        rollovers_created.append({
+                            "subject": slot.get("subject", "Homework"),
+                            "title": slot.get("title", "Homework"),
+                            "truncated_mins": slot.get("duration_mins", 15)
+                        })
                 continue
 
             if slot["type"] == "break" and rem_deficit > 0:
@@ -9005,11 +9079,62 @@ class DesktopApp:
                     slot["duration_mins"] -= cut
                     rem_deficit -= cut
                     compressed.append({"slot": slot["title"], "delta": -cut, "new_mins": slot["duration_mins"]})
+                    rollovers_created.append({
+                        "subject": slot.get("subject", "Homework"),
+                        "title": slot.get("title", "Homework"),
+                        "truncated_mins": cut
+                    })
 
             slot["start"] = cur_time.strftime("%I:%M %p")
             end_t = cur_time + timedelta(minutes=slot["duration_mins"])
             slot["end"] = end_t.strftime("%I:%M %p")
             cur_time = end_t
+
+        # Prepend rollovers into next morning priming window and log in audit data
+        if rollovers_created:
+            now_dt = datetime.now()
+            for ro in rollovers_created:
+                ro_id = f"ROLLOVER_{now_dt.strftime('%Y%m%d_%H%M%S')}"
+                ro_entry = {
+                    "id": ro_id,
+                    "timestamp": now_dt.isoformat(),
+                    "date": now_dt.strftime("%Y-%m-%d"),
+                    "subject": ro["subject"],
+                    "title": ro["title"],
+                    "truncated_mins": ro["truncated_mins"],
+                    "reason": f"10:00 PM Bedtime Protection truncation (+{extra_mins}m extension cascade)",
+                    "badge": "🌅 Morning Recall Priority (Overrun Rollover)",
+                    "status": "pending_morning_execution"
+                }
+                self.audit_data.setdefault("bedtime_rollovers", []).insert(0, ro_entry)
+
+                # Prepend to morning schedule
+                m_start_dt = datetime.strptime("06:08 AM", "%I:%M %p")
+                m_end_dt = m_start_dt + timedelta(minutes=ro["truncated_mins"])
+                ro_slot = {
+                    "phase": "Morning Priming Window",
+                    "start": m_start_dt.strftime("%I:%M %p"),
+                    "end": m_end_dt.strftime("%I:%M %p"),
+                    "duration_mins": ro["truncated_mins"],
+                    "title": f"Morning Recall Priority: {ro['subject']} ({ro['title']})",
+                    "subject": ro["subject"],
+                    "type": "rollover",
+                    "is_rollover": True,
+                    "badge": "🌅 Morning Recall Priority (Overrun Rollover)",
+                    "guidance": f"Overrun rollover from 10:00 PM Bedtime Protection: Complete remaining {ro['truncated_mins']}m high-focus review for {ro['subject']} before school today!"
+                }
+                self.morning_schedule.insert(1, ro_slot) # immediately after wakeup
+
+            self.save_audit_data()
+
+            # Re-index start and end times for morning schedule
+            m_cur = datetime.strptime("06:00 AM", "%I:%M %p")
+            for m_s in self.morning_schedule:
+                m_s["start"] = m_cur.strftime("%I:%M %p")
+                m_cur += timedelta(minutes=m_s["duration_mins"])
+                m_s["end"] = m_cur.strftime("%I:%M %p")
+
+            self.all_schedule_slots = self.evening_schedule + self.morning_schedule
 
         self.render_timetable_cards()
         return compressed, extinguished
@@ -9037,7 +9162,10 @@ class DesktopApp:
         title_row = tk.Frame(header_card, bg="#0e172a")
         title_row.pack(fill=tk.X)
 
-        exam_title_str = self.portions_data.get("examination", "Portions for Term-I Examination - Class VIII (2026 - 27) CSK") if self.portions_data else "Portions for Term-I Examination - Class VIII (2026 - 27) CSK"
+        active_t = self.portions_data.get("active_term", "Term-II") if self.portions_data else "Term-II"
+        terms_map = self.portions_data.get("terms", {}) if self.portions_data else {}
+        term_info = terms_map.get(active_t, {})
+        exam_title_str = term_info.get("title", self.portions_data.get("examination", f"Portions for {active_t} - Class VIII")) if self.portions_data else f"Portions for {active_t} - Class VIII"
         school_str = self.portions_data.get("school_name", "Senthil Public School") if self.portions_data else "Senthil Public School"
         stream_str = self.portions_data.get("stream", "Montessori & CBSE Stream, Dharmapuri") if self.portions_data else "Montessori & CBSE Stream, Dharmapuri"
 
@@ -9049,6 +9177,17 @@ class DesktopApp:
             bg="#0e172a"
         )
         self.lbl_portion_header_title.pack(side=tk.LEFT)
+
+        # Dynamic Term Selector Pill
+        term_pill = tk.Frame(title_row, bg="#131c2e", bd=0, highlightthickness=1, highlightbackground="#38bdf8", padx=6, pady=2)
+        term_pill.pack(side=tk.LEFT, padx=(12, 0))
+
+        tk.Label(term_pill, text="🎯 Term:", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#131c2e").pack(side=tk.LEFT, padx=(0, 4))
+        available_terms = list(terms_map.keys()) if terms_map else ["Term-I", "Term-II", "Periodic Test-2", "Annual Exam"]
+        self.cmb_term_selector = ttk.Combobox(term_pill, values=available_terms, state="readonly", width=14, font=("Segoe UI", 8, "bold"))
+        self.cmb_term_selector.set(active_t)
+        self.cmb_term_selector.pack(side=tk.LEFT)
+        self.cmb_term_selector.bind("<<ComboboxSelected>>", self.on_term_selected)
 
         self.lbl_portion_header_school = tk.Label(
             title_row,
@@ -9228,6 +9367,23 @@ class DesktopApp:
 
         self.render_portion_cards()
 
+    def on_term_selected(self, event=None):
+        new_term = self.cmb_term_selector.get()
+        if self.portions_data:
+            self.portions_data["active_term"] = new_term
+            terms_map = self.portions_data.get("terms", {})
+            term_info = terms_map.get(new_term, {})
+            if "title" in term_info:
+                self.portions_data["examination"] = term_info["title"]
+            try:
+                with open(PORTIONS_FILE, "w", encoding="utf-8") as f:
+                    json.dump(self.portions_data, f, indent=2, ensure_ascii=False)
+            except Exception:
+                pass
+            self.lbl_portion_header_title.config(text=f"📜 {self.portions_data.get('examination', new_term).upper()}")
+            self.render_portion_cards()
+            self.update_portion_progress_bar()
+
     def set_portion_filter(self, sub_name):
         self.portion_filter = sub_name
         for name, btn in self.filter_buttons.items():
@@ -9248,8 +9404,15 @@ class DesktopApp:
         self.render_portion_cards()
 
     def get_portions_subject_list(self):
-        if self.portions_data and "subjects" in self.portions_data:
-            return self.portions_data["subjects"]
+        if self.portions_data:
+            if "terms" in self.portions_data:
+                active_term = self.portions_data.get("active_term", "Term-II")
+                term_obj = self.portions_data.get("terms", {}).get(active_term, {})
+                portions = term_obj.get("portions", term_obj.get("subjects", []))
+                if portions:
+                    return portions
+            if "subjects" in self.portions_data:
+                return self.portions_data["subjects"]
         # Built-in fallback matching official Senthil Public School Class VIII syllabus
         return [
             {
@@ -12242,12 +12405,14 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
 
     def handle_generate_schedule(self, silent=False):
         active_items = self.get_active_diary_items()
+        active_rollovers = self.audit_data.get("bedtime_rollovers", []) if hasattr(self, "audit_data") and self.audit_data else []
         self.evening_schedule, self.morning_schedule = TharunScheduleBalancer.generate_schedule(
             self.subjects, active_items, self.current_level, self.selected_language,
             exam_mode=self.is_exam_mode, exam_subject=self.selected_exam_subject,
             start_time_str=self.schedule_start_time,
             pre_exam_mode=self.is_pre_exam_mode, pre_exam_day=self.pre_exam_day,
-            pre_exam_duration_days=self.pre_exam_duration_days
+            pre_exam_duration_days=self.pre_exam_duration_days,
+            bedtime_rollovers=active_rollovers
         )
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
         self.render_timetable_cards()

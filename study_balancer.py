@@ -17,6 +17,7 @@ import random
 import subprocess
 import urllib.request
 import threading
+import calendar
 from datetime import datetime, timedelta
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, simpledialog
@@ -46,11 +47,47 @@ if sys.platform == "win32":
 else:
     winsound = None
 
-DATA_FILE = "study_routine_data.json"
-DIARY_FILE = "tharun_diary_format.json"
-AUDIT_FILE = "time_extension_audit.json"
-PORTIONS_FILE = "tharun_exam_portions.json"
-PORTION_PROGRESS_FILE = "exam_portion_progress.json"
+def get_persistent_data_path(filename):
+    """
+    Precision Dual-Path Resolution for Mutable JSON Databases:
+    - Never resolves against sys._MEIPASS (temporary, ephemeral PyInstaller extraction directory).
+    - When running as a PyInstaller frozen binary, strictly resolves to the persistent executable directory.
+    - When running as a Python script, strictly resolves to the script's directory.
+    - If running frozen and file does not exist yet, copies bundled template from sys._MEIPASS if available,
+      ensuring mutable operations strictly occur in the persistent executable directory.
+    - If running as a script and file does not exist in script dir, checks current working directory.
+    """
+    if getattr(sys, 'frozen', False):
+        base_dir = os.path.dirname(os.path.abspath(sys.executable))
+        target_path = os.path.join(base_dir, filename)
+        if not os.path.exists(target_path):
+            meipass_path = getattr(sys, '_MEIPASS', None)
+            if meipass_path:
+                seed_file = os.path.join(meipass_path, filename)
+                if os.path.exists(seed_file):
+                    try:
+                        import shutil
+                        shutil.copy2(seed_file, target_path)
+                    except Exception:
+                        pass
+        return target_path
+    else:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        target_path = os.path.join(base_dir, filename)
+        if os.path.exists(target_path):
+            return target_path
+        cwd_path = os.path.join(os.getcwd(), filename)
+        if os.path.exists(cwd_path):
+            return cwd_path
+        return target_path
+
+
+DATA_FILE = get_persistent_data_path("study_routine_data.json")
+DIARY_FILE = get_persistent_data_path("tharun_diary_format.json")
+AUDIT_FILE = get_persistent_data_path("time_extension_audit.json")
+PORTIONS_FILE = get_persistent_data_path("tharun_exam_portions.json")
+PORTION_PROGRESS_FILE = get_persistent_data_path("exam_portion_progress.json")
+ERROR_BANK_FILE = get_persistent_data_path("student_error_bank.json")
 
 DEFAULT_SUBJECTS = [
     {
@@ -729,7 +766,8 @@ NARUTO_METADATA = {
         "display_name": "🍥 Naruto: Sage Mode & Kurama",
         "character": "Naruto Uzumaki",
         "title": "Seventh Hokage • Master Sage",
-        "quote": "“I never go back on my word! That's my nindo, my ninja way! Dattebayo!”",
+        "quote": "I never go back on my word! That's my nindo, my ninja way! Dattebayo!",
+        "stylish_letter": "",
         "icon": "🍥",
         "jutsu": "🔥 Sage Art: Massive Rasengan & Kurama Link",
         "rank": "Hokage"
@@ -738,7 +776,8 @@ NARUTO_METADATA = {
         "display_name": "⚡ Sasuke: Chidori & Sharingan",
         "character": "Sasuke Uchiha",
         "title": "Shadow Hokage • Uchiha Prodigy",
-        "quote": "“Concentrate chakra like the Chidori: 100% piercing focus on a single target!”",
+        "quote": "Concentrate chakra like the Chidori: 100% piercing focus on a single target!",
+        "stylish_letter": "",
         "icon": "⚡",
         "jutsu": "⚡ Chidori Lightning Blade & Susanoo Flame",
         "rank": "Shadow Shinobi"
@@ -747,7 +786,8 @@ NARUTO_METADATA = {
         "display_name": "🌀 Kakashi: Copy Ninja & Anbu",
         "character": "Kakashi Hatake",
         "title": "Sixth Hokage • Team 7 Captain",
-        "quote": "“Those who break rules are scum, but those who abandon their routine are worse than scum!”",
+        "quote": "Those who break rules are scum, but those who abandon their routine are worse than scum!",
+        "stylish_letter": "",
         "icon": "🌀",
         "jutsu": "⚡ Raikiri & Thousand Years of Training",
         "rank": "Sixth Hokage"
@@ -756,7 +796,8 @@ NARUTO_METADATA = {
         "display_name": "⚡ Minato: The Yellow Flash",
         "character": "Minato Namikaze",
         "title": "Fourth Hokage • The Yellow Flash",
-        "quote": "“Speed and unwavering precision! Clear your homework in a flash with zero delay!”",
+        "quote": "Speed and unwavering precision! Clear your homework in a flash with zero delay!",
+        "stylish_letter": "",
         "icon": "⚡",
         "jutsu": "🌪️ Flying Thunder God & Spiral Sphere",
         "rank": "Fourth Hokage"
@@ -765,7 +806,8 @@ NARUTO_METADATA = {
         "display_name": "🌙 Itachi: Akatsuki & Tsukuyomi",
         "character": "Itachi Uchiha",
         "title": "Uchiha Genius • Leaf Guardian",
-        "quote": "“Self-mastery is acknowledging your limits and expanding them calmly every single day.”",
+        "quote": "Self-mastery is acknowledging your limits and expanding them calmly every single day.",
+        "stylish_letter": "",
         "icon": "🌙",
         "jutsu": "👁️ Tsukuyomi & Crow Mirage Illusion",
         "rank": "S-Rank Master"
@@ -774,7 +816,8 @@ NARUTO_METADATA = {
         "display_name": "🍃 Konoha: Will of Fire",
         "character": "Hidden Leaf Shinobi",
         "title": "Konohagakure • Will of Fire",
-        "quote": "“Where tree leaves dance, one shall find flame. The fire's shadow illuminates the village!”",
+        "quote": "Where tree leaves dance, one shall find flame. The fire's shadow illuminates the village!",
+        "stylish_letter": "",
         "icon": "🍃",
         "jutsu": "🍃 Leaf Hurricane & Will of Fire",
         "rank": "Leaf Champion"
@@ -783,7 +826,8 @@ NARUTO_METADATA = {
         "display_name": "🌙 Classic Dark Slate",
         "character": "Classic Dark",
         "title": "Standard Slate Interface",
-        "quote": "“Quiet focus and clear concentration.”",
+        "quote": "Quiet focus and clear concentration.",
+        "stylish_letter": "",
         "icon": "🌙",
         "jutsu": "Focused Mind",
         "rank": "Scholar"
@@ -792,7 +836,8 @@ NARUTO_METADATA = {
         "display_name": "☀️ Classic Light Day",
         "character": "Classic Light",
         "title": "Daylight Paper Interface",
-        "quote": "“Clear vision and bright morning energy.”",
+        "quote": "Clear vision and bright morning energy.",
+        "stylish_letter": "",
         "icon": "☀️",
         "jutsu": "Daylight Study",
         "rank": "Scholar"
@@ -2094,8 +2139,8 @@ COLOR_PALETTES = {
         "input_fg": "#f8fafc",
         "highlight": "#431407",
         "timer_bg": "#040711",
-        "banner_bg": "#2a1205",
-        "banner_fg": "#ffedd5"
+        "banner_bg": "#151c2e",
+        "banner_fg": "#f8fafc"
     },
     "sasuke_chidori": {
         "bg": "#070b19",
@@ -2114,8 +2159,8 @@ COLOR_PALETTES = {
         "input_fg": "#f8fafc",
         "highlight": "#1e1b4b",
         "timer_bg": "#030712",
-        "banner_bg": "#101426",
-        "banner_fg": "#e0e7ff"
+        "banner_bg": "#0f182e",
+        "banner_fg": "#f8fafc"
     },
     "kakashi_hatake": {
         "bg": "#0b1320",
@@ -2134,8 +2179,8 @@ COLOR_PALETTES = {
         "input_fg": "#f8fafc",
         "highlight": "#164e63",
         "timer_bg": "#040810",
-        "banner_bg": "#0f1c2b",
-        "banner_fg": "#e2e8f0"
+        "banner_bg": "#142236",
+        "banner_fg": "#f8fafc"
     },
     "minato_flash": {
         "bg": "#121008",
@@ -2154,8 +2199,8 @@ COLOR_PALETTES = {
         "input_fg": "#fefce8",
         "highlight": "#451a03",
         "timer_bg": "#080602",
-        "banner_bg": "#2e1b05",
-        "banner_fg": "#fef9c3"
+        "banner_bg": "#221c0e",
+        "banner_fg": "#fefce8"
     },
     "itachi_uchiha": {
         "bg": "#09090b",
@@ -2174,8 +2219,8 @@ COLOR_PALETTES = {
         "input_fg": "#f4f4f5",
         "highlight": "#450a0a",
         "timer_bg": "#000000",
-        "banner_bg": "#200808",
-        "banner_fg": "#fee2e2"
+        "banner_bg": "#18181b",
+        "banner_fg": "#f4f4f5"
     },
     "leaf_village": {
         "bg": "#041c14",
@@ -2194,8 +2239,8 @@ COLOR_PALETTES = {
         "input_fg": "#ecfdf5",
         "highlight": "#064e3b",
         "timer_bg": "#02100b",
-        "banner_bg": "#042a1d",
-        "banner_fg": "#d1fae5"
+        "banner_bg": "#0b2e22",
+        "banner_fg": "#ecfdf5"
     },
     "dark": {
         "bg": "#0f172a",
@@ -2215,7 +2260,7 @@ COLOR_PALETTES = {
         "highlight": "#1e3a8a",
         "timer_bg": "#020617",
         "banner_bg": "#1e293b",
-        "banner_fg": "#cbd5e1"
+        "banner_fg": "#f8fafc"
     },
     "light": {
         "bg": "#f1f5f9",
@@ -2234,10 +2279,27 @@ COLOR_PALETTES = {
         "input_fg": "#0f172a",
         "highlight": "#dbeafe",
         "timer_bg": "#e2e8f0",
-        "banner_bg": "#e2e8f0",
-        "banner_fg": "#334155"
+        "banner_bg": "#ffffff",
+        "banner_fg": "#0f172a"
     }
 }
+
+
+def get_contrast_fg(hex_color):
+    """Calculates perceived luminance (ITU-R BT.601) and returns high-contrast foreground (#0a0e17 or #ffffff)."""
+    if not hex_color or not isinstance(hex_color, str) or not hex_color.startswith("#"):
+        return "#ffffff"
+    try:
+        hex_val = hex_color.lstrip("#")
+        if len(hex_val) == 3:
+            hex_val = "".join([c * 2 for c in hex_val])
+        r = int(hex_val[0:2], 16)
+        g = int(hex_val[2:4], 16)
+        b = int(hex_val[4:6], 16)
+        lum = 0.299 * r + 0.587 * g + 0.114 * b
+        return "#0a0e17" if lum > 130 else "#ffffff"
+    except Exception:
+        return "#ffffff"
 
 
 class TharunScheduleBalancer:
@@ -2252,7 +2314,7 @@ class TharunScheduleBalancer:
     """
 
     @classmethod
-    def generate_schedule(cls, subjects, diary_items, current_level=2, selected_language="English (Language)", exam_mode=False, exam_subject="Mathematics", start_time_str="19:00", pre_exam_mode=False, pre_exam_day=1, pre_exam_duration_days=21):
+    def generate_schedule(cls, subjects, diary_items, current_level=2, selected_language="English (Language)", exam_mode=False, exam_subject="Mathematics", start_time_str="19:00", pre_exam_mode=False, pre_exam_day=1, pre_exam_duration_days=21, bedtime_rollovers=None):
         lvl = EXECUTION_LEVELS.get(current_level, EXECUTION_LEVELS[2])
 
         if pre_exam_mode:
@@ -2772,6 +2834,27 @@ class TharunScheduleBalancer:
             "guidance": "Splash cool water on face, drink 1-2 glasses of warm water, gentle stretching. Zero devices."
         })
         m_cur = b_end
+
+        # Bedtime Overrun to Morning Priming Rollover Engine
+        if bedtime_rollovers:
+            for ro in bedtime_rollovers:
+                ro_dur = ro.get("truncated_mins", 15)
+                ro_end = m_cur + timedelta(minutes=ro_dur)
+                ro_sub = ro.get("subject", "Core Subject")
+                ro_title = ro.get("title", "Evening Homework Review")
+                morning_slots.append({
+                    "phase": "Morning Priming Window",
+                    "start": m_cur.strftime("%I:%M %p"),
+                    "end": ro_end.strftime("%I:%M %p"),
+                    "duration_mins": ro_dur,
+                    "title": f"Morning Recall Priority: {ro_sub} ({ro_title})",
+                    "subject": ro_sub,
+                    "type": "rollover",
+                    "is_rollover": True,
+                    "badge": "🌅 Morning Recall Priority (Overrun Rollover)",
+                    "guidance": f"Overrun rollover from 10:00 PM Bedtime Protection: Complete remaining {ro_dur}m high-focus review for {ro_sub} before school today!"
+                })
+                m_cur = ro_end
 
         core_morn_mins = 25 if current_level == 1 else 35
         cm_end = m_cur + timedelta(minutes=core_morn_mins)
@@ -3382,7 +3465,46 @@ class DesktopApp:
         if os.path.exists(PORTIONS_FILE):
             try:
                 with open(PORTIONS_FILE, "r", encoding="utf-8") as f:
-                    self.portions_data = json.load(f)
+                    raw_data = json.load(f)
+                if "terms" in raw_data:
+                    self.portions_data = raw_data
+                else:
+                    # Auto-migration of legacy portions file into multi-term structure
+                    legacy_subs = raw_data.get("subjects", [])
+                    exam_title = raw_data.get("examination", "Portions for Term-I Examination")
+                    active_t = "Term-II" if "Term-II" in exam_title else "Term-I"
+                    self.portions_data = {
+                        "school_name": raw_data.get("school_name", "Senthil Public School"),
+                        "stream": raw_data.get("stream", "Montessori & CBSE Stream"),
+                        "affiliation": raw_data.get("affiliation", "Affiliated to CBSE, New Delhi, Affiliation No.: 1930752"),
+                        "location": raw_data.get("location", "Adhiyamankottai, Dharmapuri - 636807"),
+                        "student_name": raw_data.get("student_name", "Tharun"),
+                        "academic_year": raw_data.get("academic_year", "2026-2027"),
+                        "active_term": active_t,
+                        "terms": {
+                            "Term-I": {
+                                "title": "Portions for Term-I Examination (Completed)",
+                                "portions": legacy_subs
+                            },
+                            "Term-II": {
+                                "title": "Portions for Term-II Examination (Upcoming)",
+                                "portions": legacy_subs
+                            },
+                            "Periodic Test-2": {
+                                "title": "Portions for Periodic Test-2 (Mid-Term)",
+                                "portions": legacy_subs
+                            },
+                            "Annual Exam": {
+                                "title": "Portions for Annual Final Examination",
+                                "portions": legacy_subs
+                            }
+                        }
+                    }
+                    try:
+                        with open(PORTIONS_FILE, "w", encoding="utf-8") as fw:
+                            json.dump(self.portions_data, fw, indent=2, ensure_ascii=False)
+                    except Exception:
+                        pass
             except Exception as e:
                 print(f"Error loading {PORTIONS_FILE}: {e}")
         if os.path.exists(PORTION_PROGRESS_FILE):
@@ -3660,173 +3782,441 @@ class DesktopApp:
             return self.diary_data["diary_entries"][-1].get("items", [])
         return []
 
+    def _render_header_streak_dots(self):
+        if not hasattr(self, "streak_dots_frame") or not self.streak_dots_frame.winfo_exists():
+            return
+        for w in self.streak_dots_frame.winfo_children():
+            w.destroy()
+        lit = max(0, min(7, int(getattr(self, "habit_streak", 0))))
+        for i in range(7):
+            is_lit = i < lit
+            dot = tk.Label(
+                self.streak_dots_frame,
+                text="●" if is_lit else "○",
+                font=("Segoe UI", 8, "bold"),
+                bg="#131c2e",
+                fg="#f97316" if is_lit else "#475569",
+                padx=1,
+                pady=0
+            )
+            dot.pack(side=tk.LEFT)
+
     def setup_ui(self):
         self.root.configure(bg=self.colors["bg"])
 
-        # Header bar
-        self.header_frame = tk.Frame(self.root, bg=self.colors["card_bg"], height=70)
-        self.header_frame.pack(fill=tk.X, side=tk.TOP, padx=0, pady=0)
-        self.header_frame.pack_propagate(False)
+        # ==============================================================
+        # SECTION 1: TOP HEADER BAR (OPTION C: SAGE MODE MODERN)
+        # ==============================================================
+        self.header_outer = tk.Frame(
+            self.root,
+            bg="#0b111e",
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#f59e0b",
+            highlightthickness=2
+        )
+        self.header_outer.pack(fill=tk.X, side=tk.TOP, padx=14, pady=(8, 6))
 
-        title_box = tk.Frame(self.header_frame, bg=self.colors["card_bg"])
-        title_box.pack(side=tk.LEFT, padx=16, pady=6)
+        self.header_frame = tk.Frame(self.header_outer, bg="#0b111e", padx=14, pady=8)
+        self.header_frame.pack(fill=tk.X, side=tk.TOP)
+
+        # Left Brand Emblem + Title Stack
+        brand_left = tk.Frame(self.header_frame, bg="#0b111e")
+        brand_left.pack(side=tk.LEFT)
+        self.header_brand_left = brand_left
+
+        self.lbl_header_emblem = tk.Label(
+            brand_left,
+            text="🍥",
+            font=("Segoe UI", 16, "bold"),
+            bg="#1a120b",
+            fg="#fb923c",
+            width=2,
+            padx=4,
+            pady=2,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#f97316",
+            highlightthickness=2
+        )
+        self.lbl_header_emblem.pack(side=tk.LEFT, padx=(0, 12))
+
+        title_box = tk.Frame(brand_left, bg="#0b111e")
+        title_box.pack(side=tk.LEFT)
+        self.title_box = title_box
+
+        title_row = tk.Frame(title_box, bg="#0b111e")
+        title_row.pack(anchor="w")
+        self.title_row = title_row
+
+        self.lbl_title_prefix = tk.Label(
+            title_row,
+            text="THARUN'S ",
+            font=("Segoe UI", 13, "bold"),
+            bg="#0b111e",
+            fg="#ffffff"
+        )
+        self.lbl_title_prefix.pack(side=tk.LEFT)
 
         self.lbl_title = tk.Label(
-            title_box,
-            text="🍥 Tharun's Shinobi Habit & Time Balancer (Class 8)",
+            title_row,
+            text="SHINOBI HABIT BALANCER",
             font=("Segoe UI", 13, "bold"),
-            bg=self.colors["card_bg"],
-            fg=self.colors["primary"]
+            bg="#0b111e",
+            fg="#fbbf24"
         )
-        self.lbl_title.pack(anchor="w")
+        self.lbl_title.pack(side=tk.LEFT)
+
+        self.lbl_class8_pill = tk.Label(
+            title_row,
+            text="CLASS 8",
+            font=("Segoe UI", 8, "bold"),
+            bg="#0c2d48",
+            fg="#38bdf8",
+            padx=8,
+            pady=1,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#0284c7",
+            highlightthickness=1
+        )
+        self.lbl_class8_pill.pack(side=tk.LEFT, padx=(8, 0))
 
         self.lbl_subtitle = tk.Label(
             title_box,
-            text="Senthil Public School Diary Importer (Core Efficiency Slabs) • Daily Maths Muscle • Diagram & Language Clinic",
-            font=("Segoe UI", 8),
-            bg=self.colors["card_bg"],
-            fg=self.colors["fg_muted"]
+            text="SENTHIL PUBLIC SCHOOL DIARY IMPORTER • TIMETABLE & FOCUS TIMER",
+            font=("Segoe UI", 8, "bold"),
+            bg="#0b111e",
+            fg="#94a3b8"
         )
-        self.lbl_subtitle.pack(anchor="w")
+        self.lbl_subtitle.pack(anchor="w", pady=(2, 0))
 
-        # Top Controls: Level & Language Selector
-        header_actions = tk.Frame(self.header_frame, bg=self.colors["card_bg"])
-        header_actions.pack(side=tk.RIGHT, padx=16, pady=10)
+        # Right Controls: Month Pill + Will of Fire Streak Box with 7 Progress Dots
+        header_right = tk.Frame(self.header_frame, bg="#0b111e")
+        header_right.pack(side=tk.RIGHT)
+        self.header_right = header_right
+
+        current_month_name = datetime.now().strftime("%B")
+        self.header_heatmap_frame = tk.Frame(header_right, bg="#0b111e")
+        self.header_heatmap_frame.pack(side=tk.RIGHT, padx=(10, 0))
+
+        self.btn_month_dropdown = tk.Button(
+            self.header_heatmap_frame,
+            text=f"📅  {current_month_name}  ▾",
+            font=("Segoe UI", 10, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
+            activebackground="#f97316",
+            activeforeground="#0f172a",
+            padx=14,
+            pady=5,
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            cursor="hand2",
+            command=self.toggle_month_chakra_dropdown
+        )
+        self.btn_month_dropdown.pack(side=tk.LEFT)
+
+        # Streak Box with 7-day progress dots
+        self.streak_box_frame = tk.Frame(
+            header_right,
+            bg="#131c2e",
+            padx=12,
+            pady=4,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#334155",
+            highlightthickness=1
+        )
+        self.streak_box_frame.pack(side=tk.RIGHT)
 
         self.lbl_streak = tk.Label(
-            header_actions,
+            self.streak_box_frame,
             text=f"🔥 Will of Fire: Day {self.habit_streak} Streak",
-            font=("Segoe UI", 8, "bold"),
-            bg=self.colors["highlight"],
-            fg=self.colors["warning"],
-            padx=8,
-            pady=4
+            font=("Segoe UI", 10, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc"
         )
-        self.lbl_streak.pack(side=tk.LEFT, padx=4)
+        self.lbl_streak.pack(anchor="w")
 
-        tk.Label(header_actions, text="Mode:", font=("Segoe UI", 8, "bold"), fg=self.colors["fg"], bg=self.colors["card_bg"]).pack(side=tk.LEFT, padx=(6, 2))
+        self.streak_dots_frame = tk.Frame(self.streak_box_frame, bg="#131c2e")
+        self.streak_dots_frame.pack(anchor="w", pady=(1, 0))
+        self._render_header_streak_dots()
+
+        # Hidden compatibility label so any legacy calls to self.lbl_streak_30d remain safe
+        self.lbl_streak_30d = tk.Label(self.header_heatmap_frame)
+
+        # ==============================================================
+        # ROW 2: SHINOBI MISSION COMMAND DECK (SPLIT INTO TWO HALVES)
+        # First Half (Left): Anime Character Details & Rank
+        # Second Half (Right): Matrix Style 4x3 / 4x4 Menu Command Deck
+        # ==============================================================
+        meta = NARUTO_METADATA.get(self.current_theme, NARUTO_METADATA["naruto_sage"])
+        banner_bg = self.colors.get("banner_bg", self.colors["highlight"])
+
+        self.deck_container = tk.Frame(self.root, bg=self.colors["bg"])
+        self.deck_container.pack(fill=tk.X, padx=14, pady=(0, 6))
+
+        # ---------------- STEP 2: SHINOBI CHARACTER CARD (OPTION A: HERO PORTRAIT) ----------------
+        self.shinobi_banner_frame = tk.Frame(
+            self.deck_container,
+            bg="#0b111e",
+            padx=14,
+            pady=10,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#f97316",
+            highlightthickness=2
+        )
+        self.shinobi_banner_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 6))
+
+        self.lbl_shinobi_icon = tk.Label(
+            self.shinobi_banner_frame,
+            bg="#0b111e",
+            bd=2,
+            relief=tk.SOLID,
+            highlightbackground="#fbbf24",
+            highlightthickness=2
+        )
+        init_banner_img = self.get_naruto_image(self.current_theme, size=(122, 122))
+        if init_banner_img:
+            self.lbl_shinobi_icon.configure(image=init_banner_img)
+            self.lbl_shinobi_icon.image = init_banner_img
+        else:
+            self.lbl_shinobi_icon.configure(text=meta["icon"], font=("Segoe UI", 22))
+        self.lbl_shinobi_icon.pack(side=tk.LEFT, padx=(0, 14))
+
+        self.shinobi_text_box = tk.Frame(self.shinobi_banner_frame, bg="#0b111e")
+        self.shinobi_text_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Eyebrow Label: SHINOBI SCROLL
+        self.lbl_shinobi_eyebrow = tk.Label(
+            self.shinobi_text_box,
+            text="📜 SHINOBI SCROLL",
+            font=("Segoe UI", 8, "bold"),
+            fg="#fb923c",
+            bg="#0b111e",
+            anchor="w",
+            justify=tk.LEFT
+        )
+        self.lbl_shinobi_eyebrow.pack(anchor="w", fill=tk.X, pady=(0, 1))
+
+        # Hero Name & Title in Bold Gold
+        self.lbl_shinobi_title = tk.Label(
+            self.shinobi_text_box,
+            text=f"{meta['character'].upper()} • {meta['title'].upper()}",
+            font=("Segoe UI", 11, "bold"),
+            fg="#facc15",
+            bg="#0b111e",
+            anchor="w",
+            justify=tk.LEFT
+        )
+        self.lbl_shinobi_title.pack(anchor="w", fill=tk.X, pady=(0, 3))
+
+        # Hero Quote in Bold Crisp White
+        clean_quote = meta['quote'].strip('“"\'”')
+        self.lbl_shinobi_quote = tk.Label(
+            self.shinobi_text_box,
+            text=f"❝ {clean_quote} ❞",
+            font=("Segoe UI", 11, "bold"),
+            fg="#ffffff",
+            bg="#0b111e",
+            wraplength=420,
+            anchor="w",
+            justify=tk.LEFT
+        )
+        self.lbl_shinobi_quote.pack(anchor="w", fill=tk.X, pady=(1, 6))
+
+        # Bottom Row: Glowing Jutsu Chip (Left) + Metallic Gold Rank Badge (Right)
+        self.shinobi_bottom_row = tk.Frame(self.shinobi_text_box, bg="#0b111e")
+        self.shinobi_bottom_row.pack(anchor="w", fill=tk.X, pady=(2, 0))
+
+        self.lbl_shinobi_jutsu = tk.Label(
+            self.shinobi_bottom_row,
+            text=f"⚡ Jutsu: {meta['jutsu']}",
+            font=("Segoe UI", 8, "bold"),
+            fg="#fde68a",
+            bg="#17120c",
+            padx=10,
+            pady=3,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#f97316",
+            highlightthickness=1,
+            anchor="w",
+            justify=tk.LEFT
+        )
+        self.lbl_shinobi_jutsu.pack(side=tk.LEFT, anchor="w")
+
+        self.lbl_shinobi_rank_badge = tk.Label(
+            self.shinobi_bottom_row,
+            text=f"RANK: {meta['rank'].upper()}",
+            font=("Segoe UI", 8, "bold"),
+            fg="#1c1104",
+            bg="#eab308",
+            padx=10,
+            pady=3,
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#fef08a",
+            highlightthickness=1
+        )
+        self.lbl_shinobi_rank_badge.pack(side=tk.RIGHT, anchor="e", padx=(6, 0))
+
+        def _on_shinobi_text_resize(event):
+            if event.width > 60 and hasattr(self, "lbl_shinobi_quote"):
+                self.lbl_shinobi_quote.configure(wraplength=max(300, event.width - 14))
+        self.shinobi_text_box.bind("<Configure>", _on_shinobi_text_resize)
+
+        # ---------------- STEP 3: COMMAND GRID DECK (OPTION A: SETTINGS + ACTION DECK) ----------------
+        self.matrix_command_frame = tk.Frame(
+            self.deck_container,
+            bg="#0b111e",
+            padx=10,
+            pady=8,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#f97316",
+            highlightthickness=2
+        )
+        self.matrix_command_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(6, 0))
+
+        for c_idx in range(4):
+            self.matrix_command_frame.grid_columnconfigure(c_idx, weight=1, uniform="cmd_col")
+        for r_idx in range(3):
+            self.matrix_command_frame.grid_rowconfigure(r_idx, weight=1)
+
+        def _make_setting_pill(col_idx, label_text):
+            pill = tk.Frame(
+                self.matrix_command_frame,
+                bg="#131c2e",
+                padx=6,
+                pady=3,
+                bd=1,
+                relief=tk.SOLID,
+                highlightbackground="#334155",
+                highlightthickness=1
+            )
+            pill.grid(row=0, column=col_idx, padx=3, pady=(0, 5), sticky="nsew")
+            lbl = tk.Label(
+                pill,
+                text=label_text,
+                font=("Segoe UI", 7, "bold"),
+                fg="#fb923c",
+                bg="#131c2e",
+                anchor="w"
+            )
+            lbl.pack(anchor="w", fill=tk.X)
+            return pill, lbl
+
+        # Row 0, Col 0: MODE
+        f_mode, _ = _make_setting_pill(0, "🌿 MODE")
         init_mode = f"📅 Pre-Exam Planner ({self.pre_exam_duration_days}d)" if self.is_pre_exam_mode else ("🔥 Exam Sprint" if self.is_exam_mode else "🌿 Balanced Daily")
         self.mode_var = tk.StringVar(value=init_mode)
         self.mode_combo = ttk.Combobox(
-            header_actions,
+            f_mode,
             textvariable=self.mode_var,
             values=["🌿 Balanced Daily", "🔥 Exam Sprint", f"📅 Pre-Exam Planner ({self.pre_exam_duration_days}d)"],
             state="readonly",
-            width=24
+            width=14
         )
-        self.mode_combo.pack(side=tk.LEFT, padx=3)
+        self.mode_combo.pack(fill=tk.X, expand=True, pady=(1, 0))
         self.mode_combo.bind("<<ComboboxSelected>>", self.on_routine_mode_changed)
 
-        self.lbl_exam_sub = tk.Label(header_actions, text="Exam Sub:", font=("Segoe UI", 8, "bold"), fg=self.colors["warning"], bg=self.colors["card_bg"])
-        self.exam_sub_var = tk.StringVar(value=self.selected_exam_subject)
-        self.exam_sub_combo = ttk.Combobox(
-            header_actions,
-            textvariable=self.exam_sub_var,
-            values=["Tamil", "Mathematics", "Physical Science", "Social Science", "Hindi", "Biological Science", "English"],
-            state="readonly",
-            width=16
-        )
-        self.exam_sub_combo.bind("<<ComboboxSelected>>", self.on_exam_subject_changed)
-
-        self.lbl_pre_exam_day = tk.Label(header_actions, text="Prep Day:", font=("Segoe UI", 8, "bold"), fg=self.colors["accent"], bg=self.colors["card_bg"])
-        roadmap_init = self.get_pre_exam_roadmap_for_duration()
-        init_day_idx = max(0, min(len(roadmap_init) - 1, self.pre_exam_day - 1))
-        self.pre_exam_day_var = tk.StringVar(value=f"Day {self.pre_exam_day}/{self.pre_exam_duration_days}: {roadmap_init[init_day_idx]['title']}")
-        self.pre_exam_day_combo = ttk.Combobox(
-            header_actions,
-            textvariable=self.pre_exam_day_var,
-            values=[f"Day {d['day']}/{len(roadmap_init)}: {d['title']}" for d in roadmap_init],
-            state="readonly",
-            width=28
-        )
-        self.pre_exam_day_combo.bind("<<ComboboxSelected>>", self.on_pre_exam_day_changed)
-
-        self.level_label = tk.Label(header_actions, text="Level:", font=("Segoe UI", 8, "bold"), fg=self.colors["fg"], bg=self.colors["card_bg"])
-        self.level_var = tk.StringVar(value=f"Level {self.current_level}")
+        # Row 0, Col 1: LEVEL
+        f_level, self.level_label = _make_setting_pill(1, "⚡ LEVEL")
+        lvl_map = {1: "Level 1: 🔰 Genin", 2: "Level 2: ⚡ Chunin", 3: "Level 3: 🔥 Jonin"}
+        self.level_var = tk.StringVar(value=lvl_map.get(self.current_level, f"Level {self.current_level}"))
         self.level_combo = ttk.Combobox(
-            header_actions,
+            f_level,
             textvariable=self.level_var,
-            values=["Level 1: 🔰 Genin (Sit & Finish)", "Level 2: ⚡ Chunin (Balanced Rhythm)", "Level 3: 🔥 Jonin / Hokage (Peak Mastery)"],
+            values=["Level 1: 🔰 Genin", "Level 2: ⚡ Chunin", "Level 3: 🔥 Jonin"],
             state="readonly",
-            width=22
+            width=14
         )
+        self.level_combo.pack(fill=tk.X, expand=True, pady=(1, 0))
         self.level_combo.bind("<<ComboboxSelected>>", self.on_level_changed)
 
-        if self.is_exam_mode:
-            self.lbl_exam_sub.pack(side=tk.LEFT, padx=(5, 2))
-            self.exam_sub_combo.pack(side=tk.LEFT, padx=3)
-        elif self.is_pre_exam_mode:
-            self.lbl_pre_exam_day.pack(side=tk.LEFT, padx=(5, 2))
-            self.pre_exam_day_combo.pack(side=tk.LEFT, padx=3)
-
-        self.level_label.pack(side=tk.LEFT, padx=(6, 2))
-        self.level_combo.pack(side=tk.LEFT, padx=3)
-
-        self.lang_var = tk.StringVar(value=self.selected_language)
-
-        tk.Label(header_actions, text="Start At:", font=("Segoe UI", 8, "bold"), fg=self.colors["fg"], bg=self.colors["card_bg"]).pack(side=tk.LEFT, padx=(6, 2))
+        # Row 0, Col 2: START
+        f_start, _ = _make_setting_pill(2, "🕒 START")
         start_time_display_map = {
-            "19:00": "7:00 PM (Standard)",
-            "17:00": "5:00 PM (Early Eve)",
-            "10:00": "10:00 AM (Holiday Morn)",
-            "14:00": "2:00 PM (Afternoon)"
+            "19:00": "7:00 PM",
+            "17:00": "5:00 PM",
+            "10:00": "10:00 AM",
+            "14:00": "2:00 PM"
         }
-        init_start_disp = start_time_display_map.get(self.schedule_start_time, f"{self.schedule_start_time} (Custom)")
+        init_start_disp = start_time_display_map.get(self.schedule_start_time, f"{self.schedule_start_time}")
         self.start_time_var = tk.StringVar(value=init_start_disp)
         self.start_time_combo = ttk.Combobox(
-            header_actions,
+            f_start,
             textvariable=self.start_time_var,
-            values=["7:00 PM (Standard)", "5:00 PM (Early Eve)", "10:00 AM (Holiday Morn)", "2:00 PM (Afternoon)", "⚡ Start Now (Clock)"],
+            values=["7:00 PM", "5:00 PM", "10:00 AM", "2:00 PM", "⚡ Start Now"],
             state="readonly",
-            width=17
+            width=12
         )
-        self.start_time_combo.pack(side=tk.LEFT, padx=3)
+        self.start_time_combo.pack(fill=tk.X, expand=True, pady=(1, 0))
         self.start_time_combo.bind("<<ComboboxSelected>>", self.on_start_time_changed)
 
-        tk.Label(header_actions, text="Shinobi:", font=("Segoe UI", 8, "bold"), fg=self.colors["fg"], bg=self.colors["card_bg"]).pack(side=tk.LEFT, padx=(6, 2))
+        # Row 0, Col 3: SHINOBI
+        f_theme, _ = _make_setting_pill(3, "🍥 SHINOBI")
         current_disp = NARUTO_METADATA.get(self.current_theme, {}).get("display_name", "🍥 Naruto: Sage & Kurama")
         self.theme_var = tk.StringVar(value=current_disp)
         self.theme_combo = ttk.Combobox(
-            header_actions,
+            f_theme,
             textvariable=self.theme_var,
             values=[v["display_name"] for v in NARUTO_METADATA.values()],
             state="readonly",
-            width=21
+            width=14
         )
-        self.theme_combo.pack(side=tk.LEFT, padx=3)
+        self.theme_combo.pack(fill=tk.X, expand=True, pady=(1, 0))
         self.theme_combo.bind("<<ComboboxSelected>>", self.on_theme_combo_selected)
+        self.setting_pills = [f_mode, f_level, f_start, f_theme]
 
+        # Row 1: Action Deck Row 1 (Rotate, Guides ▾, Digest, Wisdom)
         self.btn_rotate_shinobi = tk.Button(
-            header_actions,
-            text="🔀 Rotate",
-            font=("Segoe UI", 8, "bold"),
-            bg=self.colors["primary"],
-            fg="#0f172a" if self.current_theme in ["naruto_sage", "minato_flash", "sasuke_chidori", "kakashi_hatake", "leaf_village"] else "#ffffff",
-            relief=tk.FLAT,
-            padx=8,
-            pady=3,
+            self.matrix_command_frame,
+            text="🔄  Rotate",
+            font=("Segoe UI", 9, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
+            activebackground="#f97316",
+            activeforeground="#0f172a",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=6,
+            pady=5,
             cursor="hand2",
             command=self.rotate_theme
         )
-        self.btn_rotate_shinobi.pack(side=tk.LEFT, padx=(4, 0))
+        self.btn_rotate_shinobi.grid(row=1, column=0, padx=3, pady=3, sticky="nsew")
 
-        # 📖 Guides Dropdown Menu Button
         self.btn_guide_menu = tk.Menubutton(
-            header_actions,
-            text="📖 Guides ▾",
-            font=("Segoe UI", 8, "bold"),
-            bg=self.colors["card_border"],
-            fg=self.colors["fg"],
-            relief=tk.FLAT,
-            padx=9,
-            pady=3,
+            self.matrix_command_frame,
+            text="📖  Guides ▾",
+            font=("Segoe UI", 9, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
+            activebackground="#f97316",
+            activeforeground="#0f172a",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=6,
+            pady=5,
             cursor="hand2"
         )
         self.guide_dropdown_menu = tk.Menu(
             self.btn_guide_menu,
             tearoff=0,
-            bg=self.colors["card_bg"],
-            fg=self.colors["fg"],
+            bg="#0f172a",
+            fg="#f8fafc",
+            activebackground="#f97316",
+            activeforeground="#0f172a",
             font=("Segoe UI", 9)
         )
         self.guide_dropdown_menu.add_command(
@@ -3854,104 +4244,157 @@ class DesktopApp:
             command=self.open_v1_audit_inspector_modal
         )
         self.btn_guide_menu.config(menu=self.guide_dropdown_menu)
-        self.btn_guide_menu.pack(side=tk.LEFT, padx=(6, 0))
+        self.btn_guide_menu.grid(row=1, column=1, padx=3, pady=3, sticky="nsew")
 
-        # 📊 Weekly Parent Digest Button
         self.btn_parent_digest = tk.Button(
-            header_actions,
-            text="📊 Weekly Digest",
-            font=("Segoe UI", 8, "bold"),
-            bg="#8b5cf6" if self.current_theme == "dark" else "#7c3aed",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=9,
-            pady=3,
+            self.matrix_command_frame,
+            text="📊  Digest",
+            font=("Segoe UI", 9, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
+            activebackground="#f97316",
+            activeforeground="#0f172a",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=6,
+            pady=5,
             cursor="hand2",
             command=self.open_weekly_parent_digest
         )
-        self.btn_parent_digest.pack(side=tk.LEFT, padx=(6, 0))
+        self.btn_parent_digest.grid(row=1, column=2, padx=3, pady=3, sticky="nsew")
 
-        # 🎙️ Shinobi Wisdom Button
         self.btn_shinobi_wisdom = tk.Button(
-            header_actions,
-            text="🎙️ Shinobi Wisdom",
-            font=("Segoe UI", 8, "bold"),
-            bg="#d97706" if self.current_theme == "dark" else "#f59e0b",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=9,
-            pady=3,
+            self.matrix_command_frame,
+            text="🎙️  Wisdom",
+            font=("Segoe UI", 9, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
+            activebackground="#f97316",
+            activeforeground="#0f172a",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=6,
+            pady=5,
             cursor="hand2",
             command=self.open_shinobi_wisdom_modal
         )
-        self.btn_shinobi_wisdom.pack(side=tk.LEFT, padx=(6, 0))
+        self.btn_shinobi_wisdom.grid(row=1, column=3, padx=3, pady=3, sticky="nsew")
 
-        # 🔍 Version 1 Chronological Audit & Material Inspector Button
+        # Row 2: Action Deck Row 2 (V1 Audit, Error Bank, Dynamic Mode Tile, Primary Schedule Button)
         self.btn_v1_audit = tk.Button(
-            header_actions,
-            text="🔍 V1 Audit Checker",
-            font=("Segoe UI", 8, "bold"),
-            bg="#0284c7" if self.current_theme == "dark" else "#0ea5e9",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=9,
-            pady=3,
+            self.matrix_command_frame,
+            text="🔍  V1 Audit",
+            font=("Segoe UI", 9, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
+            activebackground="#f97316",
+            activeforeground="#0f172a",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=6,
+            pady=5,
             cursor="hand2",
             command=self.open_v1_audit_inspector_modal
         )
-        self.btn_v1_audit.pack(side=tk.LEFT, padx=(6, 0))
+        self.btn_v1_audit.grid(row=2, column=0, padx=3, pady=3, sticky="nsew")
 
-        # Shinobi Nindo Scroll Banner
-        meta = NARUTO_METADATA.get(self.current_theme, NARUTO_METADATA["naruto_sage"])
-        banner_bg = self.colors.get("banner_bg", self.colors["highlight"])
-        self.shinobi_banner_frame = tk.Frame(self.root, bg=banner_bg, padx=14, pady=5)
-        self.shinobi_banner_frame.pack(fill=tk.X, padx=14, pady=(0, 6))
-
-        self.lbl_shinobi_icon = tk.Label(
-            self.shinobi_banner_frame,
-            bg=banner_bg,
+        self.btn_error_bank = tk.Button(
+            self.matrix_command_frame,
+            text="⚠️  Error Bank",
+            font=("Segoe UI", 9, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
+            activebackground="#f97316",
+            activeforeground="#0f172a",
+            relief=tk.SOLID,
             bd=1,
-            relief=tk.SOLID
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=6,
+            pady=5,
+            cursor="hand2",
+            command=self.open_error_bank_modal
         )
-        init_banner_img = self.get_naruto_image(self.current_theme, size=(46, 46))
-        if init_banner_img:
-            self.lbl_shinobi_icon.configure(image=init_banner_img)
-            self.lbl_shinobi_icon.image = init_banner_img
+        self.btn_error_bank.grid(row=2, column=1, padx=3, pady=3, sticky="nsew")
+
+        # Dynamic Mode Tile (Row 2, Col 2)
+        self.sub_prep_container = tk.Frame(
+            self.matrix_command_frame,
+            bg="#131c2e",
+            padx=6,
+            pady=3,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#334155",
+            highlightthickness=1
+        )
+        self.lbl_exam_sub = tk.Label(self.sub_prep_container, text="Exam:", font=("Segoe UI", 7, "bold"), fg="#fb923c", bg="#131c2e")
+        self.exam_sub_var = tk.StringVar(value=self.selected_exam_subject)
+        self.exam_sub_combo = ttk.Combobox(
+            self.sub_prep_container,
+            textvariable=self.exam_sub_var,
+            values=["Tamil", "Mathematics", "Physical Science", "Social Science", "Hindi", "Biological Science", "English"],
+            state="readonly",
+            width=12
+        )
+        self.exam_sub_combo.bind("<<ComboboxSelected>>", self.on_exam_subject_changed)
+
+        self.lbl_pre_exam_day = tk.Label(self.sub_prep_container, text="Prep:", font=("Segoe UI", 7, "bold"), fg="#38bdf8", bg="#131c2e")
+        roadmap_init = self.get_pre_exam_roadmap_for_duration()
+        init_day_idx = max(0, min(len(roadmap_init) - 1, self.pre_exam_day - 1))
+        self.pre_exam_day_var = tk.StringVar(value=f"Day {self.pre_exam_day}/{self.pre_exam_duration_days}: {roadmap_init[init_day_idx]['title']}")
+        self.pre_exam_day_combo = ttk.Combobox(
+            self.sub_prep_container,
+            textvariable=self.pre_exam_day_var,
+            values=[f"Day {d['day']}/{len(roadmap_init)}: {d['title']}" for d in roadmap_init],
+            state="readonly",
+            width=12
+        )
+        self.pre_exam_day_combo.bind("<<ComboboxSelected>>", self.on_pre_exam_day_changed)
+
+        self.lbl_daily_mode_tag = tk.Label(
+            self.sub_prep_container,
+            text="☑️  CBSE Daily",
+            font=("Segoe UI", 9, "bold"),
+            fg="#f8fafc",
+            bg="#131c2e"
+        )
+
+        if self.is_exam_mode:
+            self.lbl_exam_sub.pack(side=tk.LEFT, padx=(2, 2))
+            self.exam_sub_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        elif self.is_pre_exam_mode:
+            self.lbl_pre_exam_day.pack(side=tk.LEFT, padx=(2, 2))
+            self.pre_exam_day_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         else:
-            self.lbl_shinobi_icon.configure(text=meta["icon"], font=("Segoe UI", 13))
-        self.lbl_shinobi_icon.pack(side=tk.LEFT, padx=(0, 8))
+            self.lbl_daily_mode_tag.pack(expand=True)
+        self.sub_prep_container.grid(row=2, column=2, padx=3, pady=3, sticky="nsew")
 
-        shinobi_text_box = tk.Frame(self.shinobi_banner_frame, bg=banner_bg)
-        shinobi_text_box.pack(side=tk.LEFT, fill=tk.X, expand=True)
-
-        self.lbl_shinobi_title = tk.Label(
-            shinobi_text_box,
-            text=f"SHINOBI SCROLL • {meta['character'].upper()} [{meta['title']}] • Jutsu: {meta['jutsu']}",
-            font=("Segoe UI", 8, "bold"),
-            fg=self.colors["primary"],
-            bg=banner_bg
+        # Solid Gold/Orange Primary Schedule Button (Row 2, Col 3)
+        self.btn_quick_focus = tk.Button(
+            self.matrix_command_frame,
+            text="⏱️  Schedule",
+            font=("Segoe UI", 9, "bold"),
+            bg="#f59e0b",
+            fg="#1c1104",
+            activebackground="#fbbf24",
+            activeforeground="#1c1104",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#fde047",
+            highlightthickness=1,
+            padx=6,
+            pady=5,
+            cursor="hand2",
+            command=lambda: self.notebook.select(self.tab_schedule) if hasattr(self, "notebook") else None
         )
-        self.lbl_shinobi_title.pack(anchor="w")
-
-        self.lbl_shinobi_quote = tk.Label(
-            shinobi_text_box,
-            text=f"{meta['quote']}",
-            font=("Segoe UI", 8, "italic"),
-            fg=self.colors.get("banner_fg", self.colors["fg_muted"]),
-            bg=banner_bg
-        )
-        self.lbl_shinobi_quote.pack(anchor="w")
-
-        self.lbl_shinobi_rank_badge = tk.Label(
-            self.shinobi_banner_frame,
-            text=f"RANK: {meta['rank'].upper()}",
-            font=("Segoe UI", 8, "bold"),
-            fg=self.colors["accent"],
-            bg=self.colors["card_bg"],
-            padx=8,
-            pady=2
-        )
-        self.lbl_shinobi_rank_badge.pack(side=tk.RIGHT, padx=4)
+        self.btn_quick_focus.grid(row=2, column=3, padx=3, pady=3, sticky="nsew")
 
         # Notebook tabs
         style = ttk.Style()
@@ -3977,101 +4420,312 @@ class DesktopApp:
         for tab_id in self.notebook.tabs():
             self.notebook.forget(tab_id)
 
-        # Always add Timetable & Focus Timer as Tab 1
-        self.notebook.add(self.tab_schedule, text="  📅 Timetable & Focus Timer  ")
+        # Always add Daily Schedule as Tab 1 (Option B: Ninja Scroll Tabs)
+        self.notebook.add(self.tab_schedule, text="  📜  📅 Daily Schedule  📜  ")
 
         if self.is_exam_mode:
             # Exam Eve Sprint: Only Timetable & Focus Timer is needed
             pass
         elif self.is_pre_exam_mode:
             # Pre-Exam Planner: Timetable & Focus Timer + Exam Portions & Pre-Exam Tracker
-            self.notebook.add(self.tab_portions, text="  📚 Exam Portions & Pre-Exam Tracker  ")
+            self.notebook.add(self.tab_portions, text="  📜  📚 Exam Portions & Pre-Exam Tracker  📜  ")
         else:
             # Balanced Daily: Timetable & Focus Timer + School Diary & Subject Slabs
-            self.notebook.add(self.tab_diary, text="  📖 School Diary & Subject Slabs  ")
+            self.notebook.add(self.tab_diary, text="  📜  📖 School Diary & Subject Slabs  📜  ")
 
         # Give immediate priority focus to Timetable tab on mode switch
         self.notebook.select(self.tab_schedule)
 
+    def _create_hud_toplevel(self, title, subtitle="", width=850, height=600, min_width=720, min_height=500):
+        """
+        Reusable Option C HUD Modal Shell:
+        - Outer Toplevel window with dark navy background (#070b14)
+        - 2px cyan border (#38bdf8) around the inner container
+        - Top dark header bar (#0f172a) with cyan title (#38bdf8), muted subtitle (#94a3b8)
+        - High-contrast crimson close button (#2a1215 bg, #fca5a5 text, #991b1b border, '✕ Close')
+        - Returns (win, content_frame) ready for content packing with zero clipping.
+        """
+        win = tk.Toplevel(self.root)
+        win.title(title)
+        win.geometry(f"{width}x{height}")
+        win.minsize(min_width, min_height)
+        win.configure(bg="#070b14")
+        win.transient(self.root)
+
+        # Outer 2px cyan HUD border container
+        outer_container = tk.Frame(
+            win,
+            bg="#0b1120",
+            bd=0,
+            highlightthickness=2,
+            highlightbackground="#38bdf8"
+        )
+        outer_container.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
+
+        # Top HUD Header Bar
+        hdr = tk.Frame(
+            outer_container,
+            bg="#0f172a",
+            padx=16,
+            pady=9,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#1e293b"
+        )
+        hdr.pack(fill=tk.X)
+
+        title_box = tk.Frame(hdr, bg="#0f172a")
+        title_box.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        tk.Label(
+            title_box,
+            text=title,
+            font=("Segoe UI", 11, "bold"),
+            fg="#38bdf8",
+            bg="#0f172a",
+            anchor="w"
+        ).pack(fill=tk.X)
+
+        if subtitle:
+            tk.Label(
+                title_box,
+                text=subtitle,
+                font=("Segoe UI", 8),
+                fg="#94a3b8",
+                bg="#0f172a",
+                anchor="w"
+            ).pack(fill=tk.X, pady=(1, 0))
+
+        tk.Button(
+            hdr,
+            text="✕ Close",
+            font=("Segoe UI", 8, "bold"),
+            bg="#2a1215",
+            fg="#fca5a5",
+            activebackground="#7f1d1d",
+            activeforeground="#ffffff",
+            relief=tk.FLAT,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#991b1b",
+            padx=12,
+            pady=3,
+            cursor="hand2",
+            command=win.destroy
+        ).pack(side=tk.RIGHT, padx=(8, 0))
+
+        # Content frame with dark navy background
+        content_frame = tk.Frame(outer_container, bg="#0b1120", padx=12, pady=10)
+        content_frame.pack(fill=tk.BOTH, expand=True)
+
+        return win, content_frame
+
     def open_guide_modal(self, guide_key="gravity"):
-        """Opens dedicated Guide Reader modal dialog containing the 4 reference text tools."""
+        """Opens dedicated Guide Reader modal dialog with Option C: Split Sidebar Navigation HUD layout."""
+        idx = {"gravity": 0, "skills": 1, "audit": 2, "levels": 3}.get(guide_key, 0)
         if hasattr(self, "guide_window") and self.guide_window and self.guide_window.winfo_exists():
             self.guide_window.lift()
             self.guide_window.focus_force()
-            idx = {"gravity": 0, "skills": 1, "audit": 2, "levels": 3}.get(guide_key, 0)
-            if hasattr(self, "guide_modal_nb"):
-                self.guide_modal_nb.select(idx)
+            if hasattr(self, "_select_guide_sidebar_tab"):
+                self._select_guide_sidebar_tab(idx)
             return
 
         c = self.colors
         win = tk.Toplevel(self.root)
         self.guide_window = win
-        win.title("📖 Tharun's Study Blueprint & Reference Guides")
-        win.geometry("1040x740")
-        win.configure(bg=c["bg"])
+        win.title("📖 Tharun's Study Blueprint & Reference Guides HUD")
+        win.geometry("1060x740")
+        win.minsize(960, 640)
+        win.configure(bg="#070b14")
 
-        # Top Bar
-        top_bar = tk.Frame(win, bg=c["card_bg"], padx=16, pady=10, bd=1, relief=tk.SOLID)
+        # Top Bar: Option C Cyan HUD Header
+        top_bar = tk.Frame(win, bg="#0f172a", padx=16, pady=9, bd=0, highlightthickness=1, highlightbackground="#38bdf8")
         top_bar.pack(fill=tk.X)
 
+        title_box = tk.Frame(top_bar, bg="#0f172a")
+        title_box.pack(side=tk.LEFT)
+
         tk.Label(
-            top_bar,
-            text="📖 Parental Study Blueprint & Execution Reference Guides",
-            font=("Segoe UI", 12, "bold"),
-            fg=c["primary"],
-            bg=c["card_bg"]
-        ).pack(side=tk.LEFT)
+            title_box,
+            text="📖 PARENTAL STUDY BLUEPRINT & REFERENCE HUD",
+            font=("Segoe UI", 11, "bold"),
+            fg="#38bdf8",
+            bg="#0f172a"
+        ).pack(anchor="w")
+
+        tk.Label(
+            title_box,
+            text="Class 8 CBSE Master Guidance • Pedagogical Priorities, Spelling/Diagram Protocols & Cognitive Audits",
+            font=("Segoe UI", 8),
+            fg="#94a3b8",
+            bg="#0f172a"
+        ).pack(anchor="w", pady=(1, 0))
 
         tk.Button(
             top_bar,
             text="✕ Close Guide",
-            font=("Segoe UI", 9, "bold"),
-            bg=c["danger"],
-            fg="#ffffff",
+            font=("Segoe UI", 8, "bold"),
+            bg="#2a1215",
+            fg="#fca5a5",
+            activebackground="#7f1d1d",
+            activeforeground="#ffffff",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#991b1b",
             padx=12,
-            pady=3,
+            pady=4,
             cursor="hand2",
             command=win.destroy
         ).pack(side=tk.RIGHT)
 
-        # Notebook inside Guide Window
-        self.guide_modal_nb = ttk.Notebook(win)
-        self.guide_modal_nb.pack(fill=tk.BOTH, expand=True, padx=14, pady=10)
+        # Main 2-Pane Split Layout
+        body = tk.Frame(win, bg="#070b14", padx=12, pady=10)
+        body.pack(fill=tk.BOTH, expand=True)
 
-        tab_g = tk.Frame(self.guide_modal_nb, bg=c["bg"])
-        tab_s = tk.Frame(self.guide_modal_nb, bg=c["bg"])
-        tab_a = tk.Frame(self.guide_modal_nb, bg=c["bg"])
-        tab_l = tk.Frame(self.guide_modal_nb, bg=c["bg"])
+        # Left 230px Vertical Navigation Sidebar
+        sidebar = tk.Frame(body, bg="#070b14", width=230, highlightthickness=1, highlightbackground="#1e293b")
+        sidebar.pack_propagate(False)
+        sidebar.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
 
-        self.guide_modal_nb.add(tab_g, text="  ⚖️ Core Subject Priorities  ")
-        self.guide_modal_nb.add(tab_s, text="  ✍️ Spelling & Diagram Clinic  ")
-        self.guide_modal_nb.add(tab_a, text="  📊 Time Variance Audit  ")
-        self.guide_modal_nb.add(tab_l, text="  📈 Habit Progression Ladder  ")
+        tk.Label(
+            sidebar,
+            text="NAVIGATION HUD",
+            font=("Segoe UI", 8, "bold"),
+            fg="#38bdf8",
+            bg="#070b14",
+            anchor="w",
+            padx=10,
+            pady=8
+        ).pack(fill=tk.X)
+
+        nav_buttons = []
+        tab_frames = []
+
+        content_pane = tk.Frame(body, bg="#0b1120", highlightthickness=1, highlightbackground="#1e293b")
+        content_pane.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        tab_g = tk.Frame(content_pane, bg=c["bg"])
+        tab_s = tk.Frame(content_pane, bg=c["bg"])
+        tab_a = tk.Frame(content_pane, bg=c["bg"])
+        tab_l = tk.Frame(content_pane, bg=c["bg"])
+        tab_frames.extend([tab_g, tab_s, tab_a, tab_l])
 
         self.build_gravity_tab(parent=tab_g)
         self.build_skills_tab(parent=tab_s)
         self.build_audit_tab(parent=tab_a)
         self.build_levels_tab(parent=tab_l)
 
-        idx = {"gravity": 0, "skills": 1, "audit": 2, "levels": 3}.get(guide_key, 0)
-        self.guide_modal_nb.select(idx)
+        def switch_guide_tab(tab_idx):
+            for i, fr in enumerate(tab_frames):
+                if i == tab_idx:
+                    fr.pack(fill=tk.BOTH, expand=True)
+                else:
+                    fr.pack_forget()
+            for i, btn in enumerate(nav_buttons):
+                if i == tab_idx:
+                    btn.config(
+                        bg="#0c2540",
+                        fg="#38bdf8",
+                        highlightbackground="#38bdf8"
+                    )
+                else:
+                    btn.config(
+                        bg="#0f172a",
+                        fg="#cbd5e1",
+                        highlightbackground="#1e293b"
+                    )
+
+        self._select_guide_sidebar_tab = switch_guide_tab
+
+        guide_tabs_def = [
+            ("⚖️ Core Priorities", 0),
+            ("✍️ Spelling & Diagram Clinic", 1),
+            ("📊 Time Variance Audit", 2),
+            ("📈 Habit Progression Ladder", 3)
+        ]
+
+        for label, t_idx in guide_tabs_def:
+            btn = tk.Button(
+                sidebar,
+                text=label,
+                font=("Segoe UI", 8, "bold"),
+                bg="#0f172a",
+                fg="#cbd5e1",
+                relief=tk.FLAT,
+                bd=0,
+                highlightthickness=1,
+                highlightbackground="#1e293b",
+                anchor="w",
+                padx=12,
+                pady=9,
+                cursor="hand2",
+                command=lambda ti=t_idx: switch_guide_tab(ti)
+            )
+            btn.pack(fill=tk.X, padx=6, pady=3)
+            nav_buttons.append(btn)
+
+        # Bottom HUD Summary Card in Sidebar
+        status_card = tk.Frame(sidebar, bg="#0f172a", bd=0, highlightthickness=1, highlightbackground="#1e293b", padx=8, pady=8)
+        status_card.pack(side=tk.BOTTOM, fill=tk.X, padx=6, pady=8)
+
+        tk.Label(
+            status_card,
+            text="SENTHIL PUBLIC SCHOOL",
+            font=("Segoe UI", 7, "bold"),
+            fg="#facc15",
+            bg="#0f172a",
+            anchor="w"
+        ).pack(fill=tk.X)
+
+        tk.Label(
+            status_card,
+            text="Class 8 CBSE • Tharun's Habit Balancer",
+            font=("Segoe UI", 7),
+            fg="#94a3b8",
+            bg="#0f172a",
+            anchor="w"
+        ).pack(fill=tk.X, pady=(2, 0))
+
+        # Initial selection
+        switch_guide_tab(idx)
 
     def configure_notebook_styles(self, style):
         c = self.colors
-        style.configure("TNotebook", background=c["bg"], borderwidth=0)
+        # STEP 4: Option B (Ninja Scroll Tabs — Warm Parchment Active Scroll + Rolled Dark Slate Inactive Scroll)
+        style.configure("TNotebook", background=c["bg"], borderwidth=0, tabmargins=[4, 4, 4, 0])
         style.configure(
             "TNotebook.Tab",
-            background=c["card_bg"],
-            foreground=c["fg"],
-            padding=[12, 7],
-            font=("Segoe UI", 9, "bold"),
-            borderwidth=0
+            background="#1e1b2e",
+            foreground="#e2e8f0",
+            padding=[16, 8],
+            font=("Segoe UI", 10, "bold"),
+            borderwidth=1,
+            lightcolor="#7f1d1d",
+            bordercolor="#7f1d1d"
         )
         style.map(
             "TNotebook.Tab",
-            background=[("selected", c["primary"])],
-            foreground=[("selected", "#ffffff" if self.current_theme == "light" else "#0f172a")]
+            background=[("selected", "#f5e0a3"), ("active", "#2d2644")],
+            foreground=[("selected", "#1f1206"), ("active", "#fef08a")],
+            lightcolor=[("selected", "#eab308")],
+            bordercolor=[("selected", "#991b1b")]
+        )
+        style.configure(
+            "TCombobox",
+            background="#131c2e",
+            foreground="#f8fafc",
+            fieldbackground="#131c2e",
+            selectbackground=c["primary"],
+            selectforeground=get_contrast_fg(c["primary"]),
+            arrowcolor="#fb923c"
+        )
+        style.map(
+            "TCombobox",
+            fieldbackground=[("readonly", "#131c2e")],
+            foreground=[("readonly", "#f8fafc")],
+            selectbackground=[("readonly", c["primary"])],
+            selectforeground=[("readonly", get_contrast_fg(c["primary"]))]
         )
 
     # ==========================================
@@ -4157,6 +4811,8 @@ class DesktopApp:
         self.calculate_streak()
         if hasattr(self, "lbl_streak"):
             self.lbl_streak.config(text=f"🔥 Will of Fire: Day {self.habit_streak} Streak")
+        if hasattr(self, "lbl_streak_30d"):
+            self.lbl_streak_30d.config(text=f"🎯 30-Day Streak: Day {self.habit_streak}/30")
         self.render_streak_heatmap()
         self.save_data()
 
@@ -4296,95 +4952,689 @@ class DesktopApp:
 
         self.render_streak_heatmap()
 
-    def render_streak_heatmap(self):
-        """Draws the 30-day interactive tiles on the heatmap canvas."""
-        if not hasattr(self, "heatmap_canvas"):
-            return
-        cv = self.heatmap_canvas
-        cv.delete("all")
-        c = self.colors
+    def get_monthly_chakra_summary(self, year=None, month=None):
+        """Computes the single-month calendar grid (SUN..SAT rows x Week columns), chakra effort colors, and monthly totals."""
+        now = datetime.now()
+        if year is None:
+            year = now.year
+        if month is None:
+            month = now.month
 
-        w = cv.winfo_width()
-        if w < 100:
-            w = 720
-        h = 32
+        month_name = datetime(year, month, 1).strftime("%B")
+        days_in_month = calendar.monthrange(year, month)[1]
+        # Sunday = 0, Monday = 1, ..., Saturday = 6
+        first_day_sun0 = (datetime(year, month, 1).weekday() + 1) % 7
+        num_week_cols = (first_day_sun0 + days_in_month + 6) // 7
 
-        num_days = 30
-        gap = 4
-        # Calculate cell size
-        cell_w = max(18, min(28, (w - (num_days - 1) * gap - 20) // num_days))
-        start_x = 10
-        y1 = 4
-        y2 = y1 + cell_w
-
-        today = datetime.now().date()
-        total_30d_mins = 0
+        grid_cells = {}
+        total_month_mins = 0
         active_days = 0
+        total_slots = 0
+        all_notes = []
+        week_breakdown = {w: {"mins": 0, "active_days": 0, "slots": 0} for w in range(1, num_week_cols + 1)}
+        subject_breakdown = {}
 
-        self.heatmap_cell_tags = {}
+        for day in range(1, days_in_month + 1):
+            d_str = f"{year:04d}-{month:02d}-{day:02d}"
+            offset = first_day_sun0 + (day - 1)
+            row_sun0 = offset % 7
+            col_wk = offset // 7
+            wk_num = col_wk + 1
 
-        for i in range(num_days):
-            day_date = today - timedelta(days=(num_days - 1 - i))
-            d_str = day_date.strftime("%Y-%m-%d")
             entry = getattr(self, "study_history", {}).get(d_str, {})
-            mins = entry.get("total_minutes", 0)
-            total_30d_mins += mins
+            mins = int(entry.get("total_minutes", 0) or 0)
+            slots = int(entry.get("completed_slots", 0) or 0)
+            notes = entry.get("feynman_notes", []) or []
+
+            total_month_mins += mins
+            total_slots += slots
             if mins >= 15:
                 active_days += 1
+                week_breakdown[wk_num]["active_days"] += 1
+            week_breakdown[wk_num]["mins"] += mins
+            week_breakdown[wk_num]["slots"] += slots
 
-            x1 = start_x + i * (cell_w + gap)
-            x2 = x1 + cell_w
+            for n in notes:
+                sub = n.get("subject", "General")
+                dur = int(n.get("duration_mins", 0) or 0)
+                s_rec = subject_breakdown.setdefault(sub, {"mins": 0, "sessions": 0})
+                s_rec["mins"] += dur
+                s_rec["sessions"] += 1
+                all_notes.append({
+                    "date": d_str,
+                    "subject": sub,
+                    "duration_mins": dur,
+                    "mastery": n.get("mastery", "100%"),
+                    "notes": n.get("notes", "")
+                })
 
-            # Determine color
-            if mins == 0:
-                fill_color = "#1e293b" if self.current_theme != "light" else "#e2e8f0"
-                outline_color = "#334155" if self.current_theme != "light" else "#cbd5e1"
-            elif mins <= 25:
-                fill_color = "#0e7490"
-                outline_color = "#155e75"
-            elif mins <= 50:
-                fill_color = "#059669"
-                outline_color = "#047857"
-            else:
-                fill_color = "#10b981"
-                outline_color = "#059669"
+            grid_cells[(row_sun0, col_wk)] = {
+                "day": day,
+                "date_str": d_str,
+                "mins": mins,
+                "slots": slots,
+                "notes_count": len(notes)
+            }
 
-            # Today cell has gold highlight outline
-            is_today = (i == num_days - 1)
-            if is_today:
-                outline_color = "#f59e0b"
-                border_width = 2
-            else:
-                border_width = 1
+        month_hours = round(total_month_mins / 60.0, 1)
 
-            rect_id = cv.create_rectangle(
-                x1, y1, x2, y2,
-                fill=fill_color,
-                outline=outline_color,
-                width=border_width,
-                tags=(f"day_{d_str}", "cell")
-            )
+        if total_month_mins >= 900 or active_days >= 22:
+            effort_rank = "HOKAGE"
+        elif total_month_mins >= 540 or active_days >= 14:
+            effort_rank = "ANBU"
+        elif total_month_mins >= 300 or active_days >= 8:
+            effort_rank = "JONIN"
+        elif total_month_mins >= 120 or active_days >= 3:
+            effort_rank = "CHUNIN"
+        else:
+            effort_rank = "GENIN"
 
-            # Draw day number inside
-            text_color = "#ffffff" if mins > 0 or self.current_theme != "light" else "#475569"
-            cv.create_text(
-                (x1 + x2) / 2, (y1 + y2) / 2,
-                text=str(day_date.day),
+        return {
+            "year": year,
+            "month": month,
+            "month_name": month_name,
+            "month_label": f"{month_name} / {year}",
+            "days_in_month": days_in_month,
+            "first_day_sun0": first_day_sun0,
+            "num_week_cols": num_week_cols,
+            "grid_cells": grid_cells,
+            "total_minutes": total_month_mins,
+            "total_hours": month_hours,
+            "active_days": active_days,
+            "total_slots": total_slots,
+            "effort_rank": effort_rank,
+            "streak_days": self.habit_streak,
+            "best_streak_days": getattr(self, "best_streak", self.habit_streak),
+            "week_breakdown": {f"W{k}": v for k, v in week_breakdown.items()},
+            "subject_breakdown": subject_breakdown,
+            "feynman_notes": all_notes
+        }
+
+    def check_and_auto_submit_month_end_report(self):
+        """Automatically compiles and submits the monthly report to Tharun's Parent Audit on the last day of the month."""
+        now = datetime.now()
+        last_day = calendar.monthrange(now.year, now.month)[1]
+        if now.day == last_day:
+            self.submit_monthly_report_to_parent_audit(now.year, now.month, trigger_source="AUTO_LAST_DAY_OF_MONTH")
+
+        # Also check if the immediately preceding month had study activity and wasn't archived yet
+        first_of_this_month = datetime(now.year, now.month, 1)
+        last_of_prev_month = first_of_this_month - timedelta(days=1)
+        prev_key = f"{last_of_prev_month.year:04d}-{last_of_prev_month.month:02d}"
+        monthly_reports = getattr(self, "audit_data", {}).get("monthly_parent_reports", {})
+        if prev_key not in monthly_reports:
+            prev_summary = self.get_monthly_chakra_summary(last_of_prev_month.year, last_of_prev_month.month)
+            if prev_summary["total_minutes"] > 0:
+                self.submit_monthly_report_to_parent_audit(
+                    last_of_prev_month.year,
+                    last_of_prev_month.month,
+                    trigger_source="AUTO_MONTH_ROLLOVER"
+                )
+
+    def submit_monthly_report_to_parent_audit(self, year=None, month=None, trigger_source="MANUAL_PARENT_REVIEW"):
+        """Compiles the Monthly Chakra Consistency Report and submits it into Tharun's Parent Audit (time_extension_audit.json)."""
+        summary = self.get_monthly_chakra_summary(year, month)
+        report_key = f"{summary['year']:04d}-{summary['month']:02d}"
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+        report_payload = {
+            "report_id": f"MONTHLY_AUDIT_{report_key}",
+            "month_key": report_key,
+            "month_label": summary["month_label"],
+            "submitted_at": now_str,
+            "trigger_source": trigger_source,
+            "parent_review_status": "SUBMITTED_FOR_PARENTS_REVIEW",
+            "streak_days": summary["streak_days"],
+            "best_streak_days": summary["best_streak_days"],
+            "active_days": summary["active_days"],
+            "days_in_month": summary["days_in_month"],
+            "total_minutes": summary["total_minutes"],
+            "total_hours": summary["total_hours"],
+            "completed_slots": summary["total_slots"],
+            "effort_rank": summary["effort_rank"],
+            "week_breakdown": summary["week_breakdown"],
+            "subject_breakdown": summary["subject_breakdown"],
+            "feynman_notes_count": len(summary["feynman_notes"]),
+            "feynman_highlights": summary["feynman_notes"][-8:]
+        }
+
+        if not hasattr(self, "audit_data") or not isinstance(self.audit_data, dict):
+            self.load_audit_data()
+
+        monthly_map = self.audit_data.setdefault("monthly_parent_reports", {})
+        monthly_map[report_key] = report_payload
+
+        # Also insert/update a visible record in audit_records so it appears directly in Tharun's Audit Table
+        audit_records = self.audit_data.setdefault("audit_records", [])
+        audit_rec_id = f"MONTHLY_REPORT_{report_key}"
+        audit_entry = {
+            "record_id": audit_rec_id,
+            "timestamp": now_str,
+            "variance_type": "MONTHLY_PARENT_AUDIT_REPORT",
+            "subject": f"📅 {summary['month_name']}",
+            "task_title": f"{summary['month_label']} Monthly Effort Report ({summary['active_days']}/{summary['days_in_month']}d active)",
+            "original_planned_mins": summary["days_in_month"] * 45,
+            "extended_mins": 0,
+            "saved_mins": 0,
+            "actual_total_mins": summary["total_minutes"],
+            "reason": f"Streak: {summary['streak_days']}d | Study: {summary['total_hours']} hrs ({summary['total_minutes']}m) | Rank: {summary['effort_rank']}",
+            "cascade_impact": f"Submitted to Tharun's Audit for Parents Review ({trigger_source})"
+        }
+
+        replaced = False
+        for i, r in enumerate(audit_records):
+            if r.get("record_id") == audit_rec_id:
+                audit_records[i] = audit_entry
+                replaced = True
+                break
+        if not replaced:
+            audit_records.insert(0, audit_entry)
+
+        self.save_audit_data()
+        if hasattr(self, "audit_tree"):
+            self.render_audit_tab_content()
+
+        return report_payload
+
+    def toggle_month_chakra_dropdown(self):
+        """Opens or closes the Drag-Down Monthly Chakra Calendar Box right below the [October] tab."""
+        month_name = datetime.now().strftime("%B")
+        if hasattr(self, "month_dropdown_win") and self.month_dropdown_win and self.month_dropdown_win.winfo_exists():
+            self.month_dropdown_win.destroy()
+            self.month_dropdown_win = None
+            if hasattr(self, "btn_month_dropdown"):
+                self.btn_month_dropdown.config(text=f"📅 {month_name} ▾")
+            return
+
+        self.render_month_chakra_dropdown_box()
+
+    def render_month_chakra_dropdown_box(self):
+        """Builds the Drag-Down Monthly Calendar Box (SUN..SAT rows x Week columns, Chakra Effort colors, Streak | Study hr | Rank footer)."""
+        c = self.colors
+        summary = self.get_monthly_chakra_summary()
+        month_name = summary["month_name"]
+        year = summary["year"]
+        num_wks = summary["num_week_cols"]
+        grid_cells = summary["grid_cells"]
+        today_str = datetime.now().strftime("%Y-%m-%d")
+
+        if hasattr(self, "month_dropdown_win") and self.month_dropdown_win and self.month_dropdown_win.winfo_exists():
+            self.month_dropdown_win.destroy()
+
+        if hasattr(self, "btn_month_dropdown"):
+            self.btn_month_dropdown.config(text=f"📅 {month_name} ▴")
+
+        win = tk.Toplevel(self.root)
+        self.month_dropdown_win = win
+        win.title(f"📅 {summary['month_label']} — Chakra Effort Calendar")
+        win.overrideredirect(True)
+        win.configure(bg=c["primary"], padx=2, pady=2)
+        win.attributes("-topmost", True)
+
+        # Position directly below the [October] tab button
+        self.root.update_idletasks()
+        if hasattr(self, "btn_month_dropdown") and self.btn_month_dropdown.winfo_exists():
+            bx = self.btn_month_dropdown.winfo_rootx()
+            by = self.btn_month_dropdown.winfo_rooty() + self.btn_month_dropdown.winfo_height() + 3
+        else:
+            bx = self.root.winfo_rootx() + 420
+            by = self.root.winfo_rooty() + 50
+
+        pop_w = 470
+        pop_h = 395
+        screen_w = self.root.winfo_screenwidth()
+        if bx + pop_w > screen_w - 16:
+            bx = max(16, screen_w - pop_w - 16)
+        win.geometry(f"{pop_w}x{pop_h}+{bx}+{by}")
+
+        def close_dropdown(event=None):
+            if hasattr(self, "month_dropdown_win") and self.month_dropdown_win and self.month_dropdown_win.winfo_exists():
+                self.month_dropdown_win.destroy()
+            self.month_dropdown_win = None
+            if hasattr(self, "btn_month_dropdown") and self.btn_month_dropdown.winfo_exists():
+                self.btn_month_dropdown.config(text=f"📅 {datetime.now().strftime('%B')} ▾")
+
+        win.bind("<Escape>", close_dropdown)
+
+        inner = tk.Frame(win, bg="#0f172a", padx=12, pady=10)
+        inner.pack(fill=tk.BOTH, expand=True)
+
+        # ------------------------------------------------------------------
+        # 1. TOP HEADER BAR: "October / 2026"
+        # ------------------------------------------------------------------
+        hdr_row = tk.Frame(inner, bg="#1e293b", bd=1, relief=tk.SOLID, padx=10, pady=5)
+        hdr_row.pack(fill=tk.X, pady=(0, 8))
+
+        tk.Label(
+            hdr_row,
+            text=f"📅 {month_name} / {year}",
+            font=("Segoe UI", 11, "bold"),
+            fg="#facc15",
+            bg="#1e293b"
+        ).pack(side=tk.LEFT)
+
+        tk.Label(
+            hdr_row,
+            text="• Chakra Effort Calendar (Click any day for details)",
+            font=("Segoe UI", 8, "bold"),
+            fg="#94a3b8",
+            bg="#1e293b"
+        ).pack(side=tk.LEFT, padx=(8, 0))
+
+        tk.Button(
+            hdr_row,
+            text="✕",
+            font=("Segoe UI", 9, "bold"),
+            fg="#f87171",
+            bg="#0f172a",
+            relief=tk.FLAT,
+            padx=6,
+            pady=0,
+            cursor="hand2",
+            command=close_dropdown
+        ).pack(side=tk.RIGHT)
+
+        # ------------------------------------------------------------------
+        # 2. CALENDAR MATRIX: Rows = SUN..SAT, Columns = W1..W5/W6
+        # ------------------------------------------------------------------
+        cal_frame = tk.Frame(inner, bg="#0f172a", bd=1, relief=tk.SOLID)
+        cal_frame.pack(fill=tk.X, pady=(0, 6))
+
+        cal_frame.grid_columnconfigure(0, weight=1, uniform="calcol")
+        for col_i in range(1, num_wks + 1):
+            cal_frame.grid_columnconfigure(col_i, weight=1, uniform="calcol")
+
+        # Header Row (DAY | W1 | W2 | W3 | W4 | W5)
+        tk.Label(
+            cal_frame,
+            text="DAY",
+            font=("Segoe UI", 7, "bold"),
+            fg="#f59e0b",
+            bg="#1e293b",
+            pady=3
+        ).grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+
+        for col_i in range(num_wks):
+            tk.Label(
+                cal_frame,
+                text=f"W{col_i + 1}",
                 font=("Segoe UI", 7, "bold"),
-                fill=text_color,
-                tags=(f"day_{d_str}", "cell_text")
-            )
+                fg="#38bdf8",
+                bg="#1e293b",
+                pady=3
+            ).grid(row=0, column=col_i + 1, sticky="nsew", padx=1, pady=1)
 
-            # Bind click
-            cv.tag_bind(rect_id, "<Button-1>", lambda e, ds=d_str: self.open_day_summary_window(ds))
+        day_names = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
-        # Update labels
-        if hasattr(self, "lbl_heat_streak"):
-            self.lbl_heat_streak.config(text=f"🔥 Streak: {self.habit_streak}d")
-        if hasattr(self, "lbl_heat_best"):
-            self.lbl_heat_best.config(text=f"🏆 Best: {getattr(self, 'best_streak', self.habit_streak)}d")
-        if hasattr(self, "lbl_heat_30d"):
-            self.lbl_heat_30d.config(text=f"⏱️ 30d Study: {total_30d_mins}m ({active_days}/30 active)")
+        def on_day_click(ds):
+            close_dropdown()
+            self.open_day_summary_window(ds)
+
+        for row_idx, d_label in enumerate(day_names):
+            # Left column: SUN..SAT
+            tk.Label(
+                cal_frame,
+                text=d_label,
+                font=("Segoe UI", 8, "bold"),
+                fg="#e2e8f0" if row_idx > 0 else "#f87171",
+                bg="#1e293b",
+                pady=3
+            ).grid(row=row_idx + 1, column=0, sticky="nsew", padx=1, pady=1)
+
+            for col_idx in range(num_wks):
+                cell_data = grid_cells.get((row_idx, col_idx))
+                if not cell_data:
+                    tk.Label(
+                        cal_frame,
+                        text="—",
+                        font=("Segoe UI", 8),
+                        fg="#334155",
+                        bg="#090d16",
+                        pady=3
+                    ).grid(row=row_idx + 1, column=col_idx + 1, sticky="nsew", padx=1, pady=1)
+                else:
+                    d_num = cell_data["day"]
+                    d_str = cell_data["date_str"]
+                    mins = cell_data["mins"]
+                    is_today = (d_str == today_str)
+
+                    # Chakra Effort Color Scale
+                    if mins == 0:
+                        bg_col = "#1e293b"
+                        fg_col = "#94a3b8"
+                        orb = "○"
+                    elif mins <= 25:
+                        bg_col = "#0284c7"
+                        fg_col = "#ffffff"
+                        orb = "●"
+                    elif mins <= 50:
+                        bg_col = "#059669"
+                        fg_col = "#ffffff"
+                        orb = "●"
+                    elif mins <= 75:
+                        bg_col = "#10b981"
+                        fg_col = "#ffffff"
+                        orb = "●"
+                    else:
+                        bg_col = "#d97706"
+                        fg_col = "#ffffff"
+                        orb = "★"
+
+                    cell_border_col = "#facc15" if is_today else bg_col
+                    cell_wrap = tk.Frame(cal_frame, bg=cell_border_col, padx=2 if is_today else 0, pady=2 if is_today else 0)
+                    cell_wrap.grid(row=row_idx + 1, column=col_idx + 1, sticky="nsew", padx=1, pady=1)
+
+                    lbl_cell = tk.Label(
+                        cell_wrap,
+                        text=f"{orb} {d_num}",
+                        font=("Segoe UI", 8, "bold"),
+                        fg=fg_col,
+                        bg=bg_col,
+                        cursor="hand2",
+                        pady=2
+                    )
+                    lbl_cell.pack(fill=tk.BOTH, expand=True)
+                    lbl_cell.bind("<Button-1>", lambda e, ds=d_str: on_day_click(ds))
+
+        # ------------------------------------------------------------------
+        # 3. CHAKRA EFFORT COLOR LEGEND
+        # ------------------------------------------------------------------
+        leg_row = tk.Frame(inner, bg="#0f172a")
+        leg_row.pack(fill=tk.X, pady=(2, 6))
+
+        tk.Label(
+            leg_row,
+            text="⚡ Chakra Effort:",
+            font=("Segoe UI", 7, "bold"),
+            fg="#cbd5e1",
+            bg="#0f172a"
+        ).pack(side=tk.LEFT, padx=(0, 4))
+
+        for col_hex, desc in [
+            ("#1e293b", "0m Rest"),
+            ("#0284c7", "1-25m Spark"),
+            ("#059669", "26-50m Flow"),
+            ("#10b981", "51-75m Surge"),
+            ("#d97706", "75m+ Peak")
+        ]:
+            sq = tk.Label(leg_row, text=" ● ", fg="#ffffff", bg=col_hex, font=("Segoe UI", 6, "bold"))
+            sq.pack(side=tk.LEFT, padx=(3, 1))
+            tk.Label(leg_row, text=desc, font=("Segoe UI", 7), fg="#94a3b8", bg="#0f172a").pack(side=tk.LEFT, padx=(0, 3))
+
+        # ------------------------------------------------------------------
+        # 4. BOTTOM 3-BOX BAR: | Streak | Study hr | Rank |
+        # ------------------------------------------------------------------
+        bottom_metrics = tk.Frame(inner, bg="#1e293b", bd=1, relief=tk.SOLID)
+        bottom_metrics.pack(fill=tk.X, pady=(0, 8))
+        for col_i in range(3):
+            bottom_metrics.grid_columnconfigure(col_i, weight=1, uniform="bmet")
+
+        # Box 1: Streak
+        b1 = tk.Frame(bottom_metrics, bg="#0f172a", padx=6, pady=5)
+        b1.grid(row=0, column=0, sticky="nsew", padx=(1, 1), pady=1)
+        tk.Label(b1, text="STREAK", font=("Segoe UI", 7, "bold"), fg="#94a3b8", bg="#0f172a").pack()
+        tk.Label(
+            b1,
+            text=f"🔥 {summary['streak_days']}d (Best: {summary['best_streak_days']}d)",
+            font=("Segoe UI", 9, "bold"),
+            fg="#f59e0b",
+            bg="#0f172a"
+        ).pack()
+
+        # Box 2: Study hr
+        b2 = tk.Frame(bottom_metrics, bg="#0f172a", padx=6, pady=5)
+        b2.grid(row=0, column=1, sticky="nsew", padx=(0, 1), pady=1)
+        tk.Label(b2, text="STUDY HR", font=("Segoe UI", 7, "bold"), fg="#94a3b8", bg="#0f172a").pack()
+        tk.Label(
+            b2,
+            text=f"⏱️ {summary['total_hours']} hrs ({summary['total_minutes']}m)",
+            font=("Segoe UI", 9, "bold"),
+            fg="#34d399",
+            bg="#0f172a"
+        ).pack()
+
+        # Box 3: Rank
+        b3 = tk.Frame(bottom_metrics, bg="#0f172a", padx=6, pady=5)
+        b3.grid(row=0, column=2, sticky="nsew", padx=(0, 1), pady=1)
+        tk.Label(b3, text="RANK", font=("Segoe UI", 7, "bold"), fg="#94a3b8", bg="#0f172a").pack()
+        tk.Label(
+            b3,
+            text=f"🎖️ {summary['effort_rank']}",
+            font=("Segoe UI", 9, "bold"),
+            fg="#38bdf8",
+            bg="#0f172a"
+        ).pack()
+
+        # ------------------------------------------------------------------
+        # 5. ACTION BAR: Feynman Notes & End-of-Month Parent Audit Submission
+        # ------------------------------------------------------------------
+        act_row = tk.Frame(inner, bg="#0f172a")
+        act_row.pack(fill=tk.X)
+
+        def open_notes_from_drop():
+            close_dropdown()
+            self.open_all_feynman_notes_window()
+
+        def submit_and_view_parent_audit():
+            close_dropdown()
+            self.open_monthly_parent_audit_report_window(submit_now=True)
+
+        tk.Button(
+            act_row,
+            text="🧠 Feynman Notes",
+            font=("Segoe UI", 8, "bold"),
+            fg="#a5f3fc",
+            bg="#0e7490",
+            relief=tk.FLAT,
+            padx=10,
+            pady=4,
+            cursor="hand2",
+            command=open_notes_from_drop
+        ).pack(side=tk.LEFT)
+
+        tk.Button(
+            act_row,
+            text=f"📊 Submit / Review {month_name} Parent Audit Report",
+            font=("Segoe UI", 8, "bold"),
+            fg="#0f172a",
+            bg="#facc15",
+            relief=tk.FLAT,
+            padx=12,
+            pady=4,
+            cursor="hand2",
+            command=submit_and_view_parent_audit
+        ).pack(side=tk.RIGHT)
+
+        # Auto-submit footer note
+        is_last_day = (datetime.now().day == summary["days_in_month"])
+        status_txt = (
+            f"✅ Today is {month_name} {summary['days_in_month']} (Last Day): Report auto-submitted to Tharun's Audit!"
+            if is_last_day else
+            f"📋 Auto-submits on {month_name} {summary['days_in_month']} (last day of month) to Tharun's Audit for Parents Review."
+        )
+        tk.Label(
+            inner,
+            text=status_txt,
+            font=("Segoe UI", 7),
+            fg="#34d399" if is_last_day else "#94a3b8",
+            bg="#0f172a"
+        ).pack(anchor="w", pady=(5, 0))
+
+    def open_monthly_parent_audit_report_window(self, year=None, month=None, submit_now=True):
+        """Submits the Monthly Chakra Consistency Report to Tharun's Audit and opens the Parents Review Window."""
+        c = self.colors
+        if submit_now:
+            report = self.submit_monthly_report_to_parent_audit(year, month, trigger_source="PARENT_AUDIT_REVIEW")
+        else:
+            summary = self.get_monthly_chakra_summary(year, month)
+            report = self.submit_monthly_report_to_parent_audit(summary["year"], summary["month"], trigger_source="PARENT_AUDIT_PREVIEW")
+
+        win = tk.Toplevel(self.root)
+        win.title(f"📊 Tharun's Monthly Parent Audit Report — {report['month_label']}")
+        win.geometry("680x580")
+        win.minsize(620, 500)
+        win.configure(bg=c["bg"], padx=18, pady=16)
+        win.transient(self.root)
+
+        hdr = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=14, pady=10)
+        hdr.pack(fill=tk.X, pady=(0, 12))
+
+        tk.Label(
+            hdr,
+            text=f"📊 MONTHLY SHINOBI EFFORT & CONSISTENCY REPORT — {report['month_label'].upper()}",
+            font=("Segoe UI", 11, "bold"),
+            fg=c["primary"],
+            bg=c["card_bg"]
+        ).pack(anchor="w")
+
+        tk.Label(
+            hdr,
+            text=f"Submitted to Tharun's Audit for Parents Review • Timestamp: {report['submitted_at']} • Status: Verified",
+            font=("Segoe UI", 8, "bold"),
+            fg=c["success"],
+            bg=c["card_bg"]
+        ).pack(anchor="w", pady=(2, 0))
+
+        # 4 KPI Cards
+        kpi_row = tk.Frame(win, bg=c["bg"])
+        kpi_row.pack(fill=tk.X, pady=(0, 12))
+        for idx_k, (k_lbl, k_val, k_col) in enumerate([
+            ("🔥 Streak", f"{report['streak_days']}d (Best: {report['best_streak_days']}d)", "#f59e0b"),
+            ("⏱️ Monthly Study Hours", f"{report['total_hours']} hrs ({report['total_minutes']}m)", "#10b981"),
+            ("📅 Active Study Days", f"{report['active_days']} / {report['days_in_month']} Days", "#38bdf8"),
+            ("🎖️ Monthly Chakra Rank", report["effort_rank"], "#facc15")
+        ]):
+            card = tk.Frame(kpi_row, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=10, pady=8)
+            card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0 if idx_k == 0 else 4, 0))
+            tk.Label(card, text=k_lbl, font=("Segoe UI", 8, "bold"), fg=c["fg_muted"], bg=c["card_bg"]).pack(anchor="w")
+            tk.Label(card, text=k_val, font=("Segoe UI", 10, "bold"), fg=k_col, bg=c["card_bg"]).pack(anchor="w", pady=(2, 0))
+
+        # Detailed Report Text Box
+        body_frame = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=12, pady=10)
+        body_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 12))
+
+        txt = tk.Text(
+            body_frame,
+            font=("Consolas", 9),
+            bg=c["input_bg"],
+            fg=c["fg"],
+            padx=12,
+            pady=10,
+            wrap=tk.WORD,
+            relief=tk.FLAT
+        )
+        txt.pack(fill=tk.BOTH, expand=True)
+
+        lines = [
+            f"====================================================================",
+            f"   SENTHIL PUBLIC SCHOOL • CLASS 8 MONTHLY PARENT AUDIT REPORT",
+            f"   Student: Tharun | Month: {report['month_label']} | Rank: {report['effort_rank']}",
+            f"====================================================================",
+            f"",
+            f"1. EXECUTIVE CONSISTENCY METRICS:",
+            f"   • Continuous Will of Fire Streak : {report['streak_days']} Days (Best: {report['best_streak_days']} Days)",
+            f"   • Total Monthly Study Time       : {report['total_hours']} Hours ({report['total_minutes']} Minutes)",
+            f"   • Active Consistency Days        : {report['active_days']} out of {report['days_in_month']} Days",
+            f"   • Completed Focus Sprints        : {report['completed_slots']} Sprints",
+            f"   • Feynman Recall Tickets Logged  : {report['feynman_notes_count']} Notes",
+            f"",
+            f"2. WEEK-BY-WEEK CHAKRA EFFORT BREAKDOWN:"
+        ]
+        for wk_label, wk_info in report.get("week_breakdown", {}).items():
+            wk_hrs = round(wk_info.get("mins", 0) / 60.0, 1)
+            lines.append(f"   • {wk_label}: {wk_hrs} hrs ({wk_info.get('mins', 0)} mins) across {wk_info.get('active_days', 0)} active days ({wk_info.get('slots', 0)} sprints)")
+
+        lines.append("")
+        lines.append("3. SUBJECT-WISE EFFORT LOGGED THIS MONTH:")
+        sub_map = report.get("subject_breakdown", {})
+        if sub_map:
+            for s_name, s_info in sorted(sub_map.items(), key=lambda x: -x[1].get("mins", 0)):
+                lines.append(f"   • {s_name:<20}: {s_info.get('mins', 0)} mins ({s_info.get('sessions', 0)} sessions)")
+        else:
+            lines.append("   • All 7 SPS Subjects in active rotation (Daily Mathematics + Science/Social/Language loop).")
+
+        lines.append("")
+        lines.append("4. RECENT FEYNMAN ACTIVE RECALL HIGHLIGHTS:")
+        for h in report.get("feynman_highlights", []):
+            lines.append(f"   • [{h.get('date')}] {h.get('subject')} ({h.get('duration_mins')}m, {h.get('mastery')}): {h.get('notes')}")
+
+        lines.append("")
+        lines.append("✅ Official Record saved in 'time_extension_audit.json' & Tharun's Parent Audit Tab.")
+
+        report_str = "\n".join(lines)
+        txt.insert("1.0", report_str)
+        txt.configure(state=tk.DISABLED)
+
+        btn_bar = tk.Frame(win, bg=c["bg"])
+        btn_bar.pack(fill=tk.X)
+
+        def jump_to_audit_tab():
+            win.destroy()
+            if hasattr(self, "notebook") and hasattr(self, "tab_audit"):
+                self.notebook.select(self.tab_audit)
+                self.render_audit_tab_content()
+
+        def copy_report():
+            self.root.clipboard_clear()
+            self.root.clipboard_append(report_str)
+            messagebox.showinfo("Copied", f"{report['month_label']} Monthly Parent Audit Report copied to clipboard!", parent=win)
+
+        tk.Button(
+            btn_bar,
+            text="📊 Open Tharun's Full Audit Tab",
+            font=("Segoe UI", 9, "bold"),
+            bg=c["primary"],
+            fg="#0f172a",
+            relief=tk.FLAT,
+            padx=14,
+            pady=6,
+            cursor="hand2",
+            command=jump_to_audit_tab
+        ).pack(side=tk.LEFT)
+
+        tk.Button(
+            btn_bar,
+            text="📋 Copy Report for Parents",
+            font=("Segoe UI", 9, "bold"),
+            bg=c["card_border"],
+            fg=c["fg"],
+            relief=tk.FLAT,
+            padx=14,
+            pady=6,
+            cursor="hand2",
+            command=copy_report
+        ).pack(side=tk.LEFT, padx=8)
+
+        tk.Button(
+            btn_bar,
+            text="Close",
+            font=("Segoe UI", 9),
+            bg=c["card_border"],
+            fg=c["fg"],
+            relief=tk.FLAT,
+            padx=14,
+            pady=6,
+            cursor="hand2",
+            command=win.destroy
+        ).pack(side=tk.RIGHT)
+
+    def render_streak_heatmap(self):
+        """Updates the Single Month Tab heading (e.g. October), checks month-end auto-audit, and refreshes open views."""
+        month_name = datetime.now().strftime("%B")
+        if hasattr(self, "btn_month_dropdown") and self.btn_month_dropdown.winfo_exists():
+            is_open = hasattr(self, "month_dropdown_win") and self.month_dropdown_win and self.month_dropdown_win.winfo_exists()
+            arrow = "▴" if is_open else "▾"
+            self.btn_month_dropdown.config(text=f"📅 {month_name} {arrow}")
+            if is_open:
+                self.render_month_chakra_dropdown_box()
+
+        # Check automatic end-of-month report submission
+        self.check_and_auto_submit_month_end_report()
+
+        # If legacy schedule tab canvas exists, keep it safe
+        if hasattr(self, "heatmap_canvas") and self.heatmap_canvas.winfo_exists():
+            cv = self.heatmap_canvas
+            cv.delete("all")
 
     def open_day_summary_window(self, date_str):
         """Displays Feynman notes and detailed log for a specific date."""
@@ -4714,16 +5964,22 @@ class DesktopApp:
         ).pack(side=tk.RIGHT)
 
     def build_schedule_tab(self):
-        # 30-Day Shinobi Consistency Heatmap Banner
-        self.streak_heatmap_banner = tk.Frame(self.tab_schedule, bg=self.colors["card_bg"], bd=1, relief=tk.SOLID, padx=14, pady=8)
-        self.streak_heatmap_banner.pack(fill=tk.X, side=tk.TOP, padx=12, pady=(8, 4))
-        self.build_streak_heatmap_view(self.streak_heatmap_banner)
+        # 30-Day Shinobi Consistency Heatmap has been moved to the Header beside Will of Fire in 2x2 Matrix format
+        # Tab Schedule now gains full vertical canvas for Timetable & Focus Timer
+        self.streak_heatmap_banner = tk.Frame(self.tab_schedule, bg=self.colors["card_bg"])
 
         self.sched_paned = tk.PanedWindow(self.tab_schedule, orient=tk.HORIZONTAL, bg=self.colors["bg"], bd=0, sashwidth=6)
         self.sched_paned.pack(fill=tk.BOTH, expand=True)
 
-        self.timer_card = tk.Frame(self.sched_paned, bg=self.colors["card_bg"], bd=1, relief=tk.SOLID)
-        self.sched_paned.add(self.timer_card, width=380, minsize=320)
+        self.timer_card = tk.Frame(
+            self.sched_paned,
+            bg="#0b111e",
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground=self.colors.get("primary", "#f97316"),
+            highlightthickness=2
+        )
+        self.sched_paned.add(self.timer_card, width=415, minsize=395)
 
         self.timeline_card = tk.Frame(self.sched_paned, bg=self.colors["bg"])
         self.sched_paned.add(self.timeline_card, minsize=480)
@@ -4793,10 +6049,26 @@ class DesktopApp:
         sub = slot.get("subject", "Mathematics")
         self.open_subject_study_playbook_modal(sub, initial_tab=2)
 
+    def open_rescue_slip_modal(self):
+        """Dedicated entrypoint for Option C Rescue Slip modal."""
+        self.open_cognitive_rescue_modal()
+
+    def open_doubt_slip_modal(self):
+        """Dedicated entrypoint for Option C Teacher Doubt Slip modal."""
+        self.open_cognitive_rescue_modal()
+
     def open_parent_diagnostic_modal(self):
         slot = self.all_schedule_slots[self.timer_active_slot_index] if self.all_schedule_slots else {}
         sub = slot.get("subject", "Mathematics")
         self.open_subject_study_playbook_modal(sub, initial_tab=3)
+
+    def open_parent_xray_modal(self):
+        """Dedicated entrypoint for Option C Parent X-Ray modal."""
+        self.open_parent_diagnostic_modal()
+
+    def open_time_audit_modal(self):
+        """Dedicated entrypoint for Time Extension Audit modal."""
+        self.open_v1_audit_inspector_modal()
 
     def open_active_method_demo_modal(self):
         slot = self.all_schedule_slots[self.timer_active_slot_index] if self.all_schedule_slots else {}
@@ -4804,28 +6076,24 @@ class DesktopApp:
         self.open_method_video_demo_modal(sub)
 
     def open_diksha_catalog_modal(self, subject_key="Mathematics"):
-        """Displays 1-click official NCERT/CBSE Diksha chapter micro-animations lookup catalog."""
+        """Displays 1-click official NCERT/CBSE Diksha chapter micro-animations lookup catalog using Unified HUD Shell."""
         c = self.colors
-        win = tk.Toplevel(self.root)
-        win.title("📱 CBSE DIKSHA Official Concept Animation Catalog • Class 8")
-        win.geometry("820x620")
-        win.minsize(740, 520)
-        win.configure(bg=c["bg"], padx=18, pady=14)
-        win.transient(self.root)
+        win, content = self._create_hud_toplevel(
+            "📱 CBSE DIKSHA OFFICIAL CONCEPT ANIMATION CATALOG • CLASS 8",
+            "Official NCERT Class 8 60-90 Second Concept Micro-Animations (Zero Open-Web Rabbit Holes • Zero Ads)",
+            width=840,
+            height=620,
+            min_width=740,
+            min_height=520
+        )
 
-        hdr = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=16, pady=10)
-        hdr.pack(fill=tk.X, pady=(0, 10))
-
-        tk.Label(hdr, text="📱 SENTHIL CBSE DIKSHA OFFICIAL ANIMATION CATALOG", font=("Segoe UI", 12, "bold"), fg=c["primary"], bg=c["card_bg"]).pack(anchor="w")
-        tk.Label(hdr, text="Official NCERT Class 8 60-90 Second Concept Micro-Animations (Zero Open-Web Rabbit Holes • Zero Ads)", font=("Segoe UI", 8), fg=c["fg_muted"], bg=c["card_bg"]).pack(anchor="w", pady=(2, 0))
-
-        pills = tk.Frame(win, bg=c["bg"])
+        pills = tk.Frame(content, bg="#0b1120")
         pills.pack(fill=tk.X, pady=(0, 8))
 
-        detail_card = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=12, pady=10)
+        detail_card = tk.Frame(content, bg="#0f172a", bd=0, highlightthickness=1, highlightbackground="#1e293b", padx=12, pady=10)
         detail_card.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
-        txt_cat = tk.Text(detail_card, font=("Segoe UI", 9), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, padx=12, pady=10, wrap=tk.WORD)
+        txt_cat = tk.Text(detail_card, font=("Segoe UI", 9), bg="#070b14", fg="#f1f5f9", insertbackground="#38bdf8", bd=0, padx=12, pady=10, wrap=tk.WORD)
         txt_cat.pack(fill=tk.BOTH, expand=True)
 
         buttons_dict = {}
@@ -4836,9 +6104,9 @@ class DesktopApp:
             items = CBSE_DIKSHA_CATALOG.get(sk, [])
             txt_cat.config(state=tk.NORMAL)
             txt_cat.delete("1.0", tk.END)
-            txt_cat.insert(tk.END, f"========================================================================\n")
+            txt_cat.insert(tk.END, "========================================================================\n")
             txt_cat.insert(tk.END, f"📚 NCERT CLASS 8 {sk.upper()} • OFFICIAL DIKSHA ANIMATION CATALOG\n")
-            txt_cat.insert(tk.END, f"========================================================================\n\n")
+            txt_cat.insert(tk.END, "========================================================================\n\n")
             for idx, entry in enumerate(items):
                 txt_cat.insert(tk.END, f"▶️ {entry['chapter']}  [{entry['code']}]\n")
                 txt_cat.insert(tk.END, f"   💡 60s Animation: {entry['concept']}\n")
@@ -4848,27 +6116,29 @@ class DesktopApp:
 
             for k, b in buttons_dict.items():
                 if k == sk:
-                    b.config(bg=c["primary"], fg="#0f172a" if self.current_theme == "light" else "#ffffff")
+                    b.config(bg="#0284c7", fg="#ffffff")
                 else:
-                    b.config(bg=c["card_border"], fg=c["fg"])
+                    b.config(bg="#1e293b", fg="#cbd5e1")
 
         for k in CBSE_DIKSHA_CATALOG:
             b = tk.Button(
                 pills,
                 text=f"📚 {k}",
-            font=("Segoe UI", 8, "bold"),
-                bg=c["card_border"],
-                fg=c["fg"],
-            relief=tk.FLAT,
+                font=("Segoe UI", 8, "bold"),
+                bg="#1e293b",
+                fg="#cbd5e1",
+                activebackground="#0369a1",
+                activeforeground="#ffffff",
+                relief=tk.FLAT,
                 padx=8,
                 pady=2,
-            cursor="hand2",
+                cursor="hand2",
                 command=lambda sk=k: select_diksha_sub(sk)
             )
             b.pack(side=tk.LEFT, padx=3)
             buttons_dict[k] = b
 
-        bot_bar = tk.Frame(win, bg=c["bg"])
+        bot_bar = tk.Frame(content, bg="#0b1120")
         bot_bar.pack(fill=tk.X)
 
         def copy_cat():
@@ -4881,22 +6151,24 @@ class DesktopApp:
             self.root.clipboard_append(t)
             messagebox.showinfo("Copied", f"📋 Diksha Catalog for {sk} copied to clipboard!")
 
-        tk.Button(bot_bar, text="📋 Copy Subject Catalog", font=("Segoe UI", 9, "bold"), bg=c["success"], fg="#ffffff", relief=tk.FLAT, padx=12, pady=4, cursor="hand2", command=copy_cat).pack(side=tk.LEFT)
-        tk.Button(bot_bar, text="Close", font=("Segoe UI", 9), bg=c["card_border"], fg=c["fg"], relief=tk.FLAT, padx=14, pady=4, cursor="hand2", command=win.destroy).pack(side=tk.RIGHT)
+        tk.Button(bot_bar, text="📋 Copy Subject Catalog", font=("Segoe UI", 9, "bold"), bg="#16a34a", fg="#ffffff", activebackground="#15803d", activeforeground="#ffffff", relief=tk.FLAT, padx=12, pady=4, cursor="hand2", command=copy_cat).pack(side=tk.LEFT)
+        tk.Button(bot_bar, text="✕ Close", font=("Segoe UI", 9), bg="#1e293b", fg="#94a3b8", activebackground="#334155", activeforeground="#ffffff", relief=tk.FLAT, padx=14, pady=4, cursor="hand2", command=win.destroy).pack(side=tk.RIGHT)
 
         select_diksha_sub(active_k[0])
 
     def open_error_bank_modal(self):
-        """Displays Tharun's Personal Student Error Bank Tracker & Printable Desk Sheet Generator."""
+        """Displays Tharun's Personal Student Error Bank Tracker & Printable Desk Sheet Generator using Unified HUD Shell."""
         c = self.colors
-        win = tk.Toplevel(self.root)
-        win.title("⚠️ Personal Student Error Bank Tracker • Class 8 CBSE")
-        win.geometry("860x700")
-        win.minsize(780, 580)
-        win.configure(bg=c["bg"], padx=18, pady=14)
-        win.transient(self.root)
+        win, content = self._create_hud_toplevel(
+            "⚠️ THARUN'S PERSONAL ERROR BANK & BLURTING RECOVERY HUD",
+            "Habitual Slips Tracker: Tamil Mayangoli, Hindi Matras, Math Negative Signs & SI Units",
+            width=880,
+            height=700,
+            min_width=780,
+            min_height=580
+        )
 
-        error_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "student_error_bank.json")
+        error_file = ERROR_BANK_FILE
         errors = []
         if os.path.exists(error_file):
             try:
@@ -4912,16 +6184,10 @@ class DesktopApp:
             except Exception:
                 pass
 
-        hdr = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=16, pady=10)
-        hdr.pack(fill=tk.X, pady=(0, 10))
-
-        tk.Label(hdr, text="⚠️ THARUN'S PERSONAL ERROR BANK & BLURTING RECOVERY", font=("Segoe UI", 12, "bold"), fg=c["warning"], bg=c["card_bg"]).pack(anchor="w")
-        tk.Label(hdr, text="Habitual Slips Tracker: Tamil ழ/ள/ல Mayangoli, Hindi Matras, Math Negative Signs & SI Units", font=("Segoe UI", 8), fg=c["fg_muted"], bg=c["card_bg"]).pack(anchor="w", pady=(2, 0))
-
-        card = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=12, pady=10)
+        card = tk.Frame(content, bg="#0f172a", bd=0, highlightthickness=1, highlightbackground="#1e293b", padx=12, pady=10)
         card.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
-        txt_errors = tk.Text(card, font=("Segoe UI", 9), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, padx=12, pady=10, wrap=tk.WORD)
+        txt_errors = tk.Text(card, font=("Segoe UI", 9), bg="#070b14", fg="#f1f5f9", insertbackground="#38bdf8", bd=0, padx=12, pady=10, wrap=tk.WORD)
         txt_errors.pack(fill=tk.BOTH, expand=True)
 
         def refresh_display():
@@ -4940,20 +6206,20 @@ class DesktopApp:
 
         refresh_display()
 
-        add_frame = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=12, pady=8)
+        add_frame = tk.Frame(content, bg="#0f172a", bd=0, highlightthickness=1, highlightbackground="#1e293b", padx=12, pady=8)
         add_frame.pack(fill=tk.X, pady=(0, 10))
 
-        tk.Label(add_frame, text="➕ Quick Log New Slip:", font=("Segoe UI", 8, "bold"), fg=c["primary"], bg=c["card_bg"]).grid(row=0, column=0, sticky="w", pady=2)
+        tk.Label(add_frame, text="➕ Quick Log New Slip:", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#0f172a").grid(row=0, column=0, sticky="w", pady=2)
         
         cmb_sub = ttk.Combobox(add_frame, values=["Tamil", "Hindi", "Mathematics", "Physical Science", "Biological Science", "Social Science", "English"], font=("Segoe UI", 8), state="readonly", width=14)
         cmb_sub.set("Tamil")
         cmb_sub.grid(row=0, column=1, padx=4, pady=2)
 
-        ent_cat = tk.Entry(add_frame, font=("Segoe UI", 8), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, width=22)
+        ent_cat = tk.Entry(add_frame, font=("Segoe UI", 8), bg="#070b14", fg="#f1f5f9", insertbackground="#38bdf8", bd=1, relief=tk.SOLID, width=22)
         ent_cat.insert(0, "மயங்கொலி எழுத்து (ழ/ள/ல)")
         ent_cat.grid(row=0, column=2, padx=4, pady=2)
 
-        ent_slip = tk.Entry(add_frame, font=("Segoe UI", 8), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, width=26)
+        ent_slip = tk.Entry(add_frame, font=("Segoe UI", 8), bg="#070b14", fg="#f1f5f9", insertbackground="#38bdf8", bd=1, relief=tk.SOLID, width=26)
         ent_slip.insert(0, "தவளை vs தவலை")
         ent_slip.grid(row=0, column=3, padx=4, pady=2)
 
@@ -4976,9 +6242,9 @@ class DesktopApp:
             refresh_display()
             messagebox.showinfo("Logged", "✅ Slip successfully added to Tharun's Error Bank!")
 
-        tk.Button(add_frame, text="➕ Add to Bank", font=("Segoe UI", 8, "bold"), bg=c["primary"], fg="#0f172a" if self.current_theme == "light" else "#ffffff", relief=tk.FLAT, padx=8, pady=2, cursor="hand2", command=add_error_entry).grid(row=0, column=4, padx=6, pady=2)
+        tk.Button(add_frame, text="➕ Add to Bank", font=("Segoe UI", 8, "bold"), bg="#0284c7", fg="#ffffff", activebackground="#0369a1", activeforeground="#ffffff", relief=tk.FLAT, padx=8, pady=2, cursor="hand2", command=add_error_entry).grid(row=0, column=4, padx=6, pady=2)
 
-        bot_bar = tk.Frame(win, bg=c["bg"])
+        bot_bar = tk.Frame(content, bg="#0b1120")
         bot_bar.pack(fill=tk.X)
 
         def copy_printable_sheet():
@@ -4995,37 +6261,39 @@ class DesktopApp:
             self.root.clipboard_append(t)
             messagebox.showinfo("Copied", "🖨️ 1-Page Desk Error Sheet copied! You can print or paste it onto Tharun's study wall.")
 
-        tk.Button(bot_bar, text="🖨️ Copy 1-Page Desk Sheet", font=("Segoe UI", 9, "bold"), bg=c["success"], fg="#ffffff", relief=tk.FLAT, padx=12, pady=4, cursor="hand2", command=copy_printable_sheet).pack(side=tk.LEFT)
-        tk.Button(bot_bar, text="Close", font=("Segoe UI", 9), bg=c["card_border"], fg=c["fg"], relief=tk.FLAT, padx=14, pady=4, cursor="hand2", command=win.destroy).pack(side=tk.RIGHT)
+        tk.Button(bot_bar, text="🖨️ Copy 1-Page Desk Sheet", font=("Segoe UI", 9, "bold"), bg="#16a34a", fg="#ffffff", activebackground="#15803d", activeforeground="#ffffff", relief=tk.FLAT, padx=12, pady=4, cursor="hand2", command=copy_printable_sheet).pack(side=tk.LEFT)
+        tk.Button(bot_bar, text="✕ Close", font=("Segoe UI", 9), bg="#1e293b", fg="#94a3b8", activebackground="#334155", activeforeground="#ffffff", relief=tk.FLAT, padx=14, pady=4, cursor="hand2", command=win.destroy).pack(side=tk.RIGHT)
 
     def open_archaeologist_dormant_vault_modal(self):
-        """Displays Tharun's Archaeologist Aspiration Vault in Dormant Mode, sealed for college studies."""
+        """Displays Tharun's Archaeologist Aspiration Vault in Dormant Mode, sealed for college studies using Unified HUD Shell."""
         c = self.colors
-        win = tk.Toplevel(self.root)
-        win.title("🏛️ Archaeologist Aspiration Vault (Dormant Mode • College Activation)")
-        win.geometry("820x660")
-        win.minsize(740, 560)
-        win.configure(bg=c["bg"], padx=18, pady=14)
-        win.transient(self.root)
+        win, content = self._create_hud_toplevel(
+            "🏛️ ARCHAEOLOGIST ASPIRATION VAULT (DORMANT MODE)",
+            "Tharun's Vision: The Field Archaeologist & Ancient Civilizations Explorer • Sealed for Undergraduate College Studies",
+            width=840,
+            height=660,
+            min_width=740,
+            min_height=560
+        )
 
-        hdr = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=16, pady=12)
-        hdr.pack(fill=tk.X, pady=(0, 10))
+        top_h = tk.Frame(content, bg="#0f172a", bd=0, highlightthickness=1, highlightbackground="#1e293b", padx=14, pady=10)
+        top_h.pack(fill=tk.X, pady=(0, 10))
 
-        top_h = tk.Frame(hdr, bg=c["card_bg"])
-        top_h.pack(fill=tk.X)
+        top_h_row = tk.Frame(top_h, bg="#0f172a")
+        top_h_row.pack(fill=tk.X)
 
-        tk.Label(top_h, text="🏛️ ARCHAEOLOGIST ASPIRATION VAULT", font=("Segoe UI", 12, "bold"), fg=c["primary"], bg=c["card_bg"]).pack(side=tk.LEFT)
-        tk.Label(top_h, text="🔒 DORMANT MODE (COLLEGE SEAL)", font=("Segoe UI", 8, "bold"), fg="#ffffff", bg="#b45309", padx=8, pady=2).pack(side=tk.RIGHT)
+        tk.Label(top_h_row, text="🏛️ FIELD ARCHAEOLOGIST & EXCAVATION PROTOCOL", font=("Segoe UI", 11, "bold"), fg="#38bdf8", bg="#0f172a").pack(side=tk.LEFT)
+        tk.Label(top_h_row, text="🔒 DORMANT MODE (COLLEGE SEAL)", font=("Segoe UI", 8, "bold"), fg="#ffffff", bg="#b45309", padx=8, pady=2).pack(side=tk.RIGHT)
 
-        tk.Label(hdr, text="Tharun's Vision: The Field Archaeologist & Ancient Civilizations Explorer", font=("Segoe UI", 9, "bold"), fg=c["warning"], bg=c["card_bg"]).pack(anchor="w", pady=(4, 2))
-        tk.Label(hdr, text=ARCHAEOLOGIST_DORMANT_VAULT["vault_seal_reason"], font=("Segoe UI", 8), fg=c["fg_muted"], bg=c["card_bg"], wraplength=760, justify="left").pack(anchor="w")
+        tk.Label(top_h, text="Tharun's Vision: The Field Archaeologist & Ancient Civilizations Explorer", font=("Segoe UI", 9, "bold"), fg="#facc15", bg="#0f172a").pack(anchor="w", pady=(4, 2))
+        tk.Label(top_h, text=ARCHAEOLOGIST_DORMANT_VAULT["vault_seal_reason"], font=("Segoe UI", 8), fg="#94a3b8", bg="#0f172a", wraplength=780, justify="left").pack(anchor="w")
 
-        card = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=14, pady=12)
+        card = tk.Frame(content, bg="#0f172a", bd=0, highlightthickness=1, highlightbackground="#1e293b", padx=12, pady=10)
         card.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
-        tk.Label(card, text="📜 PREVIEW OF PRESERVED COLLEGE MODULES (Sealed for Future Undergraduate Studies):", font=("Segoe UI", 9, "bold"), fg=c["primary"], bg=c["card_bg"]).pack(anchor="w", pady=(0, 8))
+        tk.Label(card, text="📜 PREVIEW OF PRESERVED COLLEGE MODULES (Sealed for Future Undergraduate Studies):", font=("Segoe UI", 9, "bold"), fg="#38bdf8", bg="#0f172a").pack(anchor="w", pady=(0, 8))
 
-        txt_vault = tk.Text(card, font=("Segoe UI", 9), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, padx=12, pady=10, wrap=tk.WORD)
+        txt_vault = tk.Text(card, font=("Segoe UI", 9), bg="#070b14", fg="#f1f5f9", insertbackground="#38bdf8", bd=0, padx=12, pady=10, wrap=tk.WORD)
         txt_vault.pack(fill=tk.BOTH, expand=True)
 
         txt_vault.insert(tk.END, "========================================================================\n")
@@ -5044,11 +6312,11 @@ class DesktopApp:
         txt_vault.insert(tk.END, "Master your school exams today. Your future expedition awaits!\n")
         txt_vault.config(state=tk.DISABLED)
 
-        pass_frame = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=12, pady=8)
+        pass_frame = tk.Frame(content, bg="#0f172a", bd=0, highlightthickness=1, highlightbackground="#1e293b", padx=12, pady=8)
         pass_frame.pack(fill=tk.X, pady=(0, 10))
 
-        tk.Label(pass_frame, text="🔑 College Activation Key:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).pack(side=tk.LEFT, padx=(0, 6))
-        ent_key = tk.Entry(pass_frame, font=("Segoe UI", 8), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, width=22, show="*")
+        tk.Label(pass_frame, text="🔑 College Activation Key:", font=("Segoe UI", 8, "bold"), fg="#f1f5f9", bg="#0f172a").pack(side=tk.LEFT, padx=(0, 6))
+        ent_key = tk.Entry(pass_frame, font=("Segoe UI", 8), bg="#070b14", fg="#f1f5f9", insertbackground="#38bdf8", bd=1, relief=tk.SOLID, width=22, show="*")
         ent_key.insert(0, "COLLEGE-2030")
         ent_key.pack(side=tk.LEFT, padx=(0, 8))
 
@@ -5061,12 +6329,11 @@ class DesktopApp:
                 "Focus on securing 70%+ in Class 8 CBSE today. Every formula, diagram, and essay you write now is the stepping stone to your future archaeology degree!"
             )
 
-        tk.Button(pass_frame, text="🔓 Attempt Unlock", font=("Segoe UI", 8, "bold"), bg="#b45309", fg="#ffffff", relief=tk.FLAT, padx=10, pady=2, cursor="hand2", command=try_unlock).pack(side=tk.LEFT)
+        tk.Button(pass_frame, text="🔓 Attempt Unlock", font=("Segoe UI", 8, "bold"), bg="#b45309", fg="#ffffff", activebackground="#92400e", activeforeground="#ffffff", relief=tk.FLAT, padx=10, pady=2, cursor="hand2", command=try_unlock).pack(side=tk.LEFT)
 
-        bot_bar = tk.Frame(win, bg=c["bg"])
+        bot_bar = tk.Frame(content, bg="#0b1120")
         bot_bar.pack(fill=tk.X)
-        tk.Button(bot_bar, text="Close Vault", font=("Segoe UI", 9), bg=c["card_border"], fg=c["fg"], relief=tk.FLAT, padx=14, pady=4, cursor="hand2", command=win.destroy).pack(side=tk.RIGHT)
-
+        tk.Button(bot_bar, text="✕ Close Vault", font=("Segoe UI", 9), bg="#1e293b", fg="#94a3b8", activebackground="#334155", activeforeground="#ffffff", relief=tk.FLAT, padx=14, pady=4, cursor="hand2", command=win.destroy).pack(side=tk.RIGHT)
     def open_method_video_demo_modal(self, subject_key="Mathematics"):
         """Displays the in-app animated top-down notebook whiteboard demo and storyboard for the subject (100% Offline • Zero Codecs)."""
         c = self.colors
@@ -5358,43 +6625,82 @@ class DesktopApp:
         state["timer_id"] = win.after(100, tick)
 
     def open_subject_study_playbook_modal(self, initial_subject="Mathematics", initial_tab=0, active_topic=None):
-        """Displays the Subject Study Playbook, Topic Tweaker, Cognitive Rescue, Parent Diagnostics, Error Bank & Archaeologist Vault."""
+        """Displays the Subject Study Playbook, Topic Tweaker, Cognitive Rescue, Parent Diagnostics, Error Bank & Archaeologist Vault with Option C Split Sidebar Navigation HUD layout."""
         c = self.colors
         win = tk.Toplevel(self.root)
-        win.title("📘 Study Playbook, Topic Tweaker & Cognitive Rescue Hub • Class 8 CBSE")
-        win.geometry("880x740")
-        win.minsize(800, 620)
-        win.configure(bg=c["bg"], padx=18, pady=14)
+        self.playbook_window = win
+        win.title("📘 Study Playbook, Topic Tweaker & Cognitive Rescue HUD • Class 8 CBSE")
+        win.geometry("1080x750")
+        win.minsize(980, 640)
+        win.configure(bg="#070b14")
         win.transient(self.root)
 
-        hdr = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=16, pady=10)
-        hdr.pack(fill=tk.X, pady=(0, 10))
+        # Top Bar: Option C Cyan HUD Header
+        hdr = tk.Frame(win, bg="#0f172a", padx=16, pady=9, bd=0, highlightthickness=1, highlightbackground="#38bdf8")
+        hdr.pack(fill=tk.X)
+
+        title_box = tk.Frame(hdr, bg="#0f172a")
+        title_box.pack(side=tk.LEFT)
 
         tk.Label(
-            hdr,
-            text="📘 SUBJECT STUDY PLAYBOOK & COGNITIVE RESCUE HUB",
-            font=("Segoe UI", 12, "bold"),
-            fg=c["primary"],
-            bg=c["card_bg"]
+            title_box,
+            text="📘 SUBJECT STUDY PLAYBOOK & COGNITIVE RESCUE HUD",
+            font=("Segoe UI", 11, "bold"),
+            fg="#38bdf8",
+            bg="#0f172a"
         ).pack(anchor="w")
 
         tk.Label(
-            hdr,
+            title_box,
             text="Senthil Public School • Class 8 CBSE Study Mechanics, Topic Tweaks & Parental Diagnostics",
             font=("Segoe UI", 8),
-            fg=c["fg_muted"],
-            bg=c["card_bg"]
-        ).pack(anchor="w", pady=(2, 0))
+            fg="#94a3b8",
+            bg="#0f172a"
+        ).pack(anchor="w", pady=(1, 0))
 
-        # 6 Navigation Tabs Bar
-        tabs_bar = tk.Frame(win, bg=c["bg"])
-        tabs_bar.pack(fill=tk.X, pady=(0, 10))
+        tk.Button(
+            hdr,
+            text="✕ Close Hub",
+            font=("Segoe UI", 8, "bold"),
+            bg="#2a1215",
+            fg="#fca5a5",
+            activebackground="#7f1d1d",
+            activeforeground="#ffffff",
+            relief=tk.FLAT,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#991b1b",
+            padx=12,
+            pady=4,
+            cursor="hand2",
+            command=win.destroy
+        ).pack(side=tk.RIGHT)
+
+        # Main 2-Pane Split Layout
+        body = tk.Frame(win, bg="#070b14", padx=12, pady=10)
+        body.pack(fill=tk.BOTH, expand=True)
+
+        # Left 230px Vertical Navigation Sidebar
+        sidebar = tk.Frame(body, bg="#070b14", width=230, highlightthickness=1, highlightbackground="#1e293b")
+        sidebar.pack_propagate(False)
+        sidebar.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
+
+        tk.Label(
+            sidebar,
+            text="STUDY TOOLKIT HUD",
+            font=("Segoe UI", 8, "bold"),
+            fg="#38bdf8",
+            bg="#070b14",
+            anchor="w",
+            padx=10,
+            pady=8
+        ).pack(fill=tk.X)
 
         tab_buttons = []
         tab_frames = []
 
-        container = tk.Frame(win, bg=c["bg"])
-        container.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        container = tk.Frame(body, bg="#0b1120", highlightthickness=1, highlightbackground="#1e293b")
+        container.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         frame_tab0 = tk.Frame(container, bg=c["bg"])
         frame_tab1 = tk.Frame(container, bg=c["bg"])
@@ -5412,9 +6718,17 @@ class DesktopApp:
                     fr.pack_forget()
             for i, btn in enumerate(tab_buttons):
                 if i == tab_idx:
-                    btn.config(bg=c["primary"], fg="#0f172a" if self.current_theme == "light" else "#ffffff")
+                    btn.config(
+                        bg="#0c2540",
+                        fg="#38bdf8",
+                        highlightbackground="#38bdf8"
+                    )
                 else:
-                    btn.config(bg=c["card_border"], fg=c["fg"])
+                    btn.config(
+                        bg="#0f172a",
+                        fg="#cbd5e1",
+                        highlightbackground="#1e293b"
+                    )
 
         tab_defs = [
             ("📖 1. 4-Step Playbook", 0),
@@ -5426,19 +6740,46 @@ class DesktopApp:
         ]
         for label, idx in tab_defs:
             b = tk.Button(
-                tabs_bar,
+                sidebar,
                 text=label,
-            font=("Segoe UI", 8, "bold"),
-                bg=c["card_border"],
-                fg=c["fg"],
-            relief=tk.FLAT,
-                padx=8,
-                pady=4,
-            cursor="hand2",
+                font=("Segoe UI", 8, "bold"),
+                bg="#0f172a",
+                fg="#cbd5e1",
+                relief=tk.FLAT,
+                bd=0,
+                highlightthickness=1,
+                highlightbackground="#1e293b",
+                anchor="w",
+                padx=12,
+                pady=9,
+                cursor="hand2",
                 command=lambda ti=idx: switch_tab(ti)
             )
-            b.pack(side=tk.LEFT, padx=2)
+            b.pack(fill=tk.X, padx=6, pady=3)
             tab_buttons.append(b)
+
+        # Bottom Sidebar Subject Status Card
+        playbook_status_card = tk.Frame(sidebar, bg="#0f172a", bd=0, highlightthickness=1, highlightbackground="#1e293b", padx=8, pady=8)
+        playbook_status_card.pack(side=tk.BOTTOM, fill=tk.X, padx=6, pady=8)
+
+        tk.Label(
+            playbook_status_card,
+            text="SENTHIL PUBLIC SCHOOL",
+            font=("Segoe UI", 7, "bold"),
+            fg="#facc15",
+            bg="#0f172a",
+            anchor="w"
+        ).pack(fill=tk.X)
+
+        lbl_sidebar_active_sub = tk.Label(
+            playbook_status_card,
+            text=f"Active: {initial_subject}",
+            font=("Segoe UI", 7),
+            fg="#38bdf8",
+            bg="#0f172a",
+            anchor="w"
+        )
+        lbl_sidebar_active_sub.pack(fill=tk.X, pady=(2, 0))
 
         # -------------------------------------------------------------
         # TAB 0: 4-Step Playbook (Read -> Write -> Memorize -> Recall)
@@ -5678,7 +7019,7 @@ class DesktopApp:
             sub = combo_subject.get().strip()
             prob = ent_prob.get().strip()
             imp = combo_impasse.get().strip()
-            today_str = datetime.datetime.now().strftime("%d-%b-%Y")
+            today_str = datetime.now().strftime("%d-%b-%Y")
 
             slip = (
                 f"========================================================================\n"
@@ -5991,240 +7332,310 @@ class DesktopApp:
 
 
     def build_timer_view(self, parent):
-        pad_frame = tk.Frame(parent, bg=self.colors["card_bg"], padx=18, pady=18)
+        # ---------------- STEP 5: CHAKRA FOCUS TIMER PANEL (OPTION A: CIRCULAR CHAKRA RING TIMER) ----------------
+        pad_frame = tk.Frame(parent, bg="#0b111e", padx=12, pady=8)
         pad_frame.pack(fill=tk.BOTH, expand=True)
+        self.timer_pad_frame = pad_frame
 
+        meta = NARUTO_METADATA.get(self.current_theme, NARUTO_METADATA["naruto_sage"])
         self.lbl_timer_head = tk.Label(
             pad_frame,
-            text="⏱️ THARUN'S CHAKRA FOCUS TIMER",
-            font=("Segoe UI", 11, "bold"),
-            fg=self.colors["primary"],
-            bg=self.colors["card_bg"]
+            text=f"⏱️ THARUN'S CHAKRA FOCUS TIMER ({meta['character'].upper()})",
+            font=("Segoe UI", 9, "bold"),
+            fg="#fb923c",
+            bg="#0b111e",
+            anchor="w"
         )
-        self.lbl_timer_head.pack(anchor="w", pady=(0, 8))
+        self.lbl_timer_head.pack(fill=tk.X, pady=(0, 5))
 
-        self.timer_info_box = tk.Frame(pad_frame, bg=self.colors["timer_bg"], padx=10, pady=10, relief=tk.FLAT)
-        self.timer_info_box.pack(fill=tk.X, pady=(0, 14))
+        # Active Slot Info Card
+        self.timer_info_box = tk.Frame(
+            pad_frame,
+            bg="#131c2e",
+            padx=8,
+            pady=6,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#334155",
+            highlightthickness=1
+        )
+        self.timer_info_box.pack(fill=tk.X, pady=(0, 6))
 
-        # Shinobi Companion Portrait (Left)
-        init_timer_img = self.get_naruto_image(self.current_theme, size=(68, 68))
-        self.lbl_timer_art = tk.Label(self.timer_info_box, bg=self.colors["timer_bg"], bd=1, relief=tk.SOLID)
+        init_timer_img = self.get_naruto_image(self.current_theme, size=(52, 52))
+        self.lbl_timer_art = tk.Label(
+            self.timer_info_box,
+            bg="#131c2e",
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#f59e0b",
+            highlightthickness=1
+        )
         if init_timer_img:
             self.lbl_timer_art.configure(image=init_timer_img)
             self.lbl_timer_art.image = init_timer_img
         else:
-            self.lbl_timer_art.configure(text="🍥", font=("Segoe UI", 26))
-        self.lbl_timer_art.pack(side=tk.LEFT, padx=(0, 10))
+            self.lbl_timer_art.configure(text="🍥", font=("Segoe UI", 22))
+        self.lbl_timer_art.pack(side=tk.LEFT, padx=(0, 8))
 
-        text_sub_box = tk.Frame(self.timer_info_box, bg=self.colors["timer_bg"])
+        text_sub_box = tk.Frame(self.timer_info_box, bg="#131c2e")
         text_sub_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.timer_text_sub_box = text_sub_box
 
         self.lbl_slot_phase = tk.Label(
             text_sub_box,
             text="EVENING FOCUS",
-            font=("Segoe UI", 8, "bold"),
-            fg=self.colors["accent"],
-            bg=self.colors["timer_bg"]
+            font=("Segoe UI", 7, "bold"),
+            fg="#fb923c",
+            bg="#131c2e"
         )
         self.lbl_slot_phase.pack(anchor="w")
 
         self.lbl_slot_title = tk.Label(
             text_sub_box,
             text="Select or start a slot",
-            font=("Segoe UI", 10, "bold"),
-            fg=self.colors["fg"],
-            bg=self.colors["timer_bg"],
-            wraplength=210,
+            font=("Segoe UI", 9, "bold"),
+            fg="#f8fafc",
+            bg="#131c2e",
+            wraplength=290,
             justify="left"
         )
-        self.lbl_slot_title.pack(anchor="w", pady=(1, 2))
+        self.lbl_slot_title.pack(anchor="w", pady=(1, 1))
 
         self.lbl_slot_sub = tk.Label(
             text_sub_box,
             text="Mathematics",
             font=("Segoe UI", 8),
-            fg=self.colors["fg_muted"],
-            bg=self.colors["timer_bg"]
+            fg="#94a3b8",
+            bg="#131c2e"
         )
         self.lbl_slot_sub.pack(anchor="w")
 
+        # Keep hidden lbl_countdown for API compatibility; render hero countdown inside Circular Chakra Ring Canvas
         self.lbl_countdown = tk.Label(
             pad_frame,
-            text="40:00",
-            font=("Consolas", 42, "bold"),
-            fg=self.colors["fg"],
-            bg=self.colors["card_bg"]
+            text="15:00",
+            font=("Consolas", 28, "bold"),
+            fg="#f8fafc",
+            bg="#0b111e"
         )
-        self.lbl_countdown.pack(pady=(8, 4))
 
-        self.timer_canvas = tk.Canvas(pad_frame, height=12, bg=self.colors["card_border"], highlightthickness=0)
-        self.timer_canvas.pack(fill=tk.X, pady=(0, 14))
-        self.update_progress_bar(1.0)
+        # Hero Circular Chakra Ring Timer Canvas with Character-Adaptive Outer Flame Glow
+        self.timer_canvas = tk.Canvas(
+            pad_frame,
+            height=134,
+            bg="#0b111e",
+            highlightthickness=0
+        )
+        self.timer_canvas.pack(fill=tk.X, pady=(0, 5))
+        self.timer_canvas.bind("<Configure>", lambda e: self.update_timer_display())
 
-        btn_box = tk.Frame(pad_frame, bg=self.colors["card_bg"])
-        btn_box.pack(fill=tk.X, pady=(0, 12))
+        # 2-Row Control Button Deck (Zero Overflow!)
+        btn_box = tk.Frame(pad_frame, bg="#0b111e")
+        btn_box.pack(fill=tk.X, pady=(0, 5))
+        self.timer_btn_box = btn_box
+
+        ctrl_row1 = tk.Frame(btn_box, bg="#0b111e")
+        ctrl_row1.pack(fill=tk.X, pady=(0, 3))
+        for ci in range(3):
+            ctrl_row1.grid_columnconfigure(ci, weight=(2 if ci == 0 else 1))
 
         self.btn_timer_toggle = tk.Button(
-            btn_box,
+            ctrl_row1,
             text="▶ Start Focus",
-            font=("Segoe UI", 10, "bold"),
-            bg=self.colors["success"],
+            font=("Segoe UI", 9, "bold"),
+            bg="#f97316",
             fg="#0f172a",
-            relief=tk.FLAT,
-            padx=14,
-            pady=7,
+            activebackground="#fbbf24",
+            activeforeground="#0f172a",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#fde047",
+            highlightthickness=1,
+            padx=10,
+            pady=3,
             cursor="hand2",
             command=self.toggle_timer
         )
-        self.btn_timer_toggle.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(0, 4))
+        self.btn_timer_toggle.grid(row=0, column=0, sticky="nsew", padx=(0, 3))
 
         self.btn_timer_reset = tk.Button(
-            btn_box,
+            ctrl_row1,
             text="🔄 Reset",
-            font=("Segoe UI", 9),
-            bg=self.colors["card_border"],
-            fg=self.colors["fg"],
-            relief=tk.FLAT,
-            padx=10,
-            pady=7,
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            activebackground="#1e293b",
+            activeforeground="#f8fafc",
+            padx=8,
+            pady=3,
             cursor="hand2",
             command=self.reset_timer
         )
-        self.btn_timer_reset.pack(side=tk.LEFT, padx=3)
+        self.btn_timer_reset.grid(row=0, column=1, sticky="nsew", padx=2)
 
         self.btn_timer_next = tk.Button(
-            btn_box,
-            text="⏭ Next",
-            font=("Segoe UI", 9),
-            bg=self.colors["card_border"],
-            fg=self.colors["fg"],
-            relief=tk.FLAT,
+            ctrl_row1,
+            text="⏭ Next Slot",
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            activebackground="#1e293b",
+            activeforeground="#f8fafc",
             padx=8,
-            pady=7,
+            pady=3,
             cursor="hand2",
             command=self.skip_to_next_slot
         )
-        self.btn_timer_next.pack(side=tk.LEFT, padx=2)
+        self.btn_timer_next.grid(row=0, column=2, sticky="nsew", padx=(3, 0))
+
+        ctrl_row2 = tk.Frame(btn_box, bg="#0b111e")
+        ctrl_row2.pack(fill=tk.X)
+        ctrl_row2.grid_columnconfigure(0, weight=1, uniform="cr2")
+        ctrl_row2.grid_columnconfigure(1, weight=1, uniform="cr2")
 
         self.btn_timer_early = tk.Button(
-            btn_box,
+            ctrl_row2,
             text="⚡ Done Early!",
             font=("Segoe UI", 8, "bold"),
-            bg="#8b5cf6" if self.current_theme == "dark" else "#7c3aed",
-            fg="#ffffff",
-            relief=tk.FLAT,
+            bg="#131c2e",
+            fg="#facc15",
+            activebackground="#f59e0b",
+            activeforeground="#0f172a",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#eab308",
+            highlightthickness=1,
             padx=8,
-            pady=7,
+            pady=3,
             cursor="hand2",
             command=self.handle_finished_early
         )
-        self.btn_timer_early.pack(side=tk.LEFT, padx=2)
+        self.btn_timer_early.grid(row=0, column=0, sticky="nsew", padx=(0, 3))
 
         self.btn_end_day = tk.Button(
-            btn_box,
+            ctrl_row2,
             text="🏆 Day Complete",
             font=("Segoe UI", 8, "bold"),
-            bg="#059669" if self.current_theme == "dark" else "#10b981",
-            fg="#ffffff",
-            relief=tk.FLAT,
+            bg="#131c2e",
+            fg="#34d399",
+            activebackground="#10b981",
+            activeforeground="#0f172a",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#10b981",
+            highlightthickness=1,
             padx=8,
-            pady=7,
+            pady=3,
             cursor="hand2",
             command=self.show_daily_completion_scroll
         )
-        self.btn_end_day.pack(side=tk.LEFT, padx=(2, 0))
+        self.btn_end_day.grid(row=0, column=1, sticky="nsew", padx=(3, 0))
 
-        # Extra Time Extension Bar
-        ext_bar = tk.Frame(pad_frame, bg=self.colors["timer_bg"], padx=10, pady=8, bd=1, relief=tk.SOLID)
-        ext_bar.pack(fill=tk.X, pady=(0, 10))
+        # Extra Time Extension Bar (Readable Dark Glass Pills)
+        ext_bar = tk.Frame(
+            pad_frame,
+            bg="#131c2e",
+            padx=8,
+            pady=4,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#334155",
+            highlightthickness=1
+        )
+        ext_bar.pack(fill=tk.X, pady=(0, 4))
+        self.timer_ext_bar = ext_bar
 
         lbl_ext = tk.Label(
             ext_bar,
-            text="⏱️ Tharun Needs More Time for Task?",
+            text="⏳ Need More Time?",
             font=("Segoe UI", 8, "bold"),
-            fg=self.colors["warning"],
-            bg=self.colors["timer_bg"]
+            fg="#fb923c",
+            bg="#131c2e"
         )
-        lbl_ext.pack(anchor="w", pady=(0, 4))
+        lbl_ext.pack(side=tk.LEFT, padx=(0, 6))
 
-        quick_btns = tk.Frame(ext_bar, bg=self.colors["timer_bg"])
-        quick_btns.pack(fill=tk.X)
+        quick_btns = tk.Frame(ext_bar, bg="#131c2e")
+        quick_btns.pack(side=tk.RIGHT)
 
-        tk.Button(
-            quick_btns, text="+5m", font=("Segoe UI", 8, "bold"),
-            bg=self.colors["card_border"], fg=self.colors["fg"], relief=tk.FLAT, padx=6, pady=2,
-            cursor="hand2", command=lambda: self.request_slot_extension(5)
-        ).pack(side=tk.LEFT, padx=(0, 4))
+        def _make_ext_pill(txt, mins_val):
+            b = tk.Button(
+                quick_btns,
+                text=txt,
+                font=("Segoe UI", 7, "bold"),
+                bg="#1e293b",
+                fg="#f8fafc",
+                relief=tk.SOLID,
+                bd=1,
+                highlightbackground="#475569",
+                highlightthickness=1,
+                padx=6,
+                pady=1,
+                activebackground="#f97316",
+                activeforeground="#0f172a",
+                cursor="hand2",
+                command=lambda m=mins_val: self.request_slot_extension(m)
+            )
+            b.pack(side=tk.LEFT, padx=2)
+            return b
 
-        tk.Button(
-            quick_btns, text="+10m", font=("Segoe UI", 8, "bold"),
-            bg=self.colors["card_border"], fg=self.colors["fg"], relief=tk.FLAT, padx=6, pady=2,
-            cursor="hand2", command=lambda: self.request_slot_extension(10)
-        ).pack(side=tk.LEFT, padx=(0, 4))
+        b5 = _make_ext_pill("+5m", 5)
+        b10 = _make_ext_pill("+10m", 10)
+        b15 = _make_ext_pill("+15m", 15)
+        bcust = _make_ext_pill("Custom...", None)
+        self.timer_ext_buttons = [b5, b10, b15, bcust]
 
-        tk.Button(
-            quick_btns, text="+15m", font=("Segoe UI", 8, "bold"),
-            bg=self.colors["card_border"], fg=self.colors["fg"], relief=tk.FLAT, padx=6, pady=2,
-            cursor="hand2", command=lambda: self.request_slot_extension(15)
-        ).pack(side=tk.LEFT, padx=(0, 4))
+        # Compact Audio & Voice Bar
+        opt_box = tk.Frame(
+            pad_frame,
+            bg="#131c2e",
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=8,
+            pady=4
+        )
+        opt_box.pack(fill=tk.X, pady=(0, 4))
+        self.timer_opt_box = opt_box
 
-        tk.Button(
-            quick_btns, text="Custom...", font=("Segoe UI", 8),
-            bg=self.colors["card_border"], fg=self.colors["primary"], relief=tk.FLAT, padx=6, pady=2,
-            cursor="hand2", command=lambda: self.request_slot_extension(None)
-        ).pack(side=tk.RIGHT)
-
-        opt_box = tk.Frame(pad_frame, bg=self.colors["card_bg"], bd=1, relief=tk.SOLID, padx=10, pady=8)
-        opt_box.pack(fill=tk.X, pady=(0, 10))
-
-        s_head_row = tk.Frame(opt_box, bg=self.colors["card_bg"])
-        s_head_row.pack(fill=tk.X, pady=(0, 4))
+        s_head_row = tk.Frame(opt_box, bg="#131c2e")
+        s_head_row.pack(fill=tk.X)
 
         self.var_sound = tk.BooleanVar(value=True)
         chk_sound = tk.Checkbutton(
             s_head_row,
-            text="🔔 Audio Cues (Eyes-Free Study):",
+            text="🔔",
             variable=self.var_sound,
             font=("Segoe UI", 8, "bold"),
-            fg=self.colors["primary"],
-            bg=self.colors["card_bg"],
-            activebackground=self.colors["card_bg"],
-            selectcolor=self.colors["input_bg"]
+            fg="#fb923c",
+            bg="#131c2e",
+            activebackground="#131c2e",
+            selectcolor="#0b111e"
         )
         chk_sound.pack(side=tk.LEFT)
-
-        btn_test_sound = tk.Button(
-            s_head_row,
-            text="🔊 Test Sound",
-            font=("Segoe UI", 8, "bold"),
-            bg=self.colors["card_border"],
-            fg=self.colors["fg"],
-            relief=tk.FLAT,
-            padx=7,
-            pady=1,
-            cursor="hand2",
-            command=self.test_sound_cue
-        )
-        btn_test_sound.pack(side=tk.RIGHT)
-
-        s_ctrl_row = tk.Frame(opt_box, bg=self.colors["card_bg"])
-        s_ctrl_row.pack(fill=tk.X)
-
-        tk.Label(s_ctrl_row, text="Voice & Sound:", font=("Segoe UI", 8, "bold"), fg=self.colors["fg_muted"], bg=self.colors["card_bg"]).pack(side=tk.LEFT, padx=(0, 4))
+        self.chk_sound = chk_sound
 
         init_preset = getattr(self, "sound_preset", "naruto_all")
         if init_preset == "naruto_voice" or init_preset not in SOUND_PRESET_DISPLAY:
             init_preset = "naruto_all"
         self.sound_preset_var = tk.StringVar(value=init_preset)
         self.combo_sound_preset = ttk.Combobox(
-            s_ctrl_row,
+            s_head_row,
             values=list(SOUND_PRESET_DISPLAY.values()),
             state="readonly",
-            font=("Segoe UI", 8),
-            width=35
+            font=("Segoe UI", 7),
+            width=18
         )
         self.combo_sound_preset.set(SOUND_PRESET_DISPLAY.get(init_preset, SOUND_PRESET_DISPLAY["naruto_all"]))
-        self.combo_sound_preset.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.combo_sound_preset.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=3)
 
         def on_sound_preset_changed(event=None):
             val = self.combo_sound_preset.get()
@@ -6237,164 +7648,151 @@ class DesktopApp:
 
         self.combo_sound_preset.bind("<<ComboboxSelected>>", on_sound_preset_changed)
 
-        btn_browse_wisdom = tk.Button(
-            opt_box,
-            text="🎙️ Voice & Wisdom Scroll (43 Tracks: Naruto & Alexa Assistants)",
-            font=("Segoe UI", 8, "bold"),
-            bg=self.colors["card_border"],
-            fg=self.colors["primary"],
-            relief=tk.FLAT,
-            padx=8,
-            pady=3,
+        self.btn_test_sound = tk.Button(
+            s_head_row,
+            text="🔊 Test",
+            font=("Segoe UI", 7, "bold"),
+            bg="#1e293b",
+            fg="#f8fafc",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#475569",
+            highlightthickness=1,
+            activebackground="#f97316",
+            activeforeground="#0f172a",
+            padx=5,
+            pady=1,
+            cursor="hand2",
+            command=self.test_sound_cue
+        )
+        self.btn_test_sound.pack(side=tk.LEFT, padx=(0, 3))
+
+        self.btn_browse_wisdom = tk.Button(
+            s_head_row,
+            text="🎙️ 43 Tracks",
+            font=("Segoe UI", 7, "bold"),
+            bg="#1e293b",
+            fg="#facc15",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#475569",
+            highlightthickness=1,
+            activebackground="#f97316",
+            activeforeground="#0f172a",
+            padx=5,
+            pady=1,
             cursor="hand2",
             command=self.open_shinobi_wisdom_modal
         )
-        btn_browse_wisdom.pack(fill=tk.X, pady=(6, 0))
+        self.btn_browse_wisdom.pack(side=tk.RIGHT)
+
+        # Habit Rule & 2-Column Study Tools Deck
+        habit_box = tk.Frame(
+            pad_frame,
+            bg="#131c2e",
+            padx=8,
+            pady=5,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#334155",
+            highlightthickness=1
+        )
+        habit_box.pack(fill=tk.BOTH, expand=True)
+        self.timer_habit_box = habit_box
+
+        h_top = tk.Frame(habit_box, bg="#131c2e")
+        h_top.pack(side=tk.TOP, fill=tk.X, pady=(0, 2))
+
+        tk.Label(
+            h_top,
+            text="💡 Habit Rule for Tharun:",
+            font=("Segoe UI", 8, "bold"),
+            fg="#facc15",
+            bg="#131c2e"
+        ).pack(side=tk.LEFT)
 
         self.btn_subject_playbook = tk.Button(
-            opt_box,
-            text="📘 Subject Study Playbook & Skills (Read ➔ Write ➔ Memorize ➔ Recall)",
-            font=("Segoe UI", 8, "bold"),
-            bg=self.colors["accent"] if self.current_theme == "light" else "#0e7490",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=8,
-            pady=3,
+            h_top,
+            text="📘 Study Playbook",
+            font=("Segoe UI", 7, "bold"),
+            bg="#1e293b",
+            fg="#38bdf8",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#475569",
+            highlightthickness=1,
+            padx=5,
+            pady=1,
             cursor="hand2",
             command=self.open_subject_study_playbook_modal
         )
-        self.btn_subject_playbook.pack(fill=tk.X, pady=(4, 0))
-
-        lbl_guidance_head = tk.Label(
-            pad_frame,
-            text="💡 Habit Rule for Tharun:",
-            font=("Segoe UI", 9, "bold"),
-            fg=self.colors["warning"],
-            bg=self.colors["card_bg"]
-        )
-        lbl_guidance_head.pack(anchor="w", pady=(8, 2))
-
-        self.lbl_slot_guidance = tk.Label(
-            pad_frame,
-            text="Stay at the study desk until the timer rings. Clear homework first, then solve Maths problems by hand!",
-            font=("Segoe UI", 8),
-            fg=self.colors["fg_muted"],
-            bg=self.colors["card_bg"],
-            wraplength=280,
-            justify="left"
-        )
-        self.lbl_slot_guidance.pack(anchor="w")
+        self.btn_subject_playbook.pack(side=tk.RIGHT)
 
         self.btn_active_sub_guide = tk.Button(
-            pad_frame,
-            text="💡 How to Study Active Subject",
-            font=("Segoe UI", 8, "bold"),
-            bg=self.colors["highlight"],
-            fg=self.colors["primary"],
-            relief=tk.FLAT,
-            padx=8,
-            pady=3,
+            h_top,
+            text="💡 How to Study",
+            font=("Segoe UI", 7, "bold"),
+            bg="#1e293b",
+            fg="#fb923c",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#475569",
+            highlightthickness=1,
+            padx=5,
+            pady=1,
             cursor="hand2",
             command=self.open_active_subject_guide
         )
-        self.btn_active_sub_guide.pack(anchor="w", pady=(6, 2))
+        self.btn_active_sub_guide.pack(side=tk.RIGHT, padx=(0, 4))
 
-        rescue_row = tk.Frame(pad_frame, bg=self.colors["card_bg"])
-        rescue_row.pack(fill=tk.X, pady=(2, 0))
+        # Anchor Tidy 2-Row x 4-Column Grid of Uniform Dark Glass Study Tools at the BOTTOM so it never clips!
+        tools_grid = tk.Frame(habit_box, bg="#131c2e")
+        tools_grid.pack(side=tk.BOTTOM, fill=tk.X, pady=(2, 0))
+        for tc in range(4):
+            tools_grid.grid_columnconfigure(tc, weight=1, uniform="t_col")
 
-        tk.Button(
-            rescue_row,
-            text="🎯 Topic Tweaker",
-            font=("Segoe UI", 8, "bold"),
-            bg=self.colors["accent"] if self.current_theme == "light" else "#0284c7",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=6,
-            pady=2,
-            cursor="hand2",
-            command=self.open_active_subject_tweaker
-        ).pack(side=tk.LEFT, padx=(0, 2))
+        def _make_tool_btn(r_i, c_i, txt, cmd, fg_col="#f8fafc", colspan=1):
+            b = tk.Button(
+                tools_grid,
+                text=txt,
+                font=("Segoe UI", 7, "bold"),
+                bg="#1e293b",
+                fg=fg_col,
+                relief=tk.SOLID,
+                bd=1,
+                highlightbackground="#334155",
+                highlightthickness=1,
+                activebackground="#f97316",
+                activeforeground="#0f172a",
+                padx=4,
+                pady=2,
+                cursor="hand2",
+                command=cmd
+            )
+            b.grid(row=r_i, column=c_i, columnspan=colspan, sticky="nsew", padx=2, pady=2)
+            return b
 
-        tk.Button(
-            rescue_row,
-            text="🆘 Cognitive Rescue",
-            font=("Segoe UI", 8, "bold"),
-            bg="#b91c1c" if self.current_theme == "dark" else "#dc2626",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=6,
-            pady=2,
-            cursor="hand2",
-            command=self.open_cognitive_rescue_modal
-        ).pack(side=tk.LEFT, padx=2)
+        b_tweaker = _make_tool_btn(0, 0, "🎯 Topic Tweaks", self.open_active_subject_tweaker, "#38bdf8")
+        b_cog = _make_tool_btn(0, 1, "🆘 Doubt Slip", self.open_cognitive_rescue_modal, "#f87171")
+        b_xray = _make_tool_btn(0, 2, "🔍 Parent X-Ray", self.open_parent_diagnostic_modal, "#e2e8f0")
+        b_demo = _make_tool_btn(0, 3, "🎥 60s Demo", self.open_active_method_demo_modal, "#fb923c")
+        b_err = _make_tool_btn(1, 0, "⚠️ Error Bank", self.open_error_bank_modal, "#facc15")
+        b_diksha = _make_tool_btn(1, 1, "📱 Diksha QR", lambda: self.open_diksha_catalog_modal(self.all_schedule_slots[self.timer_active_slot_index].get("subject", "Mathematics") if self.all_schedule_slots else "Mathematics"), "#34d399")
+        b_vault = _make_tool_btn(1, 2, "🏛️ Vault (Dormant)", self.open_archaeologist_dormant_vault_modal, "#94a3b8", colspan=2)
 
-        tk.Button(
-            rescue_row,
-            text="🔍 Parent X-Ray",
-            font=("Segoe UI", 8, "bold"),
-            bg="#4338ca" if self.current_theme == "dark" else "#4f46e5",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=6,
-            pady=2,
-            cursor="hand2",
-            command=self.open_parent_diagnostic_modal
-        ).pack(side=tk.LEFT, padx=2)
+        self.lbl_slot_guidance = tk.Label(
+            habit_box,
+            text="Stay at the study desk until the timer rings. Clear homework first, then solve Maths problems by hand!",
+            font=("Segoe UI", 7),
+            fg="#cbd5e1",
+            bg="#131c2e",
+            wraplength=365,
+            justify="left"
+        )
+        self.lbl_slot_guidance.pack(side=tk.TOP, anchor="w", pady=(0, 2))
 
-        tk.Button(
-            rescue_row,
-            text="🎥 60s Demo",
-            font=("Segoe UI", 8, "bold"),
-            bg="#b91c1c" if self.current_theme == "dark" else "#dc2626",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=6,
-            pady=2,
-            cursor="hand2",
-            command=self.open_active_method_demo_modal
-        ).pack(side=tk.LEFT, padx=(2, 0))
-
-        rescue_row2 = tk.Frame(pad_frame, bg=self.colors["card_bg"])
-        rescue_row2.pack(fill=tk.X, pady=(4, 0))
-
-        tk.Button(
-            rescue_row2,
-            text="⚠️ Error Bank",
-            font=("Segoe UI", 8, "bold"),
-            bg="#b45309" if self.current_theme == "dark" else "#d97706",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=6,
-            pady=2,
-            cursor="hand2",
-            command=self.open_error_bank_modal
-        ).pack(side=tk.LEFT, padx=(0, 2))
-
-        tk.Button(
-            rescue_row2,
-            text="📱 Diksha QR",
-            font=("Segoe UI", 8, "bold"),
-            bg="#0369a1" if self.current_theme == "dark" else "#0284c7",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=6,
-            pady=2,
-            cursor="hand2",
-            command=lambda: self.open_diksha_catalog_modal(self.all_schedule_slots[self.timer_active_slot_index].get("subject", "Mathematics") if self.all_schedule_slots else "Mathematics")
-        ).pack(side=tk.LEFT, padx=2)
-
-        tk.Button(
-            rescue_row2,
-            text="🏛️ Vault (Dormant)",
-            font=("Segoe UI", 8, "bold"),
-            bg=self.colors["card_border"],
-            fg="#b45309",
-            relief=tk.FLAT,
-            padx=6,
-            pady=2,
-            cursor="hand2",
-            command=self.open_archaeologist_dormant_vault_modal
-        ).pack(side=tk.LEFT, padx=2)
+        self.rescue_buttons = [b_tweaker, b_cog, b_xray, b_demo, b_err, b_diksha, b_vault]
+        self.update_progress_bar(1.0)
 
     def build_timeline_view(self, parent):
         self.timeline_header = tk.Frame(parent, bg=self.colors["bg"])
@@ -6487,7 +7885,9 @@ class DesktopApp:
             text="🗺️ Horizon & Roadmap",
             font=("Segoe UI", 8, "bold"),
             bg=self.colors["accent"],
-            fg="#0f172a",
+            fg=get_contrast_fg(self.colors["accent"]),
+            activebackground=self.colors["primary"],
+            activeforeground=get_contrast_fg(self.colors["primary"]),
             relief=tk.FLAT,
             padx=6,
             pady=2,
@@ -6498,34 +7898,41 @@ class DesktopApp:
 
         btn_box = tk.Frame(self.timeline_header, bg=self.colors["bg"])
         btn_box.pack(side=tk.RIGHT)
+        self.timeline_btn_box = btn_box
 
-        btn_regen = tk.Button(
+        self.btn_regen = tk.Button(
             btn_box,
             text="⚡ Refresh Timetable",
             font=("Segoe UI", 8, "bold"),
             bg=self.colors["primary"],
-            fg="#0f172a" if self.current_theme == "dark" else "#ffffff",
+            fg=get_contrast_fg(self.colors["primary"]),
+            activebackground=self.colors.get("primary_hover", self.colors["primary"]),
+            activeforeground=get_contrast_fg(self.colors.get("primary_hover", self.colors["primary"])),
             relief=tk.FLAT,
             padx=8,
             pady=3,
             cursor="hand2",
             command=self.handle_generate_schedule
         )
-        btn_regen.pack(side=tk.LEFT, padx=4)
+        self.btn_regen.pack(side=tk.LEFT, padx=4)
 
-        btn_export = tk.Button(
+        self.btn_export = tk.Button(
             btn_box,
             text="📋 Copy / Print",
             font=("Segoe UI", 8),
-            bg=self.colors["card_border"],
+            bg=self.colors["input_bg"],
             fg=self.colors["fg"],
-            relief=tk.FLAT,
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground=self.colors["card_border"],
+            activebackground=self.colors["card_border"],
+            activeforeground=get_contrast_fg(self.colors["card_border"]),
             padx=8,
             pady=3,
             cursor="hand2",
             command=self.export_timetable
         )
-        btn_export.pack(side=tk.LEFT)
+        self.btn_export.pack(side=tk.LEFT)
 
         canvas_frame = tk.Frame(parent, bg=self.colors["bg"])
         canvas_frame.pack(fill=tk.BOTH, expand=True, padx=12, pady=0)
@@ -6547,6 +7954,20 @@ class DesktopApp:
         self.render_timetable_cards()
 
     def update_timeline_header_mode_view(self):
+        if hasattr(self, "sub_prep_container") and self.sub_prep_container.winfo_exists():
+            for w_attr in ["lbl_exam_sub", "exam_sub_combo", "lbl_pre_exam_day", "pre_exam_day_combo", "lbl_daily_mode_tag"]:
+                w_obj = getattr(self, w_attr, None)
+                if w_obj and w_obj.winfo_exists():
+                    w_obj.pack_forget()
+            if self.is_exam_mode:
+                self.lbl_exam_sub.pack(side=tk.LEFT, padx=(2, 2))
+                self.exam_sub_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            elif self.is_pre_exam_mode:
+                self.lbl_pre_exam_day.pack(side=tk.LEFT, padx=(2, 2))
+                self.pre_exam_day_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            else:
+                self.lbl_daily_mode_tag.pack(expand=True)
+
         if not hasattr(self, "balanced_controls_frame"):
             return
 
@@ -6572,6 +7993,50 @@ class DesktopApp:
         if self.notebook.index(self.notebook.select()) == 0:
             self.sched_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
+    def _create_parchment_scroll_banner(self, parent, title_text, right_text=None, pady=(4, 6)):
+        """Renders an unfurled warm parchment scroll banner with crimson wooden spindle ends and gold rings."""
+        banner = tk.Frame(
+            parent,
+            bg="#f5e4c3",
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#b45309",
+            highlightthickness=1
+        )
+        banner.pack(fill=tk.X, pady=pady)
+
+        # Left crimson spindle + gold ring
+        tk.Frame(banner, bg="#881b1b", width=10).pack(side=tk.LEFT, fill=tk.Y)
+        tk.Frame(banner, bg="#eab308", width=3).pack(side=tk.LEFT, fill=tk.Y)
+
+        # Right crimson spindle + gold ring
+        tk.Frame(banner, bg="#881b1b", width=10).pack(side=tk.RIGHT, fill=tk.Y)
+        tk.Frame(banner, bg="#eab308", width=3).pack(side=tk.RIGHT, fill=tk.Y)
+
+        mid = tk.Frame(banner, bg="#f5e4c3", padx=10, pady=5)
+        mid.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        tk.Label(
+            mid,
+            text=f"📜  {title_text}",
+            font=("Segoe UI", 9, "bold"),
+            fg="#1f1206",
+            bg="#f5e4c3",
+            anchor="w"
+        ).pack(side=tk.LEFT)
+
+        if right_text:
+            tk.Label(
+                mid,
+                text=right_text,
+                font=("Segoe UI", 8, "bold"),
+                fg="#7f1d1d",
+                bg="#fde68a",
+                padx=8,
+                pady=1
+            ).pack(side=tk.RIGHT)
+        return banner
+
     def render_timetable_cards(self):
         for widget in self.sched_inner.winfo_children():
             widget.destroy()
@@ -6585,63 +8050,99 @@ class DesktopApp:
 
         if self.is_pre_exam_mode:
             day_data = self.get_active_pre_exam_day_data()
-            eve_header_text = f"📅 PRE-EXAM ROUTINE (DAY {self.pre_exam_day}/{self.pre_exam_duration_days}): {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')} • {day_data['title']}"
-            morn_header_text = f"🌅 MORNING RETENTION PRIMING: 6:00 AM – 7:30 AM • {day_data['morning_task']}"
-            lbl_ev = tk.Label(
-                self.sched_inner,
-                text=eve_header_text,
-                font=("Segoe UI", 9, "bold"),
-                fg=self.colors["accent"],
-                bg=self.colors["bg"]
-            )
+            eve_header_text = f"PRE-EXAM ROUTINE (DAY {self.pre_exam_day}/{self.pre_exam_duration_days}): {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')} • {day_data['title']}"
+            morn_header_text = f"MORNING RETENTION PRIMING: 6:00 AM – 7:30 AM • {day_data['morning_task']}"
+            eve_tag = f"DAY {self.pre_exam_day}/{self.pre_exam_duration_days}"
         elif self.is_exam_mode:
-            eve_header_text = f"🔥 EXAM EVE SPRINT ({self.selected_exam_subject.upper()}): {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')} • 3-Stage Mastery"
-            morn_header_text = f"🌅 MORNING EXAM RETENTION PRIMING: 6:00 AM – 7:30 AM • Retention & Mindset"
-            lbl_ev = tk.Label(
-                self.sched_inner,
-                text=eve_header_text,
-                font=("Segoe UI", 9, "bold"),
-                fg=self.colors["warning"],
-                bg=self.colors["bg"]
-            )
+            eve_header_text = f"EXAM EVE SPRINT ({self.selected_exam_subject.upper()}): {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')} • 3-Stage Mastery"
+            morn_header_text = "MORNING EXAM RETENTION PRIMING: 6:00 AM – 7:30 AM • Retention & Mindset"
+            eve_tag = "EXAM SPRINT"
         else:
             eve_header_text = f"🌙 SCHOOL DIARY & SUBJECT SLABS: {start_dt.strftime('%I:%M %p')} – {finish_dt.strftime('%I:%M %p')}"
             morn_header_text = f"🌅 MORNING RETENTION PLAN: {lvl['morn_start']} – {lvl['morn_end']} ({self.selected_language})"
-            lbl_ev = tk.Label(
-                self.sched_inner,
-                text=eve_header_text,
-                font=("Segoe UI", 9, "bold"),
-                fg=self.colors["primary"],
-                bg=self.colors["bg"]
-            )
-        lbl_ev.pack(anchor="w", pady=(4, 6))
+            eve_tag = f"{len(self.evening_schedule)} SLOTS"
+
+        self._create_parchment_scroll_banner(self.sched_inner, eve_header_text, right_text=eve_tag, pady=(2, 6))
 
         for idx, slot in enumerate(self.evening_schedule):
             self.create_slot_card(idx, slot)
 
-        lbl_morn = tk.Label(
+        self._create_parchment_scroll_banner(
             self.sched_inner,
-            text=morn_header_text,
-            font=("Segoe UI", 9, "bold"),
-            fg=self.colors["accent"],
-            bg=self.colors["bg"]
+            morn_header_text,
+            right_text=f"{len(self.morning_schedule)} SLOTS",
+            pady=(10, 6)
         )
-        lbl_morn.pack(anchor="w", pady=(12, 6))
 
         offset = len(self.evening_schedule)
         for idx, slot in enumerate(self.morning_schedule):
             self.create_slot_card(offset + idx, slot)
 
     def create_slot_card(self, global_idx, slot):
-        c = self.colors
+        # ---------------- STEP 6: DAILY SCHEDULE LIST (OPTION C: SCROLL & CHAKRA LEDGER) ----------------
         is_break = slot["type"] == "break"
         is_active = (global_idx == self.timer_active_slot_index)
         is_completed = slot.get("is_completed", False)
 
-        card_bg = c["highlight"] if is_active else c["card_bg"]
-        card_border = c.get("card_border", "#334155")
-        if is_completed and not is_active:
-            card_border = c.get("success", "#10b981")
+        def _bind_click_recursive(w_node):
+            try:
+                w_node.bind("<Button-1>", lambda e, idx=global_idx: self.select_timer_slot(idx))
+            except Exception:
+                pass
+            for ch in w_node.winfo_children():
+                _bind_click_recursive(ch)
+
+        if is_break:
+            card_bg = "#0c2e27" if is_active else "#09221e"
+            card_border = "#34d399" if is_active else "#059669"
+            card = tk.Frame(
+                self.sched_inner,
+                bg=card_bg,
+                bd=1,
+                relief=tk.SOLID,
+                highlightbackground=card_border,
+                highlightthickness=(2 if is_active else 1),
+                padx=10,
+                pady=4,
+                cursor="hand2"
+            )
+            card.pack(fill=tk.X, pady=2)
+            self.slot_frames.append(card)
+
+            tk.Label(
+                card,
+                text=f"⏱️ {slot['start']} – {slot['end']} ({slot['duration_mins']}m)",
+                font=("Segoe UI", 8, "bold"),
+                fg="#34d399",
+                bg=card_bg
+            ).pack(side=tk.LEFT, padx=(0, 10))
+
+            tk.Label(
+                card,
+                text=slot["title"],
+                font=("Segoe UI", 8, "bold"),
+                fg="#a7f3d0",
+                bg=card_bg,
+                anchor="w"
+            ).pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+            tk.Label(
+                card,
+                text=slot["badge"],
+                font=("Segoe UI", 8, "bold"),
+                fg="#041311",
+                bg="#10b981",
+                padx=8,
+                pady=1
+            ).pack(side=tk.RIGHT)
+
+            _bind_click_recursive(card)
+            return
+
+        # Study / Homework Ledger Card
+        card_bg = "#172036" if is_active else "#0e172a"
+        card_border = "#f59e0b" if is_active else ("#10b981" if is_completed else "#b48a3e")
+        border_w = 2 if is_active else 1
 
         card = tk.Frame(
             self.sched_inner,
@@ -6649,54 +8150,103 @@ class DesktopApp:
             bd=1,
             relief=tk.SOLID,
             highlightbackground=card_border,
-            highlightthickness=1,
-            padx=12,
-            pady=7,
+            highlightthickness=border_w,
+            padx=10,
+            pady=6,
             cursor="hand2"
         )
-        card.pack(fill=tk.X, pady=2)
+        card.pack(fill=tk.X, pady=3)
         self.slot_frames.append(card)
 
-        top_row = tk.Frame(card, bg=card_bg)
-        top_row.pack(fill=tk.X)
+        if is_active:
+            tk.Frame(card, bg="#f59e0b", width=4).pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
 
-        time_text = f"{slot['start']} – {slot['end']} ({slot['duration_mins']}m)"
-        lbl_time = tk.Label(
-            top_row,
-            text=time_text,
-            font=("Segoe UI", 9, "bold"),
-            fg=c["primary"] if not is_break else c["break_color"],
-            bg=card_bg
+        # 1. Left Gold-Bordered Time Plaque
+        plaque_bg = "#1e293b" if is_active else "#131c2e"
+        plaque_border = "#f59e0b" if is_active else "#d4af5a"
+        time_plaque = tk.Frame(
+            card,
+            bg=plaque_bg,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground=plaque_border,
+            highlightthickness=1,
+            padx=8,
+            pady=3
         )
-        lbl_time.pack(side=tk.LEFT)
+        time_plaque.pack(side=tk.LEFT, padx=(0, 10))
 
-        badge_bg = c["accent"] if not is_break else c["break_color"]
-        if is_completed:
-            badge_bg = c.get("success", "#10b981")
+        tk.Label(
+            time_plaque,
+            text=f"{slot['start']} – {slot['end']}",
+            font=("Segoe UI", 8, "bold"),
+            fg="#fde047",
+            bg=plaque_bg
+        ).pack(anchor="w")
 
-        lbl_badge = tk.Label(
-            top_row,
+        tk.Label(
+            time_plaque,
+            text=f"⏱️ {slot['duration_mins']}m Sprint",
+            font=("Segoe UI", 7, "bold"),
+            fg="#fb923c" if is_active else "#94a3b8",
+            bg=plaque_bg
+        ).pack(anchor="w")
+
+        # 2. Right Mini Parchment Scroll Badge (with Amber Parchment Rollover Styling)
+        is_rollover_slot = slot.get("is_rollover", False) or "rollover" in slot.get("badge", "").lower()
+        badge_bg = "#fef3c7" if is_rollover_slot else "#f5e4c3"
+        badge_border = "#d97706" if is_rollover_slot else "#991b1b"
+        side_strip_bg = "#b45309" if is_rollover_slot else "#881b1b"
+        badge_fg = "#78350f" if is_rollover_slot else "#1f1206"
+
+        scroll_badge = tk.Frame(
+            card,
+            bg=badge_bg,
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground=badge_border,
+            highlightthickness=1
+        )
+        scroll_badge.pack(side=tk.RIGHT, padx=(8, 0))
+        tk.Frame(scroll_badge, bg=side_strip_bg, width=4).pack(side=tk.LEFT, fill=tk.Y)
+        tk.Frame(scroll_badge, bg=side_strip_bg, width=4).pack(side=tk.RIGHT, fill=tk.Y)
+        tk.Label(
+            scroll_badge,
             text=slot["badge"],
             font=("Segoe UI", 8, "bold"),
-            fg="#ffffff" if self.current_theme == "light" else "#0f172a",
+            fg=badge_fg,
             bg=badge_bg,
-            padx=6,
-            pady=1
-        )
-        lbl_badge.pack(side=tk.RIGHT)
+            padx=7,
+            pady=2
+        ).pack(side=tk.LEFT)
 
-        lbl_title = tk.Label(
-            card,
-            text=slot["title"],
-            font=("Segoe UI", 9, "bold" if not is_break else "normal"),
-            fg=c["fg"] if not is_completed else c.get("fg_muted", "#94a3b8"),
+        # 3. Center Task Title & Guidance Sub-Line
+        mid_box = tk.Frame(card, bg=card_bg)
+        mid_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        title_prefix = "🔥 " if is_active else ("✅ " if is_completed else "")
+        tk.Label(
+            mid_box,
+            text=f"{title_prefix}{slot['title']}",
+            font=("Segoe UI", 9, "bold"),
+            fg="#fef08a" if is_active else ("#94a3b8" if is_completed else "#f8fafc"),
             bg=card_bg,
             anchor="w"
-        )
-        lbl_title.pack(fill=tk.X, pady=(2, 0))
+        ).pack(fill=tk.X)
 
-        for widget in [card, top_row, lbl_time, lbl_badge, lbl_title]:
-            widget.bind("<Button-1>", lambda e, idx=global_idx: self.select_timer_slot(idx))
+        g_sub = slot.get("guidance", "")
+        if len(g_sub) > 78:
+            g_sub = g_sub[:75].rstrip() + "..."
+        tk.Label(
+            mid_box,
+            text=f"{slot.get('subject', 'Study')} • {g_sub}",
+            font=("Segoe UI", 7),
+            fg="#cbd5e1" if is_active else "#94a3b8",
+            bg=card_bg,
+            anchor="w"
+        ).pack(fill=tk.X, pady=(1, 0))
+
+        _bind_click_recursive(card)
 
     def get_initial_timer_slot_index(self):
         if not self.all_schedule_slots:
@@ -6705,11 +8255,19 @@ class DesktopApp:
         for i, s in enumerate(self.all_schedule_slots):
             if not s.get("is_completed", False) and s.get("type") == "homework":
                 return i
-        # 2. Prefer the first pending study slot
+        # 2. Prefer the first pending academic study slot (skip after-school transition chill zone)
+        for i, s in enumerate(self.all_schedule_slots):
+            if (
+                not s.get("is_completed", False)
+                and s.get("type") == "study"
+                and "transition" not in s.get("subject", "").lower()
+                and "chill zone" not in s.get("title", "").lower()
+            ):
+                return i
+        # 3. Fallback to any study slot
         for i, s in enumerate(self.all_schedule_slots):
             if not s.get("is_completed", False) and s.get("type") == "study":
                 return i
-        # 3. Default to 0
         return 0
 
     def on_timeline_date_selected(self, event=None):
@@ -6746,7 +8304,10 @@ class DesktopApp:
         self.lbl_slot_phase.config(text=slot.get("phase", "FOCUS").upper())
         self.lbl_slot_title.config(text=slot["title"])
         self.lbl_slot_sub.config(text=f"{slot['subject']} • {slot['start']} - {slot['end']}")
-        self.lbl_slot_guidance.config(text=slot["guidance"])
+        g_txt = slot.get("guidance", "")
+        if len(g_txt) > 155:
+            g_txt = g_txt[:152].rstrip() + "..."
+        self.lbl_slot_guidance.config(text=g_txt)
 
         self.update_timer_display()
         self.render_timetable_cards()
@@ -6760,18 +8321,92 @@ class DesktopApp:
         self.update_progress_bar(fraction)
 
     def update_progress_bar(self, fraction):
+        if not hasattr(self, "timer_canvas") or not self.timer_canvas.winfo_exists():
+            return
         self.timer_canvas.delete("all")
         width = self.timer_canvas.winfo_width()
-        if width <= 1:
-            width = 320
-        height = 12
+        if width <= 10:
+            width = 385
+        height = self.timer_canvas.winfo_height()
+        if height <= 10:
+            height = 134
 
-        fill_width = int(width * max(0.0, min(1.0, fraction)))
-        bar_color = self.colors["primary"] if fraction > 0.2 else self.colors["danger"]
-        if self.all_schedule_slots and self.all_schedule_slots[self.timer_active_slot_index]["type"] == "break":
-            bar_color = self.colors["break_color"]
+        cx = width // 2
+        cy = height // 2
+        r = 46
+        frac = max(0.0, min(1.0, fraction))
 
-        self.timer_canvas.create_rectangle(0, 0, fill_width, height, fill=bar_color, outline="")
+        is_break = False
+        slot_badge = "CHAKRA FOCUS"
+        if hasattr(self, "all_schedule_slots") and self.all_schedule_slots and 0 <= self.timer_active_slot_index < len(self.all_schedule_slots):
+            cur_slot = self.all_schedule_slots[self.timer_active_slot_index]
+            is_break = (cur_slot.get("type") == "break")
+            slot_badge = cur_slot.get("badge", "CHAKRA FOCUS").upper()
+            if len(slot_badge) > 18:
+                slot_badge = slot_badge[:18]
+
+        flame_primary = self.colors.get("break_color", "#10b981") if is_break else self.colors.get("primary", "#f97316")
+        flame_accent = "#34d399" if is_break else self.colors.get("accent", "#f59e0b")
+        flame_core = "#a7f3d0" if is_break else "#fde047"
+        if not is_break and frac <= 0.2:
+            flame_primary = self.colors.get("danger", "#ef4444")
+
+        # 1. Character-Adaptive Outer Chakra Flame Glow Aura (radial flame tongues + concentric aura rings)
+        num_flames = 16
+        for i in range(num_flames):
+            ang = (2 * math.pi * i) / num_flames
+            ang_l = ang - 0.14
+            ang_r = ang + 0.14
+            tip_r = r + (16 if i % 2 == 0 else 12)
+            base_r = r + 3
+            x_tip = cx + tip_r * math.cos(ang)
+            y_tip = cy + tip_r * math.sin(ang)
+            x_l = cx + base_r * math.cos(ang_l)
+            y_l = cy + base_r * math.sin(ang_l)
+            x_r = cx + base_r * math.cos(ang_r)
+            y_r = cy + base_r * math.sin(ang_r)
+            f_col = flame_primary if i % 2 == 0 else flame_accent
+            self.timer_canvas.create_polygon(x_l, y_l, x_tip, y_tip, x_r, y_r, fill=f_col, outline="", smooth=True)
+
+        self.timer_canvas.create_oval(cx - (r + 10), cy - (r + 10), cx + (r + 10), cy + (r + 10), outline=flame_accent, width=1)
+        self.timer_canvas.create_oval(cx - (r + 6), cy - (r + 6), cx + (r + 6), cy + (r + 6), outline=flame_primary, width=2)
+
+        # 2. Dark Slate Track Ring
+        self.timer_canvas.create_oval(cx - r, cy - r, cx + r, cy + r, fill="#080d19", outline="#1e293b", width=10)
+
+        # 3. Glowing Chakra Progress Arc
+        if frac > 0.005:
+            extent_deg = -max(2.0, min(359.8, 360.0 * frac))
+            self.timer_canvas.create_arc(
+                cx - r, cy - r, cx + r, cy + r,
+                start=90, extent=extent_deg,
+                style=tk.ARC, outline=flame_primary, width=10
+            )
+            self.timer_canvas.create_arc(
+                cx - r, cy - r, cx + r, cy + r,
+                start=90, extent=extent_deg,
+                style=tk.ARC, outline=flame_core, width=3
+            )
+
+        # 4. Inner Dark Core Disc
+        ir = r - 7
+        self.timer_canvas.create_oval(cx - ir, cy - ir, cx + ir, cy + ir, fill="#080d19", outline="#1e293b", width=1)
+
+        # 5. Hero Digital Countdown & Sub-Badge Inside Ring
+        mins = getattr(self, "timer_seconds_left", 900) // 60
+        secs = getattr(self, "timer_seconds_left", 900) % 60
+        self.timer_canvas.create_text(
+            cx, cy - 7,
+            text=f"{mins:02d}:{secs:02d}",
+            font=("Consolas", 24, "bold"),
+            fill="#f8fafc"
+        )
+        self.timer_canvas.create_text(
+            cx, cy + 20,
+            text=slot_badge,
+            font=("Segoe UI", 7, "bold"),
+            fill=flame_primary
+        )
 
     def toggle_timer(self):
         if self.timer_running:
@@ -6783,7 +8418,7 @@ class DesktopApp:
         if self.timer_seconds_left <= 0:
             self.reset_timer()
         self.timer_running = True
-        self.btn_timer_toggle.config(text="⏸ Pause", bg=self.colors["warning"])
+        self.btn_timer_toggle.config(text="⏸ Pause", bg="#f59e0b", fg="#0f172a")
         if hasattr(self, "all_schedule_slots") and self.all_schedule_slots:
             slot = self.all_schedule_slots[self.timer_active_slot_index]
             if slot.get("type") == "break":
@@ -6799,7 +8434,7 @@ class DesktopApp:
         if self.timer_job:
             self.root.after_cancel(self.timer_job)
             self.timer_job = None
-        self.btn_timer_toggle.config(text="▶ Resume Focus", bg=self.colors["success"])
+        self.btn_timer_toggle.config(text="▶ Resume Focus", bg="#f97316", fg="#0f172a")
 
     def reset_timer(self):
         self.pause_timer()
@@ -7220,6 +8855,8 @@ class DesktopApp:
                 else:
                     self.habit_streak += 1
                     self.lbl_streak.config(text=f"🔥 Will of Fire: Day {self.habit_streak} Streak")
+                    if hasattr(self, "lbl_streak_30d"):
+                        self.lbl_streak_30d.config(text=f"🎯 30-Day Streak: Day {self.habit_streak}/30")
                     self.save_data()
                     messagebox.showinfo("Routine Finished", "🏆 Fantastic! You completed today's routine ahead of time!")
 
@@ -7402,6 +9039,8 @@ class DesktopApp:
         compressed = []
         extinguished = []
 
+        rollovers_created = []
+
         for i in range(active_index + 1, len(self.all_schedule_slots)):
             slot = self.all_schedule_slots[i]
             mins_left = int((cutoff_dt - cur_time).total_seconds() / 60)
@@ -7419,6 +9058,12 @@ class DesktopApp:
                     slot["status"] = "deferred"
                     slot["badge"] = "⚠️ Deferred to Morning"
                     extinguished.append(slot["title"])
+                    if slot.get("type") == "study":
+                        rollovers_created.append({
+                            "subject": slot.get("subject", "Homework"),
+                            "title": slot.get("title", "Homework"),
+                            "truncated_mins": slot.get("duration_mins", 15)
+                        })
                 continue
 
             if slot["type"] == "break" and rem_deficit > 0:
@@ -7434,168 +9079,274 @@ class DesktopApp:
                     slot["duration_mins"] -= cut
                     rem_deficit -= cut
                     compressed.append({"slot": slot["title"], "delta": -cut, "new_mins": slot["duration_mins"]})
+                    rollovers_created.append({
+                        "subject": slot.get("subject", "Homework"),
+                        "title": slot.get("title", "Homework"),
+                        "truncated_mins": cut
+                    })
 
             slot["start"] = cur_time.strftime("%I:%M %p")
             end_t = cur_time + timedelta(minutes=slot["duration_mins"])
             slot["end"] = end_t.strftime("%I:%M %p")
             cur_time = end_t
 
+        # Prepend rollovers into next morning priming window and log in audit data
+        if rollovers_created:
+            now_dt = datetime.now()
+            for ro in rollovers_created:
+                ro_id = f"ROLLOVER_{now_dt.strftime('%Y%m%d_%H%M%S')}"
+                ro_entry = {
+                    "id": ro_id,
+                    "timestamp": now_dt.isoformat(),
+                    "date": now_dt.strftime("%Y-%m-%d"),
+                    "subject": ro["subject"],
+                    "title": ro["title"],
+                    "truncated_mins": ro["truncated_mins"],
+                    "reason": f"10:00 PM Bedtime Protection truncation (+{extra_mins}m extension cascade)",
+                    "badge": "🌅 Morning Recall Priority (Overrun Rollover)",
+                    "status": "pending_morning_execution"
+                }
+                self.audit_data.setdefault("bedtime_rollovers", []).insert(0, ro_entry)
+
+                # Prepend to morning schedule
+                m_start_dt = datetime.strptime("06:08 AM", "%I:%M %p")
+                m_end_dt = m_start_dt + timedelta(minutes=ro["truncated_mins"])
+                ro_slot = {
+                    "phase": "Morning Priming Window",
+                    "start": m_start_dt.strftime("%I:%M %p"),
+                    "end": m_end_dt.strftime("%I:%M %p"),
+                    "duration_mins": ro["truncated_mins"],
+                    "title": f"Morning Recall Priority: {ro['subject']} ({ro['title']})",
+                    "subject": ro["subject"],
+                    "type": "rollover",
+                    "is_rollover": True,
+                    "badge": "🌅 Morning Recall Priority (Overrun Rollover)",
+                    "guidance": f"Overrun rollover from 10:00 PM Bedtime Protection: Complete remaining {ro['truncated_mins']}m high-focus review for {ro['subject']} before school today!"
+                }
+                self.morning_schedule.insert(1, ro_slot) # immediately after wakeup
+
+            self.save_audit_data()
+
+            # Re-index start and end times for morning schedule
+            m_cur = datetime.strptime("06:00 AM", "%I:%M %p")
+            for m_s in self.morning_schedule:
+                m_s["start"] = m_cur.strftime("%I:%M %p")
+                m_cur += timedelta(minutes=m_s["duration_mins"])
+                m_s["end"] = m_cur.strftime("%I:%M %p")
+
+            self.all_schedule_slots = self.evening_schedule + self.morning_schedule
+
         self.render_timetable_cards()
         return compressed, extinguished
 
     # ==========================================
-    # TAB: EXAM PORTIONS & SYLLABUS TRACKER
+    # TAB: EXAM PORTIONS & SYLLABUS TRACKER (STEP 8 - OPTION B: SCROLL & CHAKRA LEDGER)
     # ==========================================
     def build_portions_tab(self):
         c = self.colors
-        pad = tk.Frame(self.tab_portions, bg=c["bg"], padx=18, pady=12)
+        pad = tk.Frame(self.tab_portions, bg=c["bg"], padx=14, pady=8)
         pad.pack(fill=tk.BOTH, expand=True)
 
-        # Header Card: School Title, Exam Name & Live Completion Meter
-        header_card = tk.Frame(pad, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=14, pady=10)
-        header_card.pack(fill=tk.X, pady=(0, 10))
+        # Header Card: Chakra Ledger Command & Mastery Deck
+        header_card = tk.Frame(
+            pad,
+            bg="#0e172a",
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#d4af5a",
+            padx=14,
+            pady=9
+        )
+        header_card.pack(fill=tk.X, pady=(0, 8))
 
-        title_row = tk.Frame(header_card, bg=c["card_bg"])
+        title_row = tk.Frame(header_card, bg="#0e172a")
         title_row.pack(fill=tk.X)
 
-        exam_title_str = self.portions_data.get("examination", "Portions for Term-I Examination - Class VIII (2026 - 27) CSK") if self.portions_data else "Portions for Term-I Examination - Class VIII (2026 - 27) CSK"
+        active_t = self.portions_data.get("active_term", "Term-II") if self.portions_data else "Term-II"
+        terms_map = self.portions_data.get("terms", {}) if self.portions_data else {}
+        term_info = terms_map.get(active_t, {})
+        exam_title_str = term_info.get("title", self.portions_data.get("examination", f"Portions for {active_t} - Class VIII")) if self.portions_data else f"Portions for {active_t} - Class VIII"
         school_str = self.portions_data.get("school_name", "Senthil Public School") if self.portions_data else "Senthil Public School"
         stream_str = self.portions_data.get("stream", "Montessori & CBSE Stream, Dharmapuri") if self.portions_data else "Montessori & CBSE Stream, Dharmapuri"
 
         self.lbl_portion_header_title = tk.Label(
             title_row,
-            text=f"📚 {exam_title_str}",
-            font=("Segoe UI", 11, "bold"),
-            fg=c["primary"],
-            bg=c["card_bg"]
+            text=f"📜 {exam_title_str.upper()}",
+            font=("Segoe UI", 10, "bold"),
+            fg="#facc15",
+            bg="#0e172a"
         )
         self.lbl_portion_header_title.pack(side=tk.LEFT)
+
+        # Dynamic Term Selector Pill
+        term_pill = tk.Frame(title_row, bg="#131c2e", bd=0, highlightthickness=1, highlightbackground="#38bdf8", padx=6, pady=2)
+        term_pill.pack(side=tk.LEFT, padx=(12, 0))
+
+        tk.Label(term_pill, text="🎯 Term:", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#131c2e").pack(side=tk.LEFT, padx=(0, 4))
+        available_terms = list(terms_map.keys()) if terms_map else ["Term-I", "Term-II", "Periodic Test-2", "Annual Exam"]
+        self.cmb_term_selector = ttk.Combobox(term_pill, values=available_terms, state="readonly", width=14, font=("Segoe UI", 8, "bold"))
+        self.cmb_term_selector.set(active_t)
+        self.cmb_term_selector.pack(side=tk.LEFT)
+        self.cmb_term_selector.bind("<<ComboboxSelected>>", self.on_term_selected)
 
         self.lbl_portion_header_school = tk.Label(
             title_row,
             text=f"🏫 {school_str} ({stream_str})",
-            font=("Segoe UI", 8, "italic"),
-            fg=c["fg_muted"],
-            bg=c["card_bg"]
+            font=("Segoe UI", 8, "bold"),
+            fg="#94a3b8",
+            bg="#0e172a"
         )
         self.lbl_portion_header_school.pack(side=tk.RIGHT)
 
         # Live Progress Bar & Counter
-        prog_row = tk.Frame(header_card, bg=c["card_bg"])
-        prog_row.pack(fill=tk.X, pady=(8, 4))
+        prog_row = tk.Frame(header_card, bg="#0e172a")
+        prog_row.pack(fill=tk.X, pady=(6, 4))
 
         self.lbl_portion_stats = tk.Label(
             prog_row,
-            text="Syllabus Completion: 0 / 0 Chapters (0%)",
+            text="Syllabus Mastered: 0 / 0 Portions (0%)",
             font=("Segoe UI", 9, "bold"),
-            fg=c["warning"],
-            bg=c["card_bg"]
+            fg="#fbbf24",
+            bg="#0e172a"
         )
         self.lbl_portion_stats.pack(side=tk.LEFT)
 
         # Action Buttons on Header
-        act_box = tk.Frame(prog_row, bg=c["card_bg"])
+        act_box = tk.Frame(prog_row, bg="#0e172a")
         act_box.pack(side=tk.RIGHT)
+        self.portions_act_box = act_box
+        self.portions_header_card = header_card
+        self.portions_title_row = title_row
+        self.portions_prog_row = prog_row
 
-        btn_upload_portions = tk.Button(
+        self.btn_upload_portions = tk.Button(
             act_box,
             text="📁 Upload Portions (PDF/Doc/JSON)",
             font=("Segoe UI", 8, "bold"),
-            bg="#2563eb",
-            fg="#ffffff",
+            bg="#f59e0b",
+            fg="#1c1104",
+            activebackground="#fbbf24",
+            activeforeground="#1c1104",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#fde047",
             padx=10,
             pady=3,
             cursor="hand2",
             command=self.upload_portions_file_dialog
         )
-        btn_upload_portions.pack(side=tk.LEFT, padx=(0, 6))
+        self.btn_upload_portions.pack(side=tk.LEFT, padx=(0, 5))
 
-        btn_paste_portions = tk.Button(
+        self.btn_paste_portions = tk.Button(
             act_box,
             text="📝 Paste Syllabus",
-            font=("Segoe UI", 8),
-            bg=c["card_border"],
-            fg=c["fg"],
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#38bdf8",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#334155",
+            activebackground="#1e293b",
+            activeforeground="#38bdf8",
             padx=8,
             pady=3,
             cursor="hand2",
             command=self.open_portions_text_paste_modal
         )
-        btn_paste_portions.pack(side=tk.LEFT, padx=(0, 6))
+        self.btn_paste_portions.pack(side=tk.LEFT, padx=(0, 5))
 
-        btn_launch_pre_exam = tk.Button(
+        self.btn_launch_pre_exam = tk.Button(
             act_box,
             text="📅 Pre-Exam Roadmap & Day Planner",
             font=("Segoe UI", 8, "bold"),
-            bg=c["primary"],
-            fg="#0f172a" if self.current_theme in ["naruto_sage", "minato_flash", "sasuke_chidori", "kakashi_hatake", "leaf_village"] else "#ffffff",
+            bg="#161006",
+            fg="#facc15",
+            activebackground="#f59e0b",
+            activeforeground="#1c1104",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#eab308",
             padx=10,
             pady=3,
             cursor="hand2",
             command=self.open_pre_exam_day_picker_modal
         )
-        btn_launch_pre_exam.pack(side=tk.LEFT, padx=(0, 6))
+        self.btn_launch_pre_exam.pack(side=tk.LEFT, padx=(0, 5))
 
-        btn_copy_portions = tk.Button(
+        self.btn_copy_portions = tk.Button(
             act_box,
             text="📋 Copy Full Syllabus",
-            font=("Segoe UI", 8),
-            bg=c["card_border"],
-            fg=c["fg"],
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#334155",
+            activebackground="#1e293b",
+            activeforeground="#f8fafc",
             padx=8,
             pady=3,
             cursor="hand2",
             command=self.copy_full_portions_summary
         )
-        btn_copy_portions.pack(side=tk.LEFT, padx=(0, 6))
+        self.btn_copy_portions.pack(side=tk.LEFT, padx=(0, 5))
 
-        btn_reset_checks = tk.Button(
+        self.btn_reset_checks = tk.Button(
             act_box,
             text="🔄 Reset",
-            font=("Segoe UI", 8),
-            bg=c["card_border"],
-            fg=c["fg_muted"],
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#f87171",
             relief=tk.FLAT,
-            padx=6,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#334155",
+            activebackground="#2a1215",
+            activeforeground="#fca5a5",
+            padx=7,
             pady=3,
             cursor="hand2",
             command=self.reset_portion_checks
         )
-        btn_reset_checks.pack(side=tk.LEFT)
+        self.btn_reset_checks.pack(side=tk.LEFT)
 
         # Custom Canvas Progress Bar
-        self.prog_canvas = tk.Canvas(header_card, height=10, bg=c["input_bg"], highlightthickness=0)
-        self.prog_canvas.pack(fill=tk.X, pady=(4, 2))
+        self.prog_canvas = tk.Canvas(header_card, height=8, bg="#1e293b", highlightthickness=1, highlightbackground="#334155")
+        self.prog_canvas.pack(fill=tk.X, pady=(4, 1))
 
         # Filter Chip Bar (Filter by Subject)
         filter_bar = tk.Frame(pad, bg=c["bg"])
-        filter_bar.pack(fill=tk.X, pady=(0, 8))
+        filter_bar.pack(fill=tk.X, pady=(0, 6))
         self.portion_filter_bar = filter_bar
 
-        tk.Label(filter_bar, text="Filter Subject:", font=("Segoe UI", 8, "bold"), fg=c["fg_muted"], bg=c["bg"]).pack(side=tk.LEFT, padx=(0, 6))
+        tk.Label(filter_bar, text="FILTER SUBJECT:", font=("Segoe UI", 8, "bold"), fg="#facc15", bg=c["bg"]).pack(side=tk.LEFT, padx=(0, 8))
 
         self.portion_filter_var = tk.StringVar(value="All Subjects")
         filter_subs = ["All Subjects", "Tamil", "Mathematics", "Physical Science", "Social Science", "Hindi", "Biological Science", "English"]
 
         self.filter_buttons = {}
         for sub_name in filter_subs:
+            is_act = (sub_name == "All Subjects")
             btn = tk.Button(
                 filter_bar,
-                text=sub_name,
-                font=("Segoe UI", 8),
-                bg=c["highlight"] if sub_name == "All Subjects" else c["card_bg"],
-                fg=c["primary"] if sub_name == "All Subjects" else c["fg"],
-            relief=tk.FLAT,
-                padx=8,
+                text=f"📜 {sub_name}" if is_act else sub_name,
+                font=("Segoe UI", 8, "bold"),
+                bg="#f5e4c3" if is_act else "#131c2e",
+                fg="#1f1206" if is_act else "#cbd5e1",
+                relief=tk.FLAT,
+                bd=0,
+                highlightthickness=1,
+                highlightbackground="#991b1b" if is_act else "#334155",
+                padx=9,
                 pady=2,
-            cursor="hand2",
+                cursor="hand2",
                 command=lambda s=sub_name: self.set_portion_filter(s)
             )
-            btn.pack(side=tk.LEFT, padx=2)
+            btn.pack(side=tk.LEFT, padx=3)
             self.filter_buttons[sub_name] = btn
 
         # Scrollable Cards Canvas
@@ -7616,18 +9367,52 @@ class DesktopApp:
 
         self.render_portion_cards()
 
+    def on_term_selected(self, event=None):
+        new_term = self.cmb_term_selector.get()
+        if self.portions_data:
+            self.portions_data["active_term"] = new_term
+            terms_map = self.portions_data.get("terms", {})
+            term_info = terms_map.get(new_term, {})
+            if "title" in term_info:
+                self.portions_data["examination"] = term_info["title"]
+            try:
+                with open(PORTIONS_FILE, "w", encoding="utf-8") as f:
+                    json.dump(self.portions_data, f, indent=2, ensure_ascii=False)
+            except Exception:
+                pass
+            self.lbl_portion_header_title.config(text=f"📜 {self.portions_data.get('examination', new_term).upper()}")
+            self.render_portion_cards()
+            self.update_portion_progress_bar()
+
     def set_portion_filter(self, sub_name):
         self.portion_filter = sub_name
         for name, btn in self.filter_buttons.items():
             if name == sub_name:
-                btn.config(bg=self.colors["highlight"], fg=self.colors["primary"])
+                btn.config(
+                    text=f"📜 {name}",
+                    bg="#f5e4c3",
+                    fg="#1f1206",
+                    highlightbackground="#991b1b"
+                )
             else:
-                btn.config(bg=self.colors["card_bg"], fg=self.colors["fg"])
+                btn.config(
+                    text=name,
+                    bg="#131c2e",
+                    fg="#cbd5e1",
+                    highlightbackground="#334155"
+                )
         self.render_portion_cards()
 
     def get_portions_subject_list(self):
-        if self.portions_data and "subjects" in self.portions_data:
-            return self.portions_data["subjects"]
+        if self.portions_data:
+            if "terms" in self.portions_data:
+                active_term = self.portions_data.get("active_term", "Term-II")
+                term_obj = self.portions_data.get("terms", {}).get(active_term, {})
+                portions = term_obj.get("portions", term_obj.get("subjects", []))
+                if portions:
+                    return portions
+            if "subjects" in self.portions_data:
+                return self.portions_data["subjects"]
         # Built-in fallback matching official Senthil Public School Class VIII syllabus
         return [
             {
@@ -7765,76 +9550,194 @@ class DesktopApp:
             }
         ]
 
+    def _count_subject_portion_progress(self, sub):
+        sub_name = sub.get("subject", "")
+        tot = 0
+        done = 0
+        if "chapters" in sub:
+            for ch in sub["chapters"]:
+                tot += 1
+                k = f"{sub_name}_{ch.get('code', '')}_{ch.get('name', '')}"
+                if self.portion_progress.get(k, False):
+                    done += 1
+        elif "sub_branches" in sub:
+            for b in sub["sub_branches"]:
+                b_name = b.get("branch", "")
+                for lsn in b.get("lessons", []):
+                    tot += 1
+                    k = f"{sub_name}_{b_name}_{lsn.get('code', '')}_{lsn.get('name', '')}"
+                    if self.portion_progress.get(k, False):
+                        done += 1
+        elif "components" in sub:
+            for comp in sub["components"]:
+                c_name = comp.get("name", "")
+                if "topics" in comp:
+                    for top in comp["topics"]:
+                        tot += 1
+                        k = f"{sub_name}_{c_name}_{top}"
+                        if self.portion_progress.get(k, False):
+                            done += 1
+                elif "chapters" in comp:
+                    for ch in comp["chapters"]:
+                        tot += 1
+                        k = f"{sub_name}_{c_name}_{ch.get('code', '')}_{ch.get('name', '')}"
+                        if self.portion_progress.get(k, False):
+                            done += 1
+                elif "types" in comp:
+                    for typ in comp["types"]:
+                        tot += 1
+                        k = f"{sub_name}_{c_name}_{typ}"
+                        if self.portion_progress.get(k, False):
+                            done += 1
+        return done, tot
+
     def render_portion_cards(self):
         for w in self.portions_inner.winfo_children():
             w.destroy()
 
         c = self.colors
         subjects = self.get_portions_subject_list()
-
+        filtered_subjects = []
         for sub in subjects:
             sub_name = sub.get("subject", "")
             if self.portion_filter != "All Subjects" and self.portion_filter.lower() not in sub_name.lower():
                 continue
+            filtered_subjects.append(sub)
 
-            card = tk.Frame(self.portions_inner, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=14, pady=10)
-            card.pack(fill=tk.X, expand=True, pady=6)
+        # Unfurled Parchment Scroll Banner at top of Portions Ledger
+        banner_title = "TERM-I EXAMINATION PORTIONS LEDGER • SENTHIL PUBLIC SCHOOL • CLASS VIII"
+        if self.portion_filter != "All Subjects":
+            banner_title = f"SUBJECT PORTIONS SCROLL: {self.portion_filter.upper()} • TERM-I SYLLABUS"
+        self._create_parchment_scroll_banner(
+            self.portions_inner,
+            banner_title,
+            right_text=f"{len(filtered_subjects)} SUBJECT SCROLL{'S' if len(filtered_subjects) != 1 else ''}",
+            pady=(2, 8)
+        )
 
-            # Top Row: Subject Title + Exam Date Badge + Grav Badge
-            top_row = tk.Frame(card, bg=c["card_bg"])
+        # 2-Column Chakra Ledger Grid (or 1-column when filtered to a single subject)
+        grid_frame = tk.Frame(self.portions_inner, bg=c["bg"])
+        grid_frame.pack(fill=tk.BOTH, expand=True)
+        use_two_cols = len(filtered_subjects) > 1
+        if use_two_cols:
+            grid_frame.columnconfigure(0, weight=1, uniform="portion_col")
+            grid_frame.columnconfigure(1, weight=1, uniform="portion_col")
+        else:
+            grid_frame.columnconfigure(0, weight=1)
+
+        sub_icons = {
+            "mathematics": "📐",
+            "physical science": "⚛️",
+            "biological science": "🧬",
+            "social science": "🌍",
+            "english": "📖",
+            "tamil": "🖋️",
+            "hindi": "🪔",
+        }
+
+        for idx, sub in enumerate(filtered_subjects):
+            sub_name = sub.get("subject", "")
+            sub_icon = sub_icons.get(sub_name.lower(), "📜")
+            done_sub, tot_sub = self._count_subject_portion_progress(sub)
+
+            row_idx = idx // 2 if use_two_cols else idx
+            col_idx = idx % 2 if use_two_cols else 0
+            pad_x = (0, 6) if (use_two_cols and col_idx == 0) else ((6, 0) if use_two_cols else (0, 0))
+
+            card = tk.Frame(
+                grid_frame,
+                bg="#0e172a",
+                bd=0,
+                highlightthickness=1,
+                highlightbackground="#d4af5a",
+                padx=12,
+                pady=10
+            )
+            card.grid(row=row_idx, column=col_idx, sticky="nsew", padx=pad_x, pady=5)
+
+            # Top Row: Metallic Gold Subject Plaque + Crimson Exam Date Tag + Mini Parchment Mastery Seal
+            top_row = tk.Frame(card, bg="#0e172a")
             top_row.pack(fill=tk.X)
 
-            sub_title = tk.Label(
+            sub_plaque = tk.Frame(
                 top_row,
-                text=f"{sub_name}",
-                font=("Segoe UI", 11, "bold"),
-                fg=c["primary"],
-                bg=c["card_bg"]
+                bg="#161006",
+                bd=0,
+                highlightthickness=1,
+                highlightbackground="#eab308",
+                padx=9,
+                pady=2
             )
-            sub_title.pack(side=tk.LEFT)
+            sub_plaque.pack(side=tk.LEFT)
+            tk.Label(
+                sub_plaque,
+                text=f"{sub_icon} {sub_name.upper()}",
+                font=("Segoe UI", 9, "bold"),
+                fg="#facc15",
+                bg="#161006"
+            ).pack(side=tk.LEFT)
 
             exam_dt = sub.get("exam_date", "")
             exam_day = sub.get("exam_day", "")
             if exam_dt:
                 date_pill = tk.Label(
                     top_row,
-                    text=f"📅 Exam: {exam_dt} ({exam_day})",
-            font=("Segoe UI", 8, "bold"),
-                    bg=c["highlight"],
-                    fg=c["warning"],
-                    padx=8,
-                    pady=2
+                    text=f"📅 {exam_dt} ({exam_day[:3] if exam_day else ''})",
+                    font=("Segoe UI", 8, "bold"),
+                    bg="#2a1215",
+                    fg="#fca5a5",
+                    padx=7,
+                    pady=2,
+                    highlightthickness=1,
+                    highlightbackground="#991b1b"
                 )
-                date_pill.pack(side=tk.LEFT, padx=10)
+                date_pill.pack(side=tk.LEFT, padx=8)
 
             grav = sub.get("gravity", 2)
             grav_stars = "★" * grav + "☆" * (3 - grav)
-            grav_badge = tk.Label(
+            scroll_badge = tk.Frame(
                 top_row,
-                text=f"Gravity: {grav_stars}",
-            font=("Segoe UI", 8, "bold"),
-                fg=c["accent"],
-                bg=c["card_bg"]
+                bg="#f5e4c3",
+                bd=0,
+                highlightthickness=1,
+                highlightbackground="#991b1b",
+                padx=7,
+                pady=1
             )
-            grav_badge.pack(side=tk.RIGHT)
+            scroll_badge.pack(side=tk.RIGHT)
+            tk.Label(
+                scroll_badge,
+                text=f"{done_sub}/{tot_sub} DONE • {grav_stars}",
+                font=("Segoe UI", 7, "bold"),
+                fg="#7c2d12",
+                bg="#f5e4c3"
+            ).pack()
 
-            # High-Weight Focus
+            # High-Weight Focus Strip
             hw_focus = sub.get("high_weightage_focus", "")
             if hw_focus:
-                hw_box = tk.Frame(card, bg=c["input_bg"], padx=8, pady=4, bd=1, relief=tk.FLAT)
-                hw_box.pack(fill=tk.X, pady=(6, 8))
+                hw_box = tk.Frame(
+                    card,
+                    bg="#141e33",
+                    padx=8,
+                    pady=5,
+                    bd=0,
+                    highlightthickness=1,
+                    highlightbackground="#b45309"
+                )
+                hw_box.pack(fill=tk.X, pady=(7, 7))
                 tk.Label(
                     hw_box,
-                    text=f"🎯 High-Weight Focus: {hw_focus}",
-            font=("Segoe UI", 8, "bold"),
-                    fg=c["warning"],
-                    bg=c["input_bg"],
-                    wraplength=850,
+                    text=f"🎯 HIGH-WEIGHT FOCUS: {hw_focus}",
+                    font=("Segoe UI", 8, "bold"),
+                    fg="#fbbf24",
+                    bg="#141e33",
+                    wraplength=520 if use_two_cols else 980,
                     justify="left"
                 ).pack(anchor="w")
 
             # Render Chapters / Components Checklist
-            items_frame = tk.Frame(card, bg=c["card_bg"])
+            items_frame = tk.Frame(card, bg="#0e172a")
             items_frame.pack(fill=tk.X)
 
             if "chapters" in sub:
@@ -7842,38 +9745,36 @@ class DesktopApp:
                     code = ch.get("code", "")
                     name = ch.get("name", "")
                     pages = ch.get("pages", "")
-                    pg_str = f" [pp. {pages}]" if pages else ""
                     item_key = f"{sub_name}_{code}_{name}"
-                    self._create_portion_checkbox(items_frame, item_key, f"{code}: {name}{pg_str}")
+                    self._create_portion_checkbox(items_frame, item_key, f"{code}: {name}", pages=pages)
 
             elif "sub_branches" in sub:
                 for branch in sub["sub_branches"]:
                     b_name = branch.get("branch", "")
                     tk.Label(
                         items_frame,
-                        text=f"📌 {b_name}:",
-                        font=("Segoe UI", 9, "bold"),
-                        fg=c["primary"],
-                        bg=c["card_bg"]
+                        text=f"📌 {b_name.upper()}",
+                        font=("Segoe UI", 8, "bold"),
+                        fg="#38bdf8",
+                        bg="#0e172a"
                     ).pack(anchor="w", pady=(4, 2))
 
                     for lsn in branch.get("lessons", []):
                         code = lsn.get("code", "")
                         name = lsn.get("name", "")
                         pages = lsn.get("pages", "")
-                        pg_str = f" [pp. {pages}]" if pages else ""
                         item_key = f"{sub_name}_{b_name}_{code}_{name}"
-                        self._create_portion_checkbox(items_frame, item_key, f"{code}: {name}{pg_str}")
+                        self._create_portion_checkbox(items_frame, item_key, f"{code}: {name}", pages=pages)
 
             elif "components" in sub:
                 for comp in sub["components"]:
                     c_name = comp.get("name", "")
                     tk.Label(
                         items_frame,
-                        text=f"📌 {c_name}:",
-                        font=("Segoe UI", 9, "bold"),
-                        fg=c["primary"],
-                        bg=c["card_bg"]
+                        text=f"📌 {c_name}",
+                        font=("Segoe UI", 8, "bold"),
+                        fg="#38bdf8",
+                        bg="#0e172a"
                     ).pack(anchor="w", pady=(4, 2))
 
                     if "topics" in comp:
@@ -7885,9 +9786,8 @@ class DesktopApp:
                             code = ch.get("code", "")
                             name = ch.get("name", "")
                             pages = ch.get("pages", "")
-                            pg_str = f" [pp. {pages}]" if pages else ""
                             item_key = f"{sub_name}_{c_name}_{code}_{name}"
-                            self._create_portion_checkbox(items_frame, item_key, f"{code}: {name}{pg_str}")
+                            self._create_portion_checkbox(items_frame, item_key, f"{code}: {name}", pages=pages)
                     elif "types" in comp:
                         for typ in comp["types"]:
                             item_key = f"{sub_name}_{c_name}_{typ}"
@@ -7895,26 +9795,45 @@ class DesktopApp:
 
         self.update_portion_progress_bar()
 
-    def _create_portion_checkbox(self, parent, item_key, label_text):
-        c = self.colors
+    def _create_portion_checkbox(self, parent, item_key, label_text, pages=""):
         is_done = self.portion_progress.get(item_key, False)
         var = tk.BooleanVar(value=is_done)
 
-        row = tk.Frame(parent, bg=c["card_bg"])
-        row.pack(fill=tk.X, padx=8, pady=2)
+        row = tk.Frame(
+            parent,
+            bg="#131c2e",
+            bd=0,
+            highlightthickness=1,
+            highlightbackground="#1e293b",
+            padx=6,
+            pady=1
+        )
+        row.pack(fill=tk.X, pady=2)
 
         chk = tk.Checkbutton(
             row,
             text=label_text,
             variable=var,
-            font=("Segoe UI", 8),
-            fg=c["success"] if is_done else c["fg"],
-            bg=c["card_bg"],
-            activebackground=c["card_bg"],
-            selectcolor=c["input_bg"],
+            font=("Segoe UI", 8, "bold" if is_done else "normal"),
+            fg="#4ade80" if is_done else "#f1f5f9",
+            bg="#131c2e",
+            activebackground="#131c2e",
+            activeforeground="#facc15",
+            selectcolor="#0b1120",
             command=lambda k=item_key, v=var: self.toggle_portion_check(k, v)
         )
         chk.pack(side=tk.LEFT)
+
+        if pages:
+            tk.Label(
+                row,
+                text=f"pp. {pages}",
+                font=("Segoe UI", 7, "bold"),
+                bg="#f5e4c3",
+                fg="#451a03",
+                padx=5,
+                pady=0
+            ).pack(side=tk.RIGHT, padx=(4, 2))
 
     def toggle_portion_check(self, item_key, var):
         self.portion_progress[item_key] = var.get()
@@ -7927,42 +9846,9 @@ class DesktopApp:
 
         subjects = self.get_portions_subject_list()
         for sub in subjects:
-            sub_name = sub.get("subject", "")
-            if "chapters" in sub:
-                for ch in sub["chapters"]:
-                    total_items += 1
-                    k = f"{sub_name}_{ch.get('code', '')}_{ch.get('name', '')}"
-                    if self.portion_progress.get(k, False):
-                        done_items += 1
-            elif "sub_branches" in sub:
-                for b in sub["sub_branches"]:
-                    b_name = b.get("branch", "")
-                    for lsn in b.get("lessons", []):
-                        total_items += 1
-                        k = f"{sub_name}_{b_name}_{lsn.get('code', '')}_{lsn.get('name', '')}"
-                        if self.portion_progress.get(k, False):
-                            done_items += 1
-            elif "components" in sub:
-                for comp in sub["components"]:
-                    c_name = comp.get("name", "")
-                    if "topics" in comp:
-                        for top in comp["topics"]:
-                            total_items += 1
-                            k = f"{sub_name}_{c_name}_{top}"
-                            if self.portion_progress.get(k, False):
-                                done_items += 1
-                    elif "chapters" in comp:
-                        for ch in comp["chapters"]:
-                            total_items += 1
-                            k = f"{sub_name}_{c_name}_{ch.get('code', '')}_{ch.get('name', '')}"
-                            if self.portion_progress.get(k, False):
-                                done_items += 1
-                    elif "types" in comp:
-                        for typ in comp["types"]:
-                            total_items += 1
-                            k = f"{sub_name}_{c_name}_{typ}"
-                            if self.portion_progress.get(k, False):
-                                done_items += 1
+            d_sub, t_sub = self._count_subject_portion_progress(sub)
+            done_items += d_sub
+            total_items += t_sub
 
         pct = int((done_items / max(1, total_items)) * 100)
         self.lbl_portion_stats.config(text=f"Syllabus Mastered: {done_items} / {total_items} Portions ({pct}%)")
@@ -7970,10 +9856,11 @@ class DesktopApp:
         self.prog_canvas.delete("all")
         width = self.prog_canvas.winfo_width()
         if width <= 1:
-            width = 600
+            width = 900
         fill_w = int(width * (pct / 100.0))
         if fill_w > 0:
-            self.prog_canvas.create_rectangle(0, 0, fill_w, 10, fill=self.colors["primary"], outline="")
+            self.prog_canvas.create_rectangle(0, 0, fill_w, 8, fill="#f59e0b", outline="")
+            self.prog_canvas.create_rectangle(max(0, fill_w - 4), 0, fill_w, 8, fill="#fde047", outline="")
 
     def reset_portion_checks(self):
         ans = messagebox.askyesno(
@@ -8032,7 +9919,7 @@ class DesktopApp:
     def update_portion_header_labels(self):
         if hasattr(self, "lbl_portion_header_title") and self.lbl_portion_header_title:
             exam_title = self.portions_data.get("examination", "Portions for Examination - Class VIII") if self.portions_data else "Portions for Examination - Class VIII"
-            self.lbl_portion_header_title.config(text=f"📚 {exam_title}")
+            self.lbl_portion_header_title.config(text=f"📜 {exam_title.upper()}")
         if hasattr(self, "lbl_portion_header_school") and self.lbl_portion_header_school:
             sch = self.portions_data.get("school_name", "Senthil Public School") if self.portions_data else "Senthil Public School"
             strm = self.portions_data.get("stream", "Montessori & CBSE Stream, Dharmapuri") if self.portions_data else "Montessori & CBSE Stream, Dharmapuri"
@@ -8044,26 +9931,30 @@ class DesktopApp:
         for w in self.portion_filter_bar.winfo_children():
             w.destroy()
         c = self.colors
-        tk.Label(self.portion_filter_bar, text="Filter Subject:", font=("Segoe UI", 8, "bold"), fg=c["fg_muted"], bg=c["bg"]).pack(side=tk.LEFT, padx=(0, 6))
+        tk.Label(self.portion_filter_bar, text="FILTER SUBJECT:", font=("Segoe UI", 8, "bold"), fg="#facc15", bg=c["bg"]).pack(side=tk.LEFT, padx=(0, 8))
 
         subjects = self.get_portions_subject_list()
         filter_subs = ["All Subjects"] + [s.get("subject", "") for s in subjects if s.get("subject")]
 
         self.filter_buttons = {}
         for sub_name in filter_subs:
+            is_act = (sub_name == self.portion_filter)
             btn = tk.Button(
                 self.portion_filter_bar,
-                text=sub_name,
-                font=("Segoe UI", 8),
-                bg=c["highlight"] if sub_name == self.portion_filter else c["card_bg"],
-                fg=c["primary"] if sub_name == self.portion_filter else c["fg"],
-            relief=tk.FLAT,
-                padx=8,
+                text=f"📜 {sub_name}" if is_act else sub_name,
+                font=("Segoe UI", 8, "bold"),
+                bg="#f5e4c3" if is_act else "#131c2e",
+                fg="#1f1206" if is_act else "#cbd5e1",
+                relief=tk.FLAT,
+                bd=0,
+                highlightthickness=1,
+                highlightbackground="#991b1b" if is_act else "#334155",
+                padx=9,
                 pady=2,
-            cursor="hand2",
+                cursor="hand2",
                 command=lambda s=sub_name: self.set_portion_filter(s)
             )
-            btn.pack(side=tk.LEFT, padx=2)
+            btn.pack(side=tk.LEFT, padx=3)
             self.filter_buttons[sub_name] = btn
 
     def upload_portions_file_dialog(self):
@@ -8631,45 +10522,51 @@ class DesktopApp:
         refresh_cards(self.pre_exam_duration_days)
 
     # ==========================================
-    # TAB 2: SENTHIL PUBLIC SCHOOL DIARY ENGINE
+    # TAB 2: SENTHIL PUBLIC SCHOOL DIARY ENGINE (STEP 7: OPTION B SCROLL & CHAKRA LEDGER)
     # ==========================================
     def build_diary_tab(self):
         c = self.colors
-        pad = tk.Frame(self.tab_diary, bg=c["bg"], padx=18, pady=14)
+        pad = tk.Frame(self.tab_diary, bg=c["bg"], padx=14, pady=10)
         pad.pack(fill=tk.BOTH, expand=True)
 
-        # Multi-Format Diary Header Banner
-        banner = tk.Frame(pad, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=14, pady=10)
-        banner.pack(fill=tk.X, pady=(0, 10))
-
-        lbl_head = tk.Label(
-            banner,
-            text="📖 Senthil Public School Diary Engine (Universal Multi-Format Importer)",
-            font=("Segoe UI", 11, "bold"),
-            fg=c["primary"],
-            bg=c["card_bg"]
+        # 1. Top Command Deck (Combined Header + Action Toolbar in Gold-Bordered Ledger Card)
+        top_bar = tk.Frame(
+            pad,
+            bg="#0e172a",
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#d4af5a",
+            highlightthickness=1,
+            padx=12,
+            pady=8
         )
-        lbl_head.pack(anchor="w")
+        top_bar.pack(fill=tk.X, pady=(0, 8))
+        self.diary_top_bar = top_bar
 
-        lbl_sub = tk.Label(
-            banner,
-            text="✨ Accepts Diary entries in ANY format: Word (.docx/.doc), School Diary Photos (.jpg/.png), PDF (.pdf), Text, or JSON.\n"
-                 "The system automatically converts to JSON style format and assigns at most 1 to 2 homework slots with dedicated time for each subject.",
+        hdr_row = tk.Frame(top_bar, bg="#0e172a")
+        hdr_row.pack(fill=tk.X, pady=(0, 6))
+
+        tk.Label(
+            hdr_row,
+            text="📖 Senthil Public School Diary Engine • Universal Multi-Format Importer",
+            font=("Segoe UI", 10, "bold"),
+            fg="#facc15",
+            bg="#0e172a"
+        ).pack(side=tk.LEFT)
+
+        tk.Label(
+            hdr_row,
+            text="✨ Accepts Word (.docx), Diary Photos (.jpg/.png), PDF, Text, or JSON • Max 1–2 Homework Slabs/Night",
             font=("Segoe UI", 8),
-            fg=c["fg_muted"],
-            bg=c["card_bg"],
-            justify=tk.LEFT
-        )
-        lbl_sub.pack(anchor="w", pady=(3, 0))
+            fg="#94a3b8",
+            bg="#0e172a"
+        ).pack(side=tk.RIGHT)
 
-        # Top Bar: Date Selector & Import/Export
-        top_bar = tk.Frame(pad, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=14, pady=10)
-        top_bar.pack(fill=tk.X, pady=(0, 12))
+        act_row = tk.Frame(top_bar, bg="#0e172a")
+        act_row.pack(fill=tk.X)
 
-        lbl_d = tk.Label(top_bar, text="📅 School Diary Date:", font=("Segoe UI", 9, "bold"), fg=c["fg"], bg=c["card_bg"])
-        lbl_d.pack(side=tk.LEFT, padx=(0, 6))
+        tk.Label(act_row, text="📅 Diary Date:", font=("Segoe UI", 8, "bold"), fg="#fb923c", bg="#0e172a").pack(side=tk.LEFT, padx=(0, 4))
 
-        # Date options
         date_list = [f"{e['date']} ({e.get('display_date', e['date'])})" for e in self.diary_data.get("diary_entries", [])]
         self.diary_date_var = tk.StringVar()
         if date_list:
@@ -8677,130 +10574,159 @@ class DesktopApp:
             self.diary_date_var.set(matching[0] if matching else date_list[-1])
 
         self.diary_date_combo = ttk.Combobox(
-            top_bar,
+            act_row,
             textvariable=self.diary_date_var,
             values=date_list,
             state="readonly",
-            width=24
+            width=22
         )
-        self.diary_date_combo.pack(side=tk.LEFT, padx=6)
+        self.diary_date_combo.pack(side=tk.LEFT, padx=(0, 8))
         self.diary_date_combo.bind("<<ComboboxSelected>>", self.on_diary_date_selected)
 
-        btn_apply = tk.Button(
-            top_bar,
-            text="⚡ Allocate in Timetable (Core Efficiency Slabs)",
-            font=("Segoe UI", 9, "bold"),
-            bg=c["primary"],
-            fg="#0f172a" if self.current_theme == "dark" else "#ffffff",
-            relief=tk.FLAT,
-            padx=12,
-            pady=4,
+        self.btn_apply = tk.Button(
+            act_row,
+            text="⚡ Allocate in Timetable",
+            font=("Segoe UI", 8, "bold"),
+            bg="#f59e0b",
+            fg="#1c1104",
+            activebackground="#fbbf24",
+            activeforeground="#1c1104",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#fde047",
+            highlightthickness=1,
+            padx=10,
+            pady=3,
             cursor="hand2",
             command=self.apply_diary_to_timetable
         )
-        btn_apply.pack(side=tk.LEFT, padx=(10, 4))
+        self.btn_apply.pack(side=tk.LEFT, padx=(0, 4))
 
-        btn_audit = tk.Button(
-            top_bar,
-            text="🔍 Audit & Verify Extraction",
+        self.btn_audit = tk.Button(
+            act_row,
+            text="🔍 Audit Extraction",
             font=("Segoe UI", 8, "bold"),
-            bg="#8b5cf6" if self.current_theme == "dark" else "#7c3aed",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=10,
-            pady=4,
+            bg="#131c2e",
+            fg="#38bdf8",
+            activebackground="#f97316",
+            activeforeground="#0f172a",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=8,
+            pady=3,
             cursor="hand2",
             command=self.open_diary_audit_window
         )
-        btn_audit.pack(side=tk.LEFT, padx=4)
+        self.btn_audit.pack(side=tk.LEFT, padx=3)
 
-        btn_save = tk.Button(
-            top_bar,
-            text="💾 Save Format",
-            font=("Segoe UI", 8),
-            bg=c["card_border"],
-            fg=c["fg"],
-            relief=tk.FLAT,
+        self.btn_save = tk.Button(
+            act_row,
+            text="💾 Save JSON",
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#f8fafc",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
             padx=8,
             pady=3,
             cursor="hand2",
             command=self.export_diary_json
         )
-        btn_save.pack(side=tk.RIGHT, padx=3)
+        self.btn_save.pack(side=tk.RIGHT, padx=2)
 
-        btn_open_input = tk.Button(
-            top_bar,
-            text="📥 Open 'diary_input' Folder",
+        self.btn_open_input = tk.Button(
+            act_row,
+            text="📥 'diary_input'",
             font=("Segoe UI", 8, "bold"),
-            bg="#059669" if self.current_theme == "dark" else "#10b981",
-            fg="#ffffff",
-            relief=tk.FLAT,
+            bg="#131c2e",
+            fg="#34d399",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
             padx=8,
             pady=3,
             cursor="hand2",
             command=self.open_diary_input_folder
         )
-        btn_open_input.pack(side=tk.RIGHT, padx=3)
+        self.btn_open_input.pack(side=tk.RIGHT, padx=2)
 
-        btn_import_folder = tk.Button(
-            top_bar,
+        self.btn_import_folder = tk.Button(
+            act_row,
             text="📂 Import Folder",
             font=("Segoe UI", 8, "bold"),
-            bg="#2563eb" if self.current_theme == "dark" else "#3b82f6",
-            fg="#ffffff",
-            relief=tk.FLAT,
+            bg="#131c2e",
+            fg="#f8fafc",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
             padx=8,
             pady=3,
             cursor="hand2",
             command=self.import_diary_folder
         )
-        btn_import_folder.pack(side=tk.RIGHT, padx=3)
+        self.btn_import_folder.pack(side=tk.RIGHT, padx=2)
 
-        btn_import = tk.Button(
-            top_bar,
+        self.btn_import = tk.Button(
+            act_row,
             text="📁 Import File(s)",
             font=("Segoe UI", 8, "bold"),
-            bg="#0284c7" if self.current_theme == "dark" else "#0ea5e9",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=9,
+            bg="#131c2e",
+            fg="#f8fafc",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=8,
             pady=3,
             cursor="hand2",
             command=self.import_any_diary_file
         )
-        btn_import.pack(side=tk.RIGHT, padx=3)
+        self.btn_import.pack(side=tk.RIGHT, padx=2)
 
-        btn_photo_assistant = tk.Button(
-            top_bar,
+        self.btn_photo_assistant = tk.Button(
+            act_row,
             text="📸 Photo Assistant",
             font=("Segoe UI", 8, "bold"),
-            bg="#8b5cf6" if self.current_theme == "dark" else "#7c3aed",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=9,
+            bg="#131c2e",
+            fg="#facc15",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#d4af5a",
+            highlightthickness=1,
+            padx=8,
             pady=3,
             cursor="hand2",
             command=self.open_diary_photo_assistant_window
         )
-        btn_photo_assistant.pack(side=tk.RIGHT, padx=3)
+        self.btn_photo_assistant.pack(side=tk.RIGHT, padx=2)
 
-        # Form: Add New Diary Entry to current date
-        add_box = tk.Frame(pad, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=14, pady=10)
-        add_box.pack(fill=tk.X, pady=(0, 12))
-
-        lbl_f_title = tk.Label(
-            add_box,
-            text="➕ Log New Diary Entry (Senthil Public School Diary Format):",
-            font=("Segoe UI", 9, "bold"),
-            fg=c["primary"],
-            bg=c["card_bg"]
+        # 2. Compact Single-Row Quick-Add Homework Slab Bar
+        add_box = tk.Frame(
+            pad,
+            bg="#0e172a",
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#b48a3e",
+            highlightthickness=1,
+            padx=12,
+            pady=7
         )
-        lbl_f_title.pack(anchor="w", pady=(0, 8))
+        add_box.pack(fill=tk.X, pady=(0, 8))
+        self.diary_add_box = add_box
 
-        form_row = tk.Frame(add_box, bg=c["card_bg"])
+        form_row = tk.Frame(add_box, bg="#0e172a")
         form_row.pack(fill=tk.X)
+        self.diary_form_row = form_row
 
-        tk.Label(form_row, text="Subject:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=0, column=0, sticky="w", padx=4)
+        tk.Label(form_row, text="➕ Quick-Add Slab:", font=("Segoe UI", 8, "bold"), fg="#fb923c", bg="#0e172a").pack(side=tk.LEFT, padx=(0, 8))
+
+        tk.Label(form_row, text="Subject:", font=("Segoe UI", 8, "bold"), fg="#cbd5e1", bg="#0e172a").pack(side=tk.LEFT, padx=(0, 4))
         self.entry_sub_var = tk.StringVar(value="Mathematics")
         self.combo_entry_sub = ttk.Combobox(
             form_row,
@@ -8809,18 +10735,18 @@ class DesktopApp:
             state="readonly",
             width=14
         )
-        self.combo_entry_sub.grid(row=0, column=1, padx=4)
+        self.combo_entry_sub.pack(side=tk.LEFT, padx=(0, 8))
 
-        tk.Label(form_row, text="Daily Activities (Task):", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=0, column=2, sticky="w", padx=4)
-        self.entry_task = tk.Entry(form_row, font=("Segoe UI", 9), bg=c["input_bg"], fg=c["input_fg"], width=30)
-        self.entry_task.grid(row=0, column=3, padx=4)
+        tk.Label(form_row, text="Daily Activity / Task:", font=("Segoe UI", 8, "bold"), fg="#cbd5e1", bg="#0e172a").pack(side=tk.LEFT, padx=(0, 4))
+        self.entry_task = tk.Entry(form_row, font=("Segoe UI", 9), bg="#131c2e", fg="#f8fafc", insertbackground="#f8fafc", bd=1, relief=tk.SOLID, width=32)
+        self.entry_task.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 8))
 
-        tk.Label(form_row, text="Mins:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=0, column=4, sticky="w", padx=4)
+        tk.Label(form_row, text="Mins:", font=("Segoe UI", 8, "bold"), fg="#cbd5e1", bg="#0e172a").pack(side=tk.LEFT, padx=(0, 4))
         self.entry_mins = ttk.Spinbox(form_row, from_=5, to=60, increment=5, width=5)
         self.entry_mins.set("25")
-        self.entry_mins.grid(row=0, column=5, padx=4)
+        self.entry_mins.pack(side=tk.LEFT, padx=(0, 8))
 
-        tk.Label(form_row, text="Type:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=0, column=6, sticky="w", padx=4)
+        tk.Label(form_row, text="Type:", font=("Segoe UI", 8, "bold"), fg="#cbd5e1", bg="#0e172a").pack(side=tk.LEFT, padx=(0, 4))
         self.entry_type_var = tk.StringVar(value="written")
         self.combo_entry_type = ttk.Combobox(
             form_row,
@@ -8829,23 +10755,28 @@ class DesktopApp:
             state="readonly",
             width=10
         )
-        self.combo_entry_type.grid(row=0, column=7, padx=4)
+        self.combo_entry_type.pack(side=tk.LEFT, padx=(0, 8))
 
-        btn_add_entry = tk.Button(
+        self.btn_add_entry = tk.Button(
             form_row,
-            text="+ Add Entry",
+            text="+ Add Slab",
             font=("Segoe UI", 8, "bold"),
-            bg=c["primary"],
-            fg="#0f172a" if self.current_theme == "dark" else "#ffffff",
-            relief=tk.FLAT,
+            bg="#f59e0b",
+            fg="#1c1104",
+            activebackground="#fbbf24",
+            activeforeground="#1c1104",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#fde047",
+            highlightthickness=1,
             padx=10,
-            pady=3,
+            pady=2,
             cursor="hand2",
             command=self.add_diary_entry_item
         )
-        btn_add_entry.grid(row=0, column=8, padx=(8, 0))
+        self.btn_add_entry.pack(side=tk.RIGHT)
 
-        # Diary Entries Display Table
+        # 3. Diary Entries Scrollable Ledger Container
         tbl_frame = tk.Frame(pad, bg=c["bg"])
         tbl_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -8883,23 +10814,18 @@ class DesktopApp:
         c = self.colors
         items = self.get_active_diary_items()
 
-        # Header banner
-        banner = tk.Frame(self.diary_inner, bg=c["card_bg"], padx=14, pady=8, bd=1, relief=tk.SOLID)
-        banner.pack(fill=tk.X, pady=(0, 8))
-
-        lbl_info = tk.Label(
-            banner,
-            text=f"📖 Entries for {self.active_diary_date} ({len(items)} subjects/tasks logged) • Auto-splits Core Subjects into Efficiency Slabs",
-            font=("Segoe UI", 9, "bold"),
-            fg=c["primary"],
-            bg=c["card_bg"]
+        # Unfurled Parchment Scroll Section Banner (Option B: Scroll & Chakra Ledger)
+        self._create_parchment_scroll_banner(
+            self.diary_inner,
+            f"SCHOOL DIARY LEDGER • ENTRIES FOR {self.active_diary_date} • AUTO-SPLITS CORE SUBJECTS INTO EFFICIENCY SLABS",
+            right_text=f"{len(items)} SUBJECT SLABS",
+            pady=(0, 8)
         )
-        lbl_info.pack(side=tk.LEFT)
 
         if not items:
             lbl_empty = tk.Label(
                 self.diary_inner,
-                text="No diary entries logged for this date. Add one using the form above!",
+                text="No diary entries logged for this date. Add one using the Quick-Add Slab bar above!",
                 font=("Segoe UI", 9, "italic"),
                 fg=c["fg_muted"],
                 bg=c["bg"],
@@ -8908,65 +10834,127 @@ class DesktopApp:
             lbl_empty.pack()
             return
 
-        for idx, it in enumerate(items):
-            card = tk.Frame(self.diary_inner, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=12, pady=9)
-            card.pack(fill=tk.X, pady=3)
+        # 2-Column Chakra Ledger Grid of Homework Slabs
+        grid_frame = tk.Frame(self.diary_inner, bg=c["bg"])
+        grid_frame.pack(fill=tk.BOTH, expand=True)
+        grid_frame.grid_columnconfigure(0, weight=1, uniform="diary_col")
+        grid_frame.grid_columnconfigure(1, weight=1, uniform="diary_col")
 
+        for idx, it in enumerate(items):
+            r_idx = idx // 2
+            c_idx = idx % 2
             is_done = it.get("completed", False)
+
+            card_bg = "#111a2e" if is_done else "#0e172a"
+            card_border = "#10b981" if is_done else "#d4af5a"
+
+            card = tk.Frame(
+                grid_frame,
+                bg=card_bg,
+                bd=1,
+                relief=tk.SOLID,
+                highlightbackground=card_border,
+                highlightthickness=1,
+                padx=10,
+                pady=8
+            )
+            card.grid(row=r_idx, column=c_idx, sticky="nsew", padx=(0 if c_idx == 0 else 4, 4 if c_idx == 0 else 0), pady=4)
+
             chk_var = tk.BooleanVar(value=is_done)
             chk = tk.Checkbutton(
                 card,
                 variable=chk_var,
-                bg=c["card_bg"],
-                activebackground=c["card_bg"],
-                selectcolor=c["input_bg"],
+                bg=card_bg,
+                activebackground=card_bg,
+                selectcolor="#131c2e",
+                fg="#10b981",
                 command=lambda item=it, v=chk_var: self.toggle_diary_item_done(item, v)
             )
-            chk.pack(side=tk.LEFT, padx=(0, 8))
+            chk.pack(side=tk.LEFT, padx=(0, 6))
 
-            # Code/Subject pill
-            sub_code = it.get("code", it["subject"][:4])
-            lbl_code = tk.Label(
+            # 1. Metallic Gold-Bordered Subject Plaque
+            sub_code = it.get("code", it["subject"][:4].upper())
+            plaque = tk.Frame(
                 card,
-                text=f"{sub_code} ({it['subject']})",
-            font=("Segoe UI", 8, "bold"),
-                fg="#ffffff" if self.current_theme == "light" else "#0f172a",
-                bg=c["primary"],
-                padx=6,
-                pady=2
+                bg="#161006",
+                bd=1,
+                relief=tk.SOLID,
+                highlightbackground="#eab308",
+                highlightthickness=1,
+                padx=8,
+                pady=3
             )
-            lbl_code.pack(side=tk.LEFT, padx=(0, 10))
+            plaque.pack(side=tk.LEFT, padx=(0, 10))
 
-            task_font = ("Segoe UI", 9, "overstrike" if is_done else "normal")
-            task_fg = c["fg_muted"] if is_done else c["fg"]
-            lbl_t = tk.Label(card, text=it["task"], font=task_font, fg=task_fg, bg=c["card_bg"], anchor="w")
-            lbl_t.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            tk.Label(
+                plaque,
+                text=sub_code,
+                font=("Segoe UI", 8, "bold"),
+                fg="#facc15",
+                bg="#161006"
+            ).pack(anchor="w")
 
-            lbl_type = tk.Label(
-                card,
-                text=f"[{it.get('task_type', 'written')}]",
-                font=("Segoe UI", 8, "italic"),
-                fg=c["fg_muted"],
-                bg=c["card_bg"]
-            )
-            lbl_type.pack(side=tk.LEFT, padx=6)
+            tk.Label(
+                plaque,
+                text=it["subject"],
+                font=("Segoe UI", 7, "bold"),
+                fg="#fde68a",
+                bg="#161006"
+            ).pack(anchor="w")
 
-            lbl_m = tk.Label(card, text=f"⏱ {it.get('est_mins', 20)}m", font=("Segoe UI", 9), fg=c["fg_muted"], bg=c["card_bg"])
-            lbl_m.pack(side=tk.LEFT, padx=8)
-
+            # 2. Right Controls: Delete Button + Mini Parchment Scroll Badge
             btn_del = tk.Button(
                 card,
                 text="✕",
-            font=("Segoe UI", 8, "bold"),
-                bg=c["card_border"],
-                fg=c["danger"],
-            relief=tk.FLAT,
-                padx=6,
+                font=("Segoe UI", 8, "bold"),
+                bg="#1e1b2e",
+                fg="#f87171",
+                relief=tk.SOLID,
+                bd=1,
+                highlightbackground="#7f1d1d",
+                highlightthickness=1,
+                padx=5,
                 pady=1,
-            cursor="hand2",
+                cursor="hand2",
                 command=lambda item=it: self.delete_diary_item(item)
             )
-            btn_del.pack(side=tk.RIGHT)
+            btn_del.pack(side=tk.RIGHT, padx=(6, 0))
+
+            scroll_badge = tk.Frame(
+                card,
+                bg="#f5e4c3",
+                bd=1,
+                relief=tk.SOLID,
+                highlightbackground="#991b1b",
+                highlightthickness=1
+            )
+            scroll_badge.pack(side=tk.RIGHT, padx=(6, 0))
+            tk.Frame(scroll_badge, bg="#881b1b", width=3).pack(side=tk.LEFT, fill=tk.Y)
+            tk.Frame(scroll_badge, bg="#881b1b", width=3).pack(side=tk.RIGHT, fill=tk.Y)
+            tk.Label(
+                scroll_badge,
+                text=f"{it.get('task_type', 'written').upper()} • ⏱ {it.get('est_mins', 20)}m",
+                font=("Segoe UI", 7, "bold"),
+                fg="#1f1206",
+                bg="#f5e4c3",
+                padx=6,
+                pady=2
+            ).pack(side=tk.LEFT)
+
+            # 3. Center Homework Activity Description
+            task_font = ("Segoe UI", 9, "overstrike" if is_done else "bold")
+            task_fg = "#94a3b8" if is_done else "#f8fafc"
+            lbl_t = tk.Label(
+                card,
+                text=it["task"],
+                font=task_font,
+                fg=task_fg,
+                bg=card_bg,
+                anchor="w",
+                justify="left",
+                wraplength=240
+            )
+            lbl_t.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
     def toggle_diary_item_done(self, item, var):
         item["completed"] = var.get()
@@ -9579,20 +11567,23 @@ class DesktopApp:
         self.is_pre_exam_mode = ("3-week" in val.lower() or "pre-exam" in val.lower())
 
         if self.is_exam_mode:
+            if hasattr(self, "lbl_daily_mode_tag"): self.lbl_daily_mode_tag.pack_forget()
             self.lbl_pre_exam_day.pack_forget()
             self.pre_exam_day_combo.pack_forget()
-            self.lbl_exam_sub.pack(side=tk.LEFT, padx=(5, 2), before=self.level_label)
-            self.exam_sub_combo.pack(side=tk.LEFT, padx=3, before=self.level_label)
+            self.lbl_exam_sub.pack(side=tk.LEFT, padx=(2, 2))
+            self.exam_sub_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         elif self.is_pre_exam_mode:
+            if hasattr(self, "lbl_daily_mode_tag"): self.lbl_daily_mode_tag.pack_forget()
             self.lbl_exam_sub.pack_forget()
             self.exam_sub_combo.pack_forget()
-            self.lbl_pre_exam_day.pack(side=tk.LEFT, padx=(5, 2), before=self.level_label)
-            self.pre_exam_day_combo.pack(side=tk.LEFT, padx=3, before=self.level_label)
+            self.lbl_pre_exam_day.pack(side=tk.LEFT, padx=(2, 2))
+            self.pre_exam_day_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         else:
             self.lbl_exam_sub.pack_forget()
             self.exam_sub_combo.pack_forget()
             self.lbl_pre_exam_day.pack_forget()
             self.pre_exam_day_combo.pack_forget()
+            if hasattr(self, "lbl_daily_mode_tag"): self.lbl_daily_mode_tag.pack(side=tk.LEFT, padx=2)
 
         self.update_timeline_header_mode_view()
         self.update_notebook_tabs_for_mode()
@@ -10090,6 +12081,19 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             command=self.copy_audit_summary_to_clipboard
         ).pack(side=tk.LEFT, padx=4)
 
+        tk.Button(
+            action_bar,
+            text=f"📅 {datetime.now().strftime('%B')} Monthly Parent Report",
+            font=("Segoe UI", 8, "bold"),
+            bg="#facc15",
+            fg="#0f172a",
+            relief=tk.FLAT,
+            padx=10,
+            pady=3,
+            cursor="hand2",
+            command=lambda: self.open_monthly_parent_audit_report_window(submit_now=True)
+        ).pack(side=tk.LEFT, padx=6)
+
         # ------------------------------------------------------------------
         # SECTION 1: Subject Occurrence & Cognitive Weightage Ledger Table
         # ------------------------------------------------------------------
@@ -10276,8 +12280,13 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             for rec in records:
                 time_str = rec.get("timestamp", "")[:16].replace("T", " ")
                 is_surplus = (rec.get("variance_type") == "SURPLUS_EARLY_COMPLETION")
+                is_monthly_report = (rec.get("variance_type") == "MONTHLY_PARENT_AUDIT_REPORT")
 
-                if is_surplus:
+                if is_monthly_report:
+                    variance_str = "📊 MONTHLY REPORT"
+                    reason_str = rec.get("reason", "Monthly Effort & Consistency Report")
+                    casc_str = f"✅ {rec.get('action_taken', 'Submitted for Parents Review')}"
+                elif is_surplus:
                     saved_m = rec.get("saved_mins", 0)
                     variance_str = f"-{saved_m}m ⚡ (Bonus)"
                     reason_str = rec.get("reason", "Task finished ahead of time")
@@ -10396,12 +12405,14 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
 
     def handle_generate_schedule(self, silent=False):
         active_items = self.get_active_diary_items()
+        active_rollovers = self.audit_data.get("bedtime_rollovers", []) if hasattr(self, "audit_data") and self.audit_data else []
         self.evening_schedule, self.morning_schedule = TharunScheduleBalancer.generate_schedule(
             self.subjects, active_items, self.current_level, self.selected_language,
             exam_mode=self.is_exam_mode, exam_subject=self.selected_exam_subject,
             start_time_str=self.schedule_start_time,
             pre_exam_mode=self.is_pre_exam_mode, pre_exam_day=self.pre_exam_day,
-            pre_exam_duration_days=self.pre_exam_duration_days
+            pre_exam_duration_days=self.pre_exam_duration_days,
+            bedtime_rollovers=active_rollovers
         )
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
         self.render_timetable_cards()
@@ -10409,7 +12420,18 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
         if self.all_schedule_slots:
             if not silent:
                 self.select_timer_slot(self.get_initial_timer_slot_index())
-            elif self.timer_active_slot_index >= len(self.all_schedule_slots) or self.all_schedule_slots[self.timer_active_slot_index].get("is_completed", False):
+            elif (
+                self.timer_active_slot_index >= len(self.all_schedule_slots)
+                or self.all_schedule_slots[self.timer_active_slot_index].get("is_completed", False)
+                or (
+                    self.timer_active_slot_index == 0
+                    and (
+                        self.all_schedule_slots[0].get("type") == "break"
+                        or "transition" in self.all_schedule_slots[0].get("subject", "").lower()
+                        or "chill zone" in self.all_schedule_slots[0].get("title", "").lower()
+                    )
+                )
+            ):
                 self.select_timer_slot(self.get_initial_timer_slot_index())
             else:
                 self.select_timer_slot(self.timer_active_slot_index)
@@ -10665,62 +12687,296 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
 
     def apply_theme(self):
         c = self.colors
+        card_bg = c["card_bg"]
         meta = NARUTO_METADATA.get(self.current_theme, NARUTO_METADATA["naruto_sage"])
-        banner_bg = c.get("banner_bg", c["highlight"])
+        banner_bg = card_bg
 
         self.root.configure(bg=c["bg"])
-        self.header_frame.configure(bg=c["card_bg"])
-        self.lbl_title.configure(bg=c["card_bg"], fg=c["primary"])
-        self.lbl_subtitle.configure(bg=c["card_bg"], fg=c["fg_muted"])
-        self.lbl_streak.configure(bg=c["highlight"], fg=c["warning"])
+        if hasattr(self, "header_outer"):
+            self.header_outer.configure(bg="#0b111e", highlightbackground=c.get("primary", "#f59e0b"), highlightthickness=2)
+        self.header_frame.configure(bg="#0b111e")
+        for attr in ("header_brand_left", "title_box", "title_row", "header_right", "header_heatmap_frame"):
+            if hasattr(self, attr):
+                getattr(self, attr).configure(bg="#0b111e")
+        if hasattr(self, "lbl_header_emblem"):
+            self.lbl_header_emblem.configure(bg="#1a120b", fg=c.get("primary", "#fb923c"), highlightbackground=c.get("primary", "#f97316"))
+        if hasattr(self, "lbl_title_prefix"):
+            self.lbl_title_prefix.configure(bg="#0b111e", fg="#ffffff")
+        self.lbl_title.configure(bg="#0b111e", fg=c.get("primary", "#fbbf24"))
+        if hasattr(self, "lbl_class8_pill"):
+            self.lbl_class8_pill.configure(bg="#0c2d48", fg="#38bdf8", highlightbackground="#0284c7")
+        self.lbl_subtitle.configure(bg="#0b111e", fg="#94a3b8")
+        if hasattr(self, "streak_box_frame"):
+            self.streak_box_frame.configure(bg="#131c2e", highlightbackground="#334155")
+        self.lbl_streak.configure(
+            text=f"🔥 Will of Fire: Day {self.habit_streak} Streak",
+            bg="#131c2e",
+            fg="#f8fafc"
+        )
+        self._render_header_streak_dots()
+        if hasattr(self, "btn_month_dropdown"):
+            self.btn_month_dropdown.configure(
+                bg="#131c2e",
+                fg="#f8fafc",
+                activebackground=c.get("primary", "#f97316"),
+                activeforeground="#0f172a",
+                highlightbackground="#334155"
+            )
+        self.render_streak_heatmap()
 
-        # Update Shinobi Banner
+        # Update Shinobi Banner & Command Deck (Row 2 - Unified Deck Background)
+        if hasattr(self, "deck_container"):
+            self.deck_container.configure(bg=c["bg"])
+
         if hasattr(self, "shinobi_banner_frame"):
-            self.shinobi_banner_frame.configure(bg=banner_bg)
-            banner_img = self.get_naruto_image(self.current_theme, size=(46, 46))
+            self.shinobi_banner_frame.configure(
+                bg="#0b111e",
+                highlightbackground=c.get("primary", "#f97316"),
+                highlightthickness=2
+            )
+            banner_img = self.get_naruto_image(self.current_theme, size=(122, 122))
             if banner_img:
-                self.lbl_shinobi_icon.configure(image=banner_img, text="", bg=banner_bg)
+                self.lbl_shinobi_icon.configure(
+                    image=banner_img,
+                    text="",
+                    bg="#0b111e",
+                    highlightbackground="#fbbf24",
+                    highlightthickness=2
+                )
                 self.lbl_shinobi_icon.image = banner_img
             else:
-                self.lbl_shinobi_icon.configure(text=meta["icon"], image="", bg=banner_bg)
+                self.lbl_shinobi_icon.configure(
+                    text=meta["icon"],
+                    image="",
+                    bg="#0b111e",
+                    highlightbackground="#fbbf24",
+                    highlightthickness=2
+                )
+
+            if hasattr(self, "shinobi_text_box"):
+                self.shinobi_text_box.configure(bg="#0b111e")
+
+            if hasattr(self, "lbl_shinobi_eyebrow"):
+                self.lbl_shinobi_eyebrow.configure(fg="#fb923c", bg="#0b111e")
 
             self.lbl_shinobi_title.configure(
-                text=f"SHINOBI SCROLL • {meta['character'].upper()} [{meta['title']}] • Jutsu: {meta['jutsu']}",
-                fg=c["primary"],
-                bg=banner_bg
-            )
-            self.lbl_shinobi_quote.configure(
-                text=f"{meta['quote']}",
-                fg=c.get("banner_fg", c["fg_muted"]),
-                bg=banner_bg
-            )
-            self.lbl_shinobi_rank_badge.configure(
-                text=f"RANK: {meta['rank'].upper()}",
-                fg=c["accent"],
-                bg=c["card_bg"]
-            )
-            self.btn_rotate_shinobi.configure(
-                bg=c["primary"],
-                fg="#0f172a" if self.current_theme in ["naruto_sage", "minato_flash", "sasuke_chidori", "kakashi_hatake", "leaf_village"] else "#ffffff"
+                text=f"{meta['character'].upper()} • {meta['title'].upper()}",
+                fg="#facc15",
+                bg="#0b111e"
             )
 
-        # Update Timer Companion Art
+            clean_quote = meta['quote'].strip('“"\'”')
+            self.lbl_shinobi_quote.configure(
+                text=f"❝ {clean_quote} ❞",
+                fg="#ffffff",
+                bg="#0b111e"
+            )
+
+            if hasattr(self, "shinobi_bottom_row"):
+                self.shinobi_bottom_row.configure(bg="#0b111e")
+
+            if hasattr(self, "lbl_shinobi_jutsu"):
+                self.lbl_shinobi_jutsu.configure(
+                    text=f"⚡ Jutsu: {meta['jutsu']}",
+                    fg="#fde68a",
+                    bg="#17120c",
+                    highlightbackground=c.get("primary", "#f97316"),
+                    highlightthickness=1
+                )
+
+            if hasattr(self, "lbl_shinobi_rank_badge"):
+                self.lbl_shinobi_rank_badge.configure(
+                    text=f"RANK: {meta['rank'].upper()}",
+                    fg="#1c1104",
+                    bg="#eab308",
+                    highlightbackground="#fef08a",
+                    highlightthickness=1
+                )
+
+        if hasattr(self, "matrix_command_frame"):
+            self.matrix_command_frame.configure(
+                bg="#0b111e",
+                highlightbackground=c.get("primary", "#f97316"),
+                highlightthickness=2
+            )
+            for pill in getattr(self, "setting_pills", []):
+                if pill and pill.winfo_exists():
+                    pill.configure(bg="#131c2e", highlightbackground="#334155")
+                    for sch in pill.winfo_children():
+                        if isinstance(sch, tk.Label):
+                            sch.configure(bg="#131c2e", fg="#fb923c")
+            if hasattr(self, "sub_prep_container") and self.sub_prep_container.winfo_exists():
+                self.sub_prep_container.configure(bg="#131c2e", highlightbackground="#334155")
+            if hasattr(self, "lbl_exam_sub"):
+                self.lbl_exam_sub.configure(bg="#131c2e", fg="#fb923c")
+            if hasattr(self, "lbl_pre_exam_day"):
+                self.lbl_pre_exam_day.configure(bg="#131c2e", fg="#38bdf8")
+            if hasattr(self, "lbl_daily_mode_tag"):
+                self.lbl_daily_mode_tag.configure(bg="#131c2e", fg="#f8fafc")
+
+        # Comprehensive theme synchronization for all action buttons and menus
+        def cfg_btn(b, bg_col, fg_col=None, active_bg=None, active_fg=None, border_col=None):
+            if b and hasattr(b, "winfo_exists") and b.winfo_exists():
+                try:
+                    c_fg = fg_col if fg_col else get_contrast_fg(bg_col)
+                    act_bg = active_bg if active_bg else bg_col
+                    act_fg = active_fg if active_fg else get_contrast_fg(act_bg)
+                    kwargs = {
+                        "bg": bg_col,
+                        "fg": c_fg,
+                        "activebackground": act_bg,
+                        "activeforeground": act_fg
+                    }
+                    if border_col:
+                        kwargs["highlightbackground"] = border_col
+                    b.configure(**kwargs)
+                except Exception:
+                    pass
+
+        # Month Selector Button (Sage Mode Modern pill)
+        cfg_btn(getattr(self, "btn_month_dropdown", None), "#131c2e", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
+
+        # Matrix Command Deck Buttons (Option A: Dark Glass Action Deck + Solid Gold Primary Schedule Button)
+        for dark_btn_attr in ["btn_rotate_shinobi", "btn_guide_menu", "btn_parent_digest", "btn_shinobi_wisdom", "btn_v1_audit", "btn_error_bank"]:
+            cfg_btn(
+                getattr(self, dark_btn_attr, None),
+                "#131c2e",
+                "#f8fafc",
+                active_bg=c.get("primary", "#f97316"),
+                active_fg="#0f172a",
+                border_col="#334155"
+            )
+        if hasattr(self, "guide_dropdown_menu") and self.guide_dropdown_menu:
+            try:
+                self.guide_dropdown_menu.configure(
+                    bg="#0f172a",
+                    fg="#f8fafc",
+                    activebackground=c.get("primary", "#f97316"),
+                    activeforeground="#0f172a"
+                )
+            except Exception:
+                pass
+        cfg_btn(
+            getattr(self, "btn_quick_focus", None),
+            "#f59e0b",
+            "#1c1104",
+            active_bg="#fbbf24",
+            active_fg="#1c1104",
+            border_col="#fde047"
+        )
+
+        # STEP 5: Timer Deck (Option A: Circular Chakra Ring Timer with Character-Adaptive Outer Flame Glow)
+        if hasattr(self, "timer_card") and self.timer_card.winfo_exists():
+            self.timer_card.configure(bg="#0b111e", highlightbackground=c.get("primary", "#f97316"), highlightthickness=2)
+        if hasattr(self, "timer_pad_frame") and self.timer_pad_frame.winfo_exists():
+            self.timer_pad_frame.configure(bg="#0b111e")
+        for tf in ["timer_info_box", "timer_ext_bar", "timer_opt_box", "timer_habit_box"]:
+            f_w = getattr(self, tf, None)
+            if f_w and f_w.winfo_exists():
+                try:
+                    f_w.configure(bg="#131c2e", highlightbackground="#334155")
+                except Exception:
+                    pass
+
+        cfg_btn(getattr(self, "btn_timer_toggle", None), c.get("primary", "#f97316"), "#0f172a", active_bg="#fbbf24", active_fg="#0f172a", border_col="#fde047")
+        cfg_btn(getattr(self, "btn_timer_reset", None), "#131c2e", "#f8fafc", active_bg="#1e293b", active_fg="#f8fafc", border_col="#334155")
+        cfg_btn(getattr(self, "btn_timer_next", None), "#131c2e", "#f8fafc", active_bg="#1e293b", active_fg="#f8fafc", border_col="#334155")
+        cfg_btn(getattr(self, "btn_timer_early", None), "#131c2e", "#facc15", active_bg="#f59e0b", active_fg="#0f172a", border_col="#eab308")
+        cfg_btn(getattr(self, "btn_end_day", None), "#131c2e", "#34d399", active_bg="#10b981", active_fg="#0f172a", border_col="#10b981")
+
+        if hasattr(self, "timer_ext_buttons") and self.timer_ext_buttons:
+            for b in self.timer_ext_buttons:
+                cfg_btn(b, "#1e293b", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#475569")
+
+        cfg_btn(getattr(self, "btn_test_sound", None), "#1e293b", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#475569")
+        cfg_btn(getattr(self, "btn_browse_wisdom", None), "#1e293b", "#facc15", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#475569")
+        cfg_btn(getattr(self, "btn_subject_playbook", None), "#1e293b", "#38bdf8", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#475569")
+        cfg_btn(getattr(self, "btn_active_sub_guide", None), "#1e293b", "#fb923c", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#475569")
+
+        if hasattr(self, "rescue_buttons") and self.rescue_buttons:
+            r_fg_cols = ["#38bdf8", "#f87171", "#e2e8f0", "#fb923c", "#facc15", "#34d399", "#94a3b8"]
+            for b, fg_col in zip(self.rescue_buttons, r_fg_cols):
+                cfg_btn(b, "#1e293b", fg_col, active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
+
+        # Tab 1: Timeline / Schedule
+        for fr in ["timeline_header", "mode_controls_frame", "balanced_controls_frame", "exam_controls_frame", "pre_exam_controls_frame", "timeline_btn_box"]:
+            f_widget = getattr(self, fr, None)
+            if f_widget and f_widget.winfo_exists():
+                try:
+                    f_widget.configure(bg=c["bg"])
+                except Exception:
+                    pass
+        if hasattr(self, "timeline_badge_lbl") and self.timeline_badge_lbl.winfo_exists():
+            self.timeline_badge_lbl.configure(bg=c["bg"], fg=c["fg"])
+        if hasattr(self, "lbl_diary_date_prefix") and self.lbl_diary_date_prefix.winfo_exists():
+            self.lbl_diary_date_prefix.configure(bg=c["bg"], fg=c["fg_muted"])
+        if hasattr(self, "lbl_timeline_exam_prefix") and self.lbl_timeline_exam_prefix.winfo_exists():
+            self.lbl_timeline_exam_prefix.configure(bg=c["bg"], fg=c["warning"])
+        if hasattr(self, "lbl_timeline_prep_prefix") and self.lbl_timeline_prep_prefix.winfo_exists():
+            self.lbl_timeline_prep_prefix.configure(bg=c["bg"], fg=c["accent"])
+
+        cfg_btn(getattr(self, "btn_timeline_roadmap", None), c["accent"], active_bg=c["primary"])
+        cfg_btn(getattr(self, "btn_regen", None), c["primary"], active_bg=c.get("primary_hover", c["primary"]))
+        cfg_btn(getattr(self, "btn_export", None), c["input_bg"], c["fg"], border_col=c["card_border"], active_bg=c["card_border"])
+
+        # STEP 8: Exam Portions & Syllabus Tracker (Option B: Scroll & Chakra Ledger)
+        if hasattr(self, "portions_header_card") and self.portions_header_card.winfo_exists():
+            self.portions_header_card.configure(bg="#0e172a", highlightbackground="#d4af5a")
+        if hasattr(self, "portion_filter_bar") and self.portion_filter_bar.winfo_exists():
+            self.portion_filter_bar.configure(bg=c["bg"])
+        if hasattr(self, "portions_canvas") and self.portions_canvas.winfo_exists():
+            self.portions_canvas.configure(bg=c["bg"])
+        if hasattr(self, "portions_inner") and self.portions_inner.winfo_exists():
+            self.portions_inner.configure(bg=c["bg"])
+
+        cfg_btn(getattr(self, "btn_upload_portions", None), "#f59e0b", "#1c1104", active_bg="#fbbf24", active_fg="#1c1104", border_col="#fde047")
+        cfg_btn(getattr(self, "btn_paste_portions", None), "#131c2e", "#38bdf8", active_bg="#1e293b", active_fg="#38bdf8", border_col="#334155")
+        cfg_btn(getattr(self, "btn_launch_pre_exam", None), "#161006", "#facc15", active_bg="#f59e0b", active_fg="#1c1104", border_col="#eab308")
+        cfg_btn(getattr(self, "btn_copy_portions", None), "#131c2e", "#f8fafc", active_bg="#1e293b", active_fg="#f8fafc", border_col="#334155")
+        cfg_btn(getattr(self, "btn_reset_checks", None), "#131c2e", "#f87171", active_bg="#2a1215", active_fg="#fca5a5", border_col="#334155")
+
+        if hasattr(self, "filter_buttons") and self.filter_buttons:
+            for name, btn in self.filter_buttons.items():
+                is_act = (getattr(self, "portion_filter", "All Subjects") == name)
+                btn.config(
+                    text=f"📜 {name}" if is_act else name,
+                    bg="#f5e4c3" if is_act else "#131c2e",
+                    fg="#1f1206" if is_act else "#cbd5e1",
+                    highlightbackground="#991b1b" if is_act else "#334155"
+                )
+
+        # STEP 7: School Diary (Option B: Scroll & Chakra Ledger)
+        if hasattr(self, "diary_top_bar") and self.diary_top_bar.winfo_exists():
+            self.diary_top_bar.configure(bg="#0e172a", highlightbackground="#d4af5a")
+        if hasattr(self, "diary_add_box") and self.diary_add_box.winfo_exists():
+            self.diary_add_box.configure(bg="#0e172a", highlightbackground="#b48a3e")
+
+        cfg_btn(getattr(self, "btn_apply", None), "#f59e0b", "#1c1104", active_bg="#fbbf24", active_fg="#1c1104", border_col="#fde047")
+        cfg_btn(getattr(self, "btn_audit", None), "#131c2e", "#38bdf8", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
+        cfg_btn(getattr(self, "btn_save", None), "#131c2e", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
+        cfg_btn(getattr(self, "btn_open_input", None), "#131c2e", "#34d399", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
+        cfg_btn(getattr(self, "btn_import_folder", None), "#131c2e", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
+        cfg_btn(getattr(self, "btn_import", None), "#131c2e", "#f8fafc", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#334155")
+        cfg_btn(getattr(self, "btn_photo_assistant", None), "#131c2e", "#facc15", active_bg=c.get("primary", "#f97316"), active_fg="#0f172a", border_col="#d4af5a")
+        cfg_btn(getattr(self, "btn_add_entry", None), "#f59e0b", "#1c1104", active_bg="#fbbf24", active_fg="#1c1104", border_col="#fde047")
+
+        # Update Timer Companion Art (Option A: 52x52 portrait with gold border)
         if hasattr(self, "lbl_timer_art"):
-            timer_img = self.get_naruto_image(self.current_theme, size=(68, 68))
+            timer_img = self.get_naruto_image(self.current_theme, size=(52, 52))
             if timer_img:
-                self.lbl_timer_art.configure(image=timer_img, text="", bg=self.colors.get("timer_bg", c["card_bg"]))
+                self.lbl_timer_art.configure(image=timer_img, text="", bg="#131c2e", highlightbackground=c.get("primary", "#f59e0b"))
                 self.lbl_timer_art.image = timer_img
             else:
-                self.lbl_timer_art.configure(text=meta["icon"], image="", font=("Segoe UI", 26), bg=self.colors.get("timer_bg", c["card_bg"]))
+                self.lbl_timer_art.configure(text=meta["icon"], image="", font=("Segoe UI", 22), bg="#131c2e")
 
         if hasattr(self, "theme_var"):
             self.theme_var.set(meta["display_name"])
 
         if hasattr(self, "lbl_timer_head"):
             self.lbl_timer_head.configure(
-                text=f"⏱️ THARUN'S CHAKRA FOCUS TIMER • {meta['character'].upper()}",
-                fg=c["primary"],
-                bg=c["card_bg"]
+                text=f"⏱️ THARUN'S CHAKRA FOCUS TIMER ({meta['character'].upper()})",
+                fg=c.get("primary", "#fb923c"),
+                bg="#0b111e"
             )
 
         # Update tabs bg
@@ -10732,8 +12988,10 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
 
         style = ttk.Style()
         self.configure_notebook_styles(style)
+        self.update_timer_display()
         self.render_timetable_cards()
         self.render_diary_table()
+        self.render_portion_cards()
         self.render_gravity_list()
         if hasattr(self, "audit_tree"):
             self.render_audit_tab_content()
@@ -11411,7 +13669,9 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             if last_streak_date != today_str:
                 self.habit_streak += 1
                 self.last_streak_date = today_str
-                self.lbl_streak.config(text=f"🔥 Day {self.habit_streak} Streak")
+                self.lbl_streak.config(text=f"🔥 Will of Fire: Day {self.habit_streak} Streak")
+                if hasattr(self, "lbl_streak_30d"):
+                    self.lbl_streak_30d.config(text=f"🎯 30-Day Streak: Day {self.habit_streak}/30")
                 self.save_data()
 
             self.play_chime("finished")
@@ -11742,17 +14002,19 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
 
 
     def open_v1_audit_inspector_modal(self):
-        """Displays the Version 1 Chronological System Audit & Historical Material Inspector."""
+        """Displays the Version 1 Chronological System Audit & Historical Material Inspector using Unified HUD Shell."""
         c = self.colors
-        win = tk.Toplevel(self.root)
-        win.title("🔍 Version 1 Chronological System Audit & Material Inspector • Cutoff: 11-10-2026 21:11:56")
-        win.geometry("1100x780")
-        win.minsize(980, 680)
-        win.configure(bg=c["bg"], padx=16, pady=12)
-        win.transient(self.root)
+        win, content = self._create_hud_toplevel(
+            "🔍 VERSION 1 CHRONOLOGICAL SYSTEM AUDIT & MATERIAL INSPECTOR",
+            "Exhaustive verification of day-by-day completions, pedagogical algorithms & persistent assets • Cutoff: 11-10-2026 21:11:56",
+            width=1100,
+            height=780,
+            min_width=980,
+            min_height=680
+        )
 
         # Header Frame
-        hdr_frame = tk.Frame(win, bg=c["card_bg"], bd=1, relief=tk.SOLID, padx=16, pady=12)
+        hdr_frame = tk.Frame(content, bg="#0f172a", bd=0, highlightthickness=1, highlightbackground="#1e293b", padx=16, pady=10)
         hdr_frame.pack(fill=tk.X, pady=(0, 10))
 
         title_row = tk.Frame(hdr_frame, bg=c["card_bg"])
@@ -11811,7 +14073,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
 
             # 2. JSON Data Stores
             req_jsons = ["study_routine_data.json", "tharun_diary_format.json", "tharun_exam_portions.json", "time_extension_audit.json", "student_error_bank.json"]
-            jsons_ok = all(os.path.exists(os.path.join(base_dir, j)) for j in req_jsons)
+            jsons_ok = all(os.path.exists(get_persistent_data_path(j)) for j in req_jsons)
             if jsons_ok: tests_passed += 1
 
             # 3. Audio Assets
@@ -11856,7 +14118,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
         btn_run_scan.pack(side=tk.RIGHT)
 
         # Filter Tabs Frame
-        filter_frame = tk.Frame(win, bg=c["bg"])
+        filter_frame = tk.Frame(content, bg="#0b1120")
         filter_frame.pack(fill=tk.X, pady=(0, 6))
 
         active_filter = tk.StringVar(value="All")
@@ -11899,7 +14161,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
         ]
 
         # Table & Detail Pane Container
-        split_frame = tk.Frame(win, bg=c["bg"])
+        split_frame = tk.Frame(content, bg="#0b1120")
         split_frame.pack(fill=tk.BOTH, expand=True)
 
         # Left / Top: Checkpoint Treeview
@@ -12023,7 +14285,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
         tree.bind("<<TreeviewSelect>>", on_tree_select)
 
         # Action Buttons Row
-        btn_bar = tk.Frame(win, bg=c["bg"])
+        btn_bar = tk.Frame(content, bg="#0b1120")
         btn_bar.pack(fill=tk.X, pady=(8, 0))
 
         def copy_audit_summary():
