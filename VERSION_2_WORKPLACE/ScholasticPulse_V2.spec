@@ -15,6 +15,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
+    hiddenimports=['pywinstyles', 'customtkinter', 'PIL', 'PIL.ImageTk', 'PIL.ImageFilter'],
     excludes=[],
     noarchive=False,
     optimize=0,

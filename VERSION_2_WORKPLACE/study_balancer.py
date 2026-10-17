@@ -18,15 +18,34 @@ import subprocess
 import urllib.request
 import threading
 import calendar
+import ctypes
 from datetime import datetime, timedelta
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, simpledialog
 
 try:
-    from PIL import Image, ImageTk
+    from PIL import Image, ImageTk, ImageDraw, ImageFilter
 except ImportError:
     Image = None
     ImageTk = None
+    ImageDraw = None
+    ImageFilter = None
+
+try:
+    import pywinstyles
+except ImportError:
+    pywinstyles = None
+
+# Enable Per-Monitor v2 High-DPI awareness on Windows before UI initialization
+if sys.platform == "win32":
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    except Exception:
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+        except Exception:
+            pass
+
 
 try:
     from diary_importer import UniversalDiaryImporter
@@ -2223,9 +2242,9 @@ COLOR_PALETTES = {
         "banner_fg": "#f4f4f5"
     },
     "leaf_village": {
-        "bg": "#041c14",
-        "card_bg": "#0b2e22",
-        "card_border": "#10b981",
+        "bg": "#0b1120",
+        "card_bg": "#111827",
+        "card_border": "#d97706",
         "fg": "#ecfdf5",
         "fg_muted": "#6ee7b7",
         "primary": "#10b981",
@@ -2301,6 +2320,230 @@ def get_contrast_fg(hex_color):
     except Exception:
         return "#ffffff"
 
+
+
+# =============================================================================
+# 🎨 SHINOBI HIGH-DPI GRAPHICS ENGINE (4X SSAA + GAUSSIAN GLOW + 3D SCROLLS)
+# =============================================================================
+class ShinobiGraphicsEngine:
+    """
+    Dedicated High-DPI / SSAA Rendering Engine for ScholasticPulse Desktop:
+    - 4x Supersampled (SSAA) rounded glass cards with subtle vertical gradients.
+    - Soft Gaussian radial auras and silky anti-aliased timer progress rings.
+    - True 3D shaded cylindrical mahogany/crimson parchment scrolls matching Web UI.
+    - Anti-aliased rounded pill selector cards and stacked action tiles.
+    """
+    _cache = {}
+
+    @classmethod
+    def _hex_to_rgb(cls, hex_color):
+        if not hex_color or not isinstance(hex_color, str) or not hex_color.startswith('#'):
+            return (15, 23, 42)
+        h = hex_color.lstrip('#')
+        if len(h) == 3:
+            h = ''.join([c * 2 for c in h])
+        try:
+            return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+        except Exception:
+            return (15, 23, 42)
+
+    @classmethod
+    def create_rounded_glass_card(cls, width, height, radius=14, bg_top='#111827', bg_bot='#0b1120',
+                                  border_color='#d97706', border_width=1, glow_color=None, glow_radius=0):
+        key = ('card', width, height, radius, bg_top, bg_bot, border_color, border_width, glow_color, glow_radius)
+        if key in cls._cache:
+            return cls._cache[key]
+        
+        if Image is None or ImageDraw is None:
+            return None
+
+        scale = 3
+        sw, sh = max(1, width * scale), max(1, height * scale)
+        srad = radius * scale
+
+        # Gradient fill
+        top_rgb = cls._hex_to_rgb(bg_top)
+        bot_rgb = cls._hex_to_rgb(bg_bot)
+        grad = Image.new('RGBA', (sw, sh))
+        gdraw = ImageDraw.Draw(grad)
+        for y in range(sh):
+            ratio = y / max(1, sh - 1)
+            r = int(top_rgb[0] + (bot_rgb[0] - top_rgb[0]) * ratio)
+            g = int(top_rgb[1] + (bot_rgb[1] - top_rgb[1]) * ratio)
+            b = int(top_rgb[2] + (bot_rgb[2] - top_rgb[2]) * ratio)
+            gdraw.line([(0, y), (sw, y)], fill=(r, g, b, 255))
+
+        mask = Image.new('L', (sw, sh), 0)
+        mdraw = ImageDraw.Draw(mask)
+        mdraw.rounded_rectangle([0, 0, sw - 1, sh - 1], radius=srad, fill=255)
+
+        base_card = Image.new('RGBA', (sw, sh), (0, 0, 0, 0))
+        base_card.paste(grad, (0, 0), mask)
+
+        # Border
+        if border_color and border_width > 0:
+            b_rgb = cls._hex_to_rgb(border_color)
+            sbw = border_width * scale
+            bdraw = ImageDraw.Draw(base_card)
+            bdraw.rounded_rectangle([sbw // 2, sbw // 2, sw - 1 - sbw // 2, sh - 1 - sbw // 2],
+                                   radius=srad, outline=(*b_rgb, 255), width=sbw)
+
+        res = base_card.resize((width, height), Image.Resampling.LANCZOS)
+        photo = ImageTk.PhotoImage(res)
+        cls._cache[key] = photo
+        return photo
+
+    @classmethod
+    def create_3d_parchment_scroll(cls, width, height, roller_width=18, is_mini_badge=False, is_rollover=False):
+        key = ('scroll', width, height, roller_width, is_mini_badge, is_rollover)
+        if key in cls._cache:
+            return cls._cache[key]
+
+        if Image is None or ImageDraw is None:
+            return None
+
+        scale = 3
+        sw, sh = max(1, width * scale), max(1, height * scale)
+        srw = max(4, roller_width * scale)
+
+        img = Image.new('RGBA', (sw, sh), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+
+        # Center parchment: #d6be96 top shadow -> #fdf3dc center highlight -> #e6cfa7 bottom edge
+        # Amber Parchment Rollover: #fef3c7 center, #fde68a bottom
+        cx1 = srw - (2 * scale)
+        cx2 = sw - srw + (2 * scale)
+        for y in range(sh):
+            rel_y = y / max(1, sh - 1)
+            if is_rollover:
+                if rel_y < 0.35:
+                    fac = rel_y / 0.35
+                    r = int(254 + (255 - 254) * fac)
+                    g = int(240 + (250 - 240) * fac)
+                    b = int(195 + (215 - 195) * fac)
+                else:
+                    fac = (rel_y - 0.35) / 0.65
+                    r = int(255 + (253 - 255) * fac)
+                    g = int(250 + (230 - 250) * fac)
+                    b = int(215 + (138 - 215) * fac)
+            else:
+                if rel_y < 0.35:
+                    fac = rel_y / 0.35
+                    r = int(214 + (253 - 214) * fac)
+                    g = int(190 + (243 - 190) * fac)
+                    b = int(150 + (220 - 150) * fac)
+                else:
+                    fac = (rel_y - 0.35) / 0.65
+                    r = int(253 + (230 - 253) * fac)
+                    g = int(243 + (207 - 243) * fac)
+                    b = int(220 + (167 - 220) * fac)
+            draw.line([(cx1, y), (cx2, y)], fill=(r, g, b, 255))
+
+        top_border_col = (217, 119, 6, 255) if is_rollover else (180, 83, 9, 255)
+        draw.line([(cx1, 0), (cx2, 0)], fill=top_border_col, width=max(1, scale))
+        draw.line([(cx1, sh - 1), (cx2, sh - 1)], fill=top_border_col, width=max(1, scale))
+
+        # Cylindrical mahogany-crimson rollers: #450a0a -> #dc2626 -> #7f1d1d
+        def _draw_roller(rx1, rx2):
+            rw = rx2 - rx1
+            for x in range(rw):
+                rel_x = x / max(1, rw - 1)
+                if rel_x < 0.45:
+                    fac = rel_x / 0.45
+                    cr = int(69 + (220 - 69) * fac)
+                    cg = int(10 + (38 - 10) * fac)
+                    cb = int(10 + (38 - 10) * fac)
+                else:
+                    fac = (rel_x - 0.45) / 0.55
+                    cr = int(220 + (127 - 220) * fac)
+                    cg = int(38 + (29 - 38) * fac)
+                    cb = int(38 + (29 - 38) * fac)
+                draw.line([(rx1 + x, 0), (rx1 + x, sh - 1)], fill=(cr, cg, cb, 255))
+            cap_h = max(3, 4 * scale // 2)
+            draw.rectangle([rx1, 0, rx2, cap_h], fill=(234, 179, 8, 255))
+            draw.rectangle([rx1, sh - 1 - cap_h, rx2, sh - 1], fill=(234, 179, 8, 255))
+            draw.rectangle([rx1, 0, rx2, sh - 1], outline=(153, 27, 27, 255), width=max(1, scale // 2))
+
+        _draw_roller(0, srw - 1)
+        _draw_roller(sw - srw, sw - 1)
+
+        res = img.resize((width, height), Image.Resampling.LANCZOS)
+        photo = ImageTk.PhotoImage(res)
+        cls._cache[key] = photo
+        return photo
+
+
+class ShinobiPillSelector(tk.Frame):
+    """
+    Custom Rounded Dark-Glass Selector Card with Native Dark Popup Menu:
+    Replaces clunky Win32 ttk.Combobox with high-polish dark card (radius=12, bg=#131c2e, border=#334155).
+    """
+    def __init__(self, parent, title, values, initial_value, on_select_callback, width=120, height=48, **kwargs):
+        super().__init__(parent, bg="#131c2e", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, cursor="hand2", **kwargs)
+        self.title = title
+        self.values = values
+        self.current_value = initial_value
+        self.on_select_callback = on_select_callback
+
+        self.lbl_title = tk.Label(self, text=title, font=("Segoe UI", 7, "bold"), fg="#fb923c", bg="#131c2e", anchor="w")
+        self.lbl_title.pack(anchor="w", padx=6, pady=(3, 0))
+
+        val_row = tk.Frame(self, bg="#131c2e")
+        val_row.pack(fill=tk.X, padx=6, pady=(0, 3))
+        self.val_row = val_row
+
+        disp_txt = str(initial_value)
+        if len(disp_txt) > 17:
+            disp_txt = disp_txt[:16] + "…"
+        self.lbl_val = tk.Label(val_row, text=disp_txt, font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg="#131c2e", anchor="w")
+        self.lbl_val.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        self.lbl_chev = tk.Label(val_row, text="▾", font=("Segoe UI", 8, "bold"), fg="#fb923c", bg="#131c2e")
+        self.lbl_chev.pack(side=tk.RIGHT)
+
+        self.menu = tk.Menu(self, tearoff=0, bg="#0f172a", fg="#f8fafc", activebackground="#d97706", activeforeground="#0f172a", font=("Segoe UI", 9))
+        self._rebuild_menu()
+
+        for w in (self, self.lbl_title, self.val_row, self.lbl_val, self.lbl_chev):
+            w.bind("<Button-1>", self._popup_menu)
+            w.bind("<Enter>", lambda e: self.configure(highlightbackground="#f59e0b"))
+            w.bind("<Leave>", lambda e: self.configure(highlightbackground="#334155"))
+
+    def _rebuild_menu(self):
+        self.menu.delete(0, tk.END)
+        for val in self.values:
+            self.menu.add_command(label=val, command=lambda v=val: self._select_val(v))
+
+    def _popup_menu(self, event=None):
+        try:
+            x = self.winfo_rootx()
+            y = self.winfo_rooty() + self.winfo_height()
+            self.menu.tk_popup(x, y)
+        except Exception:
+            pass
+
+    def _select_val(self, val):
+        self.current_value = val
+        disp_txt = str(val)
+        if len(disp_txt) > 17:
+            disp_txt = disp_txt[:16] + "…"
+        self.lbl_val.configure(text=disp_txt)
+        if self.on_select_callback:
+            self.on_select_callback(val)
+
+    def set(self, val):
+        self.current_value = val
+        disp_txt = str(val)
+        if len(disp_txt) > 17:
+            disp_txt = disp_txt[:16] + "…"
+        self.lbl_val.configure(text=disp_txt)
+
+    def get(self):
+        return self.current_value
+
+    def configure_values(self, values):
+        self.values = values
+        self._rebuild_menu()
 
 class TharunScheduleBalancer:
     """
@@ -3410,6 +3653,19 @@ class DesktopApp:
         self.root.geometry("1180x830")
         self.root.minsize(1000, 720)
 
+        # Apply Windows 11 Immersive Dark Mode to Native Window Title Bar
+        if sys.platform == "win32":
+            try:
+                if pywinstyles:
+                    pywinstyles.apply_style(self.root, "dark")
+                else:
+                    DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+                    hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id()) or self.root.winfo_id()
+                    val = ctypes.c_int(1)
+                    ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ctypes.byref(val), ctypes.sizeof(val))
+            except Exception:
+                pass
+
         self.last_naruto_theme_index = 0
         self.current_theme = "naruto_sage"
         self.colors = COLOR_PALETTES[self.current_theme]
@@ -4070,15 +4326,15 @@ class DesktopApp:
                 self.lbl_shinobi_quote.configure(wraplength=max(300, event.width - 14))
         self.shinobi_text_box.bind("<Configure>", _on_shinobi_text_resize)
 
-        # ---------------- STEP 3: COMMAND GRID DECK (OPTION A: SETTINGS + ACTION DECK) ----------------
+        # ---------------- STEP 3: COMMAND GRID DECK (HIGH-DPI STACKED ICONS & ROUNDED SELECTORS) ----------------
         self.matrix_command_frame = tk.Frame(
             self.deck_container,
-            bg="#0b111e",
+            bg="#0b1120",
             padx=10,
             pady=8,
             bd=1,
             relief=tk.SOLID,
-            highlightbackground="#f97316",
+            highlightbackground="#d97706",
             highlightthickness=2
         )
         self.matrix_command_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(6, 0))
@@ -4088,59 +4344,42 @@ class DesktopApp:
         for r_idx in range(3):
             self.matrix_command_frame.grid_rowconfigure(r_idx, weight=1)
 
-        def _make_setting_pill(col_idx, label_text):
-            pill = tk.Frame(
-                self.matrix_command_frame,
-                bg="#131c2e",
-                padx=6,
-                pady=3,
-                bd=1,
-                relief=tk.SOLID,
-                highlightbackground="#334155",
-                highlightthickness=1
-            )
-            pill.grid(row=0, column=col_idx, padx=3, pady=(0, 5), sticky="nsew")
-            lbl = tk.Label(
-                pill,
-                text=label_text,
-                font=("Segoe UI", 7, "bold"),
-                fg="#fb923c",
-                bg="#131c2e",
-                anchor="w"
-            )
-            lbl.pack(anchor="w", fill=tk.X)
-            return pill, lbl
-
-        # Row 0, Col 0: MODE
-        f_mode, _ = _make_setting_pill(0, "🌿 MODE")
+        # Row 0: Sleek Rounded Selector Pills (MODE, LEVEL, START, SHINOBI)
+        # 1. MODE
         init_mode = f"📅 Pre-Exam Planner ({self.pre_exam_duration_days}d)" if self.is_pre_exam_mode else ("🔥 Exam Sprint" if self.is_exam_mode else "🌿 Balanced Daily")
         self.mode_var = tk.StringVar(value=init_mode)
-        self.mode_combo = ttk.Combobox(
-            f_mode,
-            textvariable=self.mode_var,
+        def _on_pill_mode_selected(v):
+            self.mode_var.set(v)
+            self.on_routine_mode_changed()
+        self.pill_mode = ShinobiPillSelector(
+            self.matrix_command_frame,
+            title="🌿 MODE",
             values=["🌿 Balanced Daily", "🔥 Exam Sprint", f"📅 Pre-Exam Planner ({self.pre_exam_duration_days}d)"],
-            state="readonly",
-            width=14
+            initial_value=init_mode,
+            on_select_callback=_on_pill_mode_selected
         )
-        self.mode_combo.pack(fill=tk.X, expand=True, pady=(1, 0))
-        self.mode_combo.bind("<<ComboboxSelected>>", self.on_routine_mode_changed)
+        self.pill_mode.grid(row=0, column=0, padx=3, pady=(0, 4), sticky="nsew")
+        self.mode_combo = self.pill_mode  # Compatibility alias
 
-        # Row 0, Col 1: LEVEL
-        f_level, self.level_label = _make_setting_pill(1, "⚡ LEVEL")
+        # 2. LEVEL
         lvl_map = {1: "Level 1: 🔰 Genin", 2: "Level 2: ⚡ Chunin", 3: "Level 3: 🔥 Jonin"}
-        self.level_var = tk.StringVar(value=lvl_map.get(self.current_level, f"Level {self.current_level}"))
-        self.level_combo = ttk.Combobox(
-            f_level,
-            textvariable=self.level_var,
+        init_lvl = lvl_map.get(self.current_level, f"Level {self.current_level}")
+        self.level_var = tk.StringVar(value=init_lvl)
+        def _on_pill_level_selected(v):
+            self.level_var.set(v)
+            self.on_level_changed()
+        self.pill_level = ShinobiPillSelector(
+            self.matrix_command_frame,
+            title="⚡ LEVEL",
             values=["Level 1: 🔰 Genin", "Level 2: ⚡ Chunin", "Level 3: 🔥 Jonin"],
-            state="readonly",
-            width=14
+            initial_value=init_lvl,
+            on_select_callback=_on_pill_level_selected
         )
-        self.level_combo.pack(fill=tk.X, expand=True, pady=(1, 0))
-        self.level_combo.bind("<<ComboboxSelected>>", self.on_level_changed)
+        self.pill_level.grid(row=0, column=1, padx=3, pady=(0, 4), sticky="nsew")
+        self.level_combo = self.pill_level
+        self.level_label = self.pill_level.lbl_title
 
-        # Row 0, Col 2: START
-        f_start, _ = _make_setting_pill(2, "🕒 START")
+        # 3. START
         start_time_display_map = {
             "19:00": "7:00 PM",
             "17:00": "5:00 PM",
@@ -4149,73 +4388,84 @@ class DesktopApp:
         }
         init_start_disp = start_time_display_map.get(self.schedule_start_time, f"{self.schedule_start_time}")
         self.start_time_var = tk.StringVar(value=init_start_disp)
-        self.start_time_combo = ttk.Combobox(
-            f_start,
-            textvariable=self.start_time_var,
+        def _on_pill_start_selected(v):
+            self.start_time_var.set(v)
+            self.on_start_time_changed()
+        self.pill_start = ShinobiPillSelector(
+            self.matrix_command_frame,
+            title="🕒 START",
             values=["7:00 PM", "5:00 PM", "10:00 AM", "2:00 PM", "⚡ Start Now"],
-            state="readonly",
-            width=12
+            initial_value=init_start_disp,
+            on_select_callback=_on_pill_start_selected
         )
-        self.start_time_combo.pack(fill=tk.X, expand=True, pady=(1, 0))
-        self.start_time_combo.bind("<<ComboboxSelected>>", self.on_start_time_changed)
+        self.pill_start.grid(row=0, column=2, padx=3, pady=(0, 4), sticky="nsew")
+        self.start_time_combo = self.pill_start
 
-        # Row 0, Col 3: SHINOBI
-        f_theme, _ = _make_setting_pill(3, "🍥 SHINOBI")
+        # 4. SHINOBI
         current_disp = NARUTO_METADATA.get(self.current_theme, {}).get("display_name", "🍥 Naruto: Sage & Kurama")
         self.theme_var = tk.StringVar(value=current_disp)
-        self.theme_combo = ttk.Combobox(
-            f_theme,
-            textvariable=self.theme_var,
+        def _on_pill_theme_selected(v):
+            self.theme_var.set(v)
+            self.on_theme_combo_selected()
+        self.pill_theme = ShinobiPillSelector(
+            self.matrix_command_frame,
+            title="🍥 SHINOBI",
             values=[v["display_name"] for v in NARUTO_METADATA.values()],
-            state="readonly",
-            width=14
+            initial_value=current_disp,
+            on_select_callback=_on_pill_theme_selected
         )
-        self.theme_combo.pack(fill=tk.X, expand=True, pady=(1, 0))
-        self.theme_combo.bind("<<ComboboxSelected>>", self.on_theme_combo_selected)
-        self.setting_pills = [f_mode, f_level, f_start, f_theme]
+        self.pill_theme.grid(row=0, column=3, padx=3, pady=(0, 4), sticky="nsew")
+        self.theme_combo = self.pill_theme
+        self.setting_pills = [self.pill_mode, self.pill_level, self.pill_start, self.pill_theme]
 
-        # Row 1: Action Deck Row 1 (Rotate, Guides ▾, Digest, Wisdom)
-        self.btn_rotate_shinobi = tk.Button(
-            self.matrix_command_frame,
-            text="🔄  Rotate",
-            font=("Segoe UI", 9, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            activebackground="#f97316",
-            activeforeground="#0f172a",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=6,
-            pady=5,
-            cursor="hand2",
-            command=self.rotate_theme
-        )
-        self.btn_rotate_shinobi.grid(row=1, column=0, padx=3, pady=3, sticky="nsew")
+        # Helper to construct 56px Stacked Icon-over-Text Action Tiles
+        def _make_stacked_action_card(r, c, icon, label, command, is_gold_cta=False):
+            card = tk.Frame(
+                self.matrix_command_frame,
+                bg=("#f59e0b" if is_gold_cta else "#131c2e"),
+                bd=1,
+                relief=tk.SOLID,
+                highlightbackground=("#fde047" if is_gold_cta else "#334155"),
+                highlightthickness=1,
+                cursor="hand2",
+                height=52
+            )
+            card.grid(row=r, column=c, padx=3, pady=2, sticky="nsew")
+            card.pack_propagate(False)
 
-        self.btn_guide_menu = tk.Menubutton(
-            self.matrix_command_frame,
-            text="📖  Guides ▾",
-            font=("Segoe UI", 9, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            activebackground="#f97316",
-            activeforeground="#0f172a",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=6,
-            pady=5,
-            cursor="hand2"
-        )
+            fg_icon = "#0f172a" if is_gold_cta else "#38bdf8"
+            fg_lbl = "#0f172a" if is_gold_cta else "#f8fafc"
+
+            lbl_icon = tk.Label(card, text=icon, font=("Segoe UI", 12, "bold"), fg=fg_icon, bg=card["bg"])
+            lbl_icon.pack(pady=(2, 0))
+
+            lbl_text = tk.Label(card, text=label, font=("Segoe UI", 8, "bold"), fg=fg_lbl, bg=card["bg"])
+            lbl_text.pack(pady=(0, 2))
+
+            def _on_click(e):
+                if command:
+                    command()
+
+            for w in (card, lbl_icon, lbl_text):
+                w.bind("<Button-1>", _on_click)
+                if is_gold_cta:
+                    w.bind("<Enter>", lambda e: card.configure(bg="#fbbf24", highlightbackground="#ffffff"))
+                    w.bind("<Leave>", lambda e: card.configure(bg="#f59e0b", highlightbackground="#fde047"))
+                else:
+                    w.bind("<Enter>", lambda e: card.configure(highlightbackground="#f59e0b"))
+                    w.bind("<Leave>", lambda e: card.configure(highlightbackground="#334155"))
+            return card
+
+        # Row 1 Action Tiles: Rotate, Guides ▾, Digest, Wisdom
+        self.btn_rotate_shinobi = _make_stacked_action_card(1, 0, "🔄", "Rotate", self.rotate_theme)
+
+        # Guides Dropdown Menu
         self.guide_dropdown_menu = tk.Menu(
-            self.btn_guide_menu,
+            self.matrix_command_frame,
             tearoff=0,
             bg="#0f172a",
             fg="#f8fafc",
-            activebackground="#f97316",
+            activebackground="#d97706",
             activeforeground="#0f172a",
             font=("Segoe UI", 9)
         )
@@ -4243,85 +4493,21 @@ class DesktopApp:
             label="🔍 Version 1 Chronological Audit & Material Inspector (Cutoff: 21:11:56)",
             command=self.open_v1_audit_inspector_modal
         )
-        self.btn_guide_menu.config(menu=self.guide_dropdown_menu)
-        self.btn_guide_menu.grid(row=1, column=1, padx=3, pady=3, sticky="nsew")
+        def _popup_guides_menu():
+            try:
+                x = self.btn_guide_menu.winfo_rootx()
+                y = self.btn_guide_menu.winfo_rooty() + self.btn_guide_menu.winfo_height()
+                self.guide_dropdown_menu.tk_popup(x, y)
+            except Exception:
+                pass
+        self.btn_guide_menu = _make_stacked_action_card(1, 1, "📖", "Guides ▾", _popup_guides_menu)
 
-        self.btn_parent_digest = tk.Button(
-            self.matrix_command_frame,
-            text="📊  Digest",
-            font=("Segoe UI", 9, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            activebackground="#f97316",
-            activeforeground="#0f172a",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=6,
-            pady=5,
-            cursor="hand2",
-            command=self.open_weekly_parent_digest
-        )
-        self.btn_parent_digest.grid(row=1, column=2, padx=3, pady=3, sticky="nsew")
+        self.btn_parent_digest = _make_stacked_action_card(1, 2, "📊", "Digest", self.open_weekly_parent_digest)
+        self.btn_shinobi_wisdom = _make_stacked_action_card(1, 3, "🎙️", "Wisdom", self.open_shinobi_wisdom_modal)
 
-        self.btn_shinobi_wisdom = tk.Button(
-            self.matrix_command_frame,
-            text="🎙️  Wisdom",
-            font=("Segoe UI", 9, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            activebackground="#f97316",
-            activeforeground="#0f172a",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=6,
-            pady=5,
-            cursor="hand2",
-            command=self.open_shinobi_wisdom_modal
-        )
-        self.btn_shinobi_wisdom.grid(row=1, column=3, padx=3, pady=3, sticky="nsew")
-
-        # Row 2: Action Deck Row 2 (V1 Audit, Error Bank, Dynamic Mode Tile, Primary Schedule Button)
-        self.btn_v1_audit = tk.Button(
-            self.matrix_command_frame,
-            text="🔍  V1 Audit",
-            font=("Segoe UI", 9, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            activebackground="#f97316",
-            activeforeground="#0f172a",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=6,
-            pady=5,
-            cursor="hand2",
-            command=self.open_v1_audit_inspector_modal
-        )
-        self.btn_v1_audit.grid(row=2, column=0, padx=3, pady=3, sticky="nsew")
-
-        self.btn_error_bank = tk.Button(
-            self.matrix_command_frame,
-            text="⚠️  Error Bank",
-            font=("Segoe UI", 9, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            activebackground="#f97316",
-            activeforeground="#0f172a",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=6,
-            pady=5,
-            cursor="hand2",
-            command=self.open_error_bank_modal
-        )
-        self.btn_error_bank.grid(row=2, column=1, padx=3, pady=3, sticky="nsew")
+        # Row 2 Action Tiles: V1 Audit, Error Bank, Dynamic Mode Tile, Primary Schedule Button
+        self.btn_v1_audit = _make_stacked_action_card(2, 0, "🔍", "V1 Audit", self.open_v1_audit_inspector_modal)
+        self.btn_error_bank = _make_stacked_action_card(2, 1, "⚠️", "Error Bank", self.open_error_bank_modal)
 
         # Dynamic Mode Tile (Row 2, Col 2)
         self.sub_prep_container = tk.Frame(
@@ -4336,27 +4522,31 @@ class DesktopApp:
         )
         self.lbl_exam_sub = tk.Label(self.sub_prep_container, text="Exam:", font=("Segoe UI", 7, "bold"), fg="#fb923c", bg="#131c2e")
         self.exam_sub_var = tk.StringVar(value=self.selected_exam_subject)
-        self.exam_sub_combo = ttk.Combobox(
+        def _on_pill_exam_sub_selected(v):
+            self.exam_sub_var.set(v)
+            self.on_exam_subject_changed()
+        self.exam_sub_combo = ShinobiPillSelector(
             self.sub_prep_container,
-            textvariable=self.exam_sub_var,
+            title="Exam:",
             values=["Tamil", "Mathematics", "Physical Science", "Social Science", "Hindi", "Biological Science", "English"],
-            state="readonly",
-            width=12
+            initial_value=self.selected_exam_subject,
+            on_select_callback=_on_pill_exam_sub_selected
         )
-        self.exam_sub_combo.bind("<<ComboboxSelected>>", self.on_exam_subject_changed)
 
         self.lbl_pre_exam_day = tk.Label(self.sub_prep_container, text="Prep:", font=("Segoe UI", 7, "bold"), fg="#38bdf8", bg="#131c2e")
         roadmap_init = self.get_pre_exam_roadmap_for_duration()
         init_day_idx = max(0, min(len(roadmap_init) - 1, self.pre_exam_day - 1))
         self.pre_exam_day_var = tk.StringVar(value=f"Day {self.pre_exam_day}/{self.pre_exam_duration_days}: {roadmap_init[init_day_idx]['title']}")
-        self.pre_exam_day_combo = ttk.Combobox(
+        def _on_pill_pre_day_selected(v):
+            self.pre_exam_day_var.set(v)
+            self.on_pre_exam_day_changed()
+        self.pre_exam_day_combo = ShinobiPillSelector(
             self.sub_prep_container,
-            textvariable=self.pre_exam_day_var,
+            title="Prep:",
             values=[f"Day {d['day']}/{len(roadmap_init)}: {d['title']}" for d in roadmap_init],
-            state="readonly",
-            width=12
+            initial_value=f"Day {self.pre_exam_day}/{self.pre_exam_duration_days}: {roadmap_init[init_day_idx]['title']}",
+            on_select_callback=_on_pill_pre_day_selected
         )
-        self.pre_exam_day_combo.bind("<<ComboboxSelected>>", self.on_pre_exam_day_changed)
 
         self.lbl_daily_mode_tag = tk.Label(
             self.sub_prep_container,
@@ -4374,28 +4564,14 @@ class DesktopApp:
             self.pre_exam_day_combo.pack(side=tk.LEFT, fill=tk.X, expand=True)
         else:
             self.lbl_daily_mode_tag.pack(expand=True)
-        self.sub_prep_container.grid(row=2, column=2, padx=3, pady=3, sticky="nsew")
+        self.sub_prep_container.grid(row=2, column=2, padx=3, pady=2, sticky="nsew")
 
-        # Solid Gold/Orange Primary Schedule Button (Row 2, Col 3)
-        self.btn_quick_focus = tk.Button(
-            self.matrix_command_frame,
-            text="⏱️  Schedule",
-            font=("Segoe UI", 9, "bold"),
-            bg="#f59e0b",
-            fg="#1c1104",
-            activebackground="#fbbf24",
-            activeforeground="#1c1104",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#fde047",
-            highlightthickness=1,
-            padx=6,
-            pady=5,
-            cursor="hand2",
-            command=lambda: self.notebook.select(self.tab_schedule) if hasattr(self, "notebook") else None
+        # Row 2, Col 3: Solid Amber-Gold Primary Schedule CTA Card
+        self.btn_quick_focus = _make_stacked_action_card(
+            2, 3, "⏱️", "Schedule",
+            lambda: self.notebook.select(self.tab_schedule) if hasattr(self, "notebook") else None,
+            is_gold_cta=True
         )
-        self.btn_quick_focus.grid(row=2, column=3, padx=3, pady=3, sticky="nsew")
-
         # Notebook tabs
         style = ttk.Style()
         style.theme_use("default")
@@ -4451,6 +4627,17 @@ class DesktopApp:
         win.minsize(min_width, min_height)
         win.configure(bg="#070b14")
         win.transient(self.root)
+        if sys.platform == "win32":
+            try:
+                if pywinstyles:
+                    pywinstyles.apply_style(win, "dark")
+                else:
+                    DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+                    hwnd = ctypes.windll.user32.GetParent(win.winfo_id()) or win.winfo_id()
+                    val = ctypes.c_int(1)
+                    ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ctypes.byref(val), ctypes.sizeof(val))
+            except Exception:
+                pass
 
         # Outer 2px cyan HUD border container
         outer_container = tk.Frame(
@@ -7938,16 +8125,33 @@ class DesktopApp:
         canvas_frame.pack(fill=tk.BOTH, expand=True, padx=12, pady=0)
 
         self.sched_canvas = tk.Canvas(canvas_frame, bg=self.colors["bg"], highlightthickness=0)
-        self.sched_scrollbar = ttk.Scrollbar(canvas_frame, orient="vertical", command=self.sched_canvas.yview)
         self.sched_inner = tk.Frame(self.sched_canvas, bg=self.colors["bg"])
 
         self.sched_inner.bind("<Configure>", lambda e: self.sched_canvas.configure(scrollregion=self.sched_canvas.bbox("all")))
         self.sched_canvas_window = self.sched_canvas.create_window((0, 0), window=self.sched_inner, anchor="nw")
         self.sched_canvas.bind("<Configure>", lambda e: self.sched_canvas.itemconfig(self.sched_canvas_window, width=e.width))
 
-        self.sched_canvas.configure(yscrollcommand=self.sched_scrollbar.set)
+        # Ultra-slim 6px Custom Dark Canvas Scrollbar (#334155 thumb on #0b1120 track)
+        self.sched_sb_canvas = tk.Canvas(canvas_frame, width=6, bg="#0b1120", highlightthickness=0)
+        self.sched_thumb = self.sched_sb_canvas.create_rectangle(0, 0, 6, 40, fill="#334155", outline="")
+
+        def _update_sched_scrollbar(*args):
+            if len(args) == 2:
+                try:
+                    top = float(args[0])
+                    bot = float(args[1])
+                    sh = self.sched_sb_canvas.winfo_height()
+                    if sh <= 0: return
+                    ty1 = int(top * sh)
+                    ty2 = max(ty1 + 24, int(bot * sh))
+                    self.sched_sb_canvas.coords(self.sched_thumb, 0, ty1, 6, ty2)
+                except Exception:
+                    pass
+
+        self.sched_canvas.configure(yscrollcommand=_update_sched_scrollbar)
         self.sched_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.sched_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.sched_sb_canvas.pack(side=tk.RIGHT, fill=tk.Y)
+        self.sched_scrollbar = self.sched_sb_canvas  # Compatibility alias
 
         self.sched_canvas.bind_all("<MouseWheel>", self._on_mousewheel)
         self.update_timeline_header_mode_view()
@@ -7990,52 +8194,47 @@ class DesktopApp:
                 self.timeline_badge_lbl.configure(text=f"🌿 {lvl['badge']}")
 
     def _on_mousewheel(self, event):
-        if self.notebook.index(self.notebook.select()) == 0:
-            self.sched_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        delta = int(-1 * (event.delta / 120))
+        try:
+            cur_tab = self.notebook.index(self.notebook.select())
+            if cur_tab == 0:
+                if hasattr(self, "sched_canvas") and self.sched_canvas.winfo_exists():
+                    self.sched_canvas.yview_scroll(delta, "units")
+            elif cur_tab == 1:
+                # Tab 2 or 3 depending on mode
+                if hasattr(self, "portions_canvas") and self.portions_canvas.winfo_exists() and self.portions_canvas.winfo_ismapped():
+                    self.portions_canvas.yview_scroll(delta, "units")
+                elif hasattr(self, "diary_canvas") and self.diary_canvas.winfo_exists() and self.diary_canvas.winfo_ismapped():
+                    self.diary_canvas.yview_scroll(delta, "units")
+        except Exception:
+            pass
 
     def _create_parchment_scroll_banner(self, parent, title_text, right_text=None, pady=(4, 6)):
-        """Renders an unfurled warm parchment scroll banner with crimson wooden spindle ends and gold rings."""
-        banner = tk.Frame(
-            parent,
-            bg="#f5e4c3",
-            bd=1,
-            relief=tk.SOLID,
-            highlightbackground="#b45309",
-            highlightthickness=1
-        )
-        banner.pack(fill=tk.X, pady=pady)
+        """Renders an unfurled true 3D cylindrical shaded parchment scroll banner matching Web UI."""
+        banner_canvas = tk.Canvas(parent, height=36, bg=self.colors["bg"], highlightthickness=0)
+        banner_canvas.pack(fill=tk.X, pady=pady)
 
-        # Left crimson spindle + gold ring
-        tk.Frame(banner, bg="#881b1b", width=10).pack(side=tk.LEFT, fill=tk.Y)
-        tk.Frame(banner, bg="#eab308", width=3).pack(side=tk.LEFT, fill=tk.Y)
+        def _render_banner_content(event=None):
+            w = banner_canvas.winfo_width()
+            if w <= 10:
+                w = 600
+            h = 36
+            photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=18)
+            if photo:
+                banner_canvas.photo = photo
+                banner_canvas.delete("all")
+                banner_canvas.create_image(0, 0, image=photo, anchor="nw")
+                banner_canvas.create_text(26, 18, text=f"📜  {title_text}", font=("Segoe UI", 9, "bold"), fill="#1f1206", anchor="w")
+                if right_text:
+                    tw = len(right_text) * 7 + 16
+                    rx2 = w - 24
+                    rx1 = rx2 - tw
+                    banner_canvas.create_rectangle(rx1, 7, rx2, 29, fill="#fde68a", outline="#b45309", width=1)
+                    banner_canvas.create_text((rx1 + rx2) // 2, 18, text=right_text, font=("Segoe UI", 8, "bold"), fill="#7f1d1d")
 
-        # Right crimson spindle + gold ring
-        tk.Frame(banner, bg="#881b1b", width=10).pack(side=tk.RIGHT, fill=tk.Y)
-        tk.Frame(banner, bg="#eab308", width=3).pack(side=tk.RIGHT, fill=tk.Y)
-
-        mid = tk.Frame(banner, bg="#f5e4c3", padx=10, pady=5)
-        mid.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        tk.Label(
-            mid,
-            text=f"📜  {title_text}",
-            font=("Segoe UI", 9, "bold"),
-            fg="#1f1206",
-            bg="#f5e4c3",
-            anchor="w"
-        ).pack(side=tk.LEFT)
-
-        if right_text:
-            tk.Label(
-                mid,
-                text=right_text,
-                font=("Segoe UI", 8, "bold"),
-                fg="#7f1d1d",
-                bg="#fde68a",
-                padx=8,
-                pady=1
-            ).pack(side=tk.RIGHT)
-        return banner
+        banner_canvas.bind("<Configure>", _render_banner_content)
+        banner_canvas.after(20, _render_banner_content)
+        return banner_canvas
 
     def render_timetable_cards(self):
         for widget in self.sched_inner.winfo_children():
@@ -8079,7 +8278,7 @@ class DesktopApp:
             self.create_slot_card(offset + idx, slot)
 
     def create_slot_card(self, global_idx, slot):
-        # ---------------- STEP 6: DAILY SCHEDULE LIST (OPTION C: SCROLL & CHAKRA LEDGER) ----------------
+        # ---------------- STEP 6: DAILY SCHEDULE LIST (HIGH-DPI ROUNDED CARDS & NEON HALO) ----------------
         is_break = slot["type"] == "break"
         is_active = (global_idx == self.timer_active_slot_index)
         is_completed = slot.get("is_completed", False)
@@ -8093,8 +8292,9 @@ class DesktopApp:
                 _bind_click_recursive(ch)
 
         if is_break:
-            card_bg = "#0c2e27" if is_active else "#09221e"
-            card_border = "#34d399" if is_active else "#059669"
+            # Micro-Break Pill (#064e3b bg, #10b981 border)
+            card_bg = "#064e3b" if is_active else "#042f2e"
+            card_border = "#34d399" if is_active else "#10b981"
             card = tk.Frame(
                 self.sched_inner,
                 bg=card_bg,
@@ -8119,7 +8319,7 @@ class DesktopApp:
 
             tk.Label(
                 card,
-                text=slot["title"],
+                text=f"{slot['title']} • Chakra Recharge",
                 font=("Segoe UI", 8, "bold"),
                 fg="#a7f3d0",
                 bg=card_bg,
@@ -8140,8 +8340,8 @@ class DesktopApp:
             return
 
         # Study / Homework Ledger Card
-        card_bg = "#172036" if is_active else "#0e172a"
-        card_border = "#f59e0b" if is_active else ("#10b981" if is_completed else "#b48a3e")
+        card_bg = "#172036" if is_active else "#0f172a"
+        card_border = "#f59e0b" if is_active else ("#10b981" if is_completed else "#334155")
         border_w = 2 if is_active else 1
 
         card = tk.Frame(
@@ -8159,11 +8359,12 @@ class DesktopApp:
         self.slot_frames.append(card)
 
         if is_active:
+            # Active Golden Indicator Strip
             tk.Frame(card, bg="#f59e0b", width=4).pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
 
-        # 1. Left Gold-Bordered Time Plaque
-        plaque_bg = "#1e293b" if is_active else "#131c2e"
-        plaque_border = "#f59e0b" if is_active else "#d4af5a"
+        # 1. Left Rounded Bronze Time Plaque (Time on Line 1, (15m Sprint) on Line 2)
+        plaque_bg = "#1c1917" if is_active else "#18181b"
+        plaque_border = "#f59e0b" if is_active else "#785c28"
         time_plaque = tk.Frame(
             card,
             bg=plaque_bg,
@@ -8180,59 +8381,61 @@ class DesktopApp:
             time_plaque,
             text=f"{slot['start']} – {slot['end']}",
             font=("Segoe UI", 8, "bold"),
-            fg="#fde047",
+            fg="#fde047" if is_active else "#fef08a",
             bg=plaque_bg
         ).pack(anchor="w")
 
         tk.Label(
             time_plaque,
-            text=f"⏱️ {slot['duration_mins']}m Sprint",
+            text=f"⏱️ ({slot['duration_mins']}m)",
             font=("Segoe UI", 7, "bold"),
             fg="#fb923c" if is_active else "#94a3b8",
             bg=plaque_bg
         ).pack(anchor="w")
 
-        # 2. Right Mini Parchment Scroll Badge (with Amber Parchment Rollover Styling)
+        # 2. Right 3D Shaded Mini Scroll Badge
         is_rollover_slot = slot.get("is_rollover", False) or "rollover" in slot.get("badge", "").lower()
-        badge_bg = "#fef3c7" if is_rollover_slot else "#f5e4c3"
-        badge_border = "#d97706" if is_rollover_slot else "#991b1b"
-        side_strip_bg = "#b45309" if is_rollover_slot else "#881b1b"
-        badge_fg = "#78350f" if is_rollover_slot else "#1f1206"
+        badge_txt = slot["badge"]
+        badge_w = max(80, len(badge_txt) * 7 + 24)
+        badge_h = 24
 
-        scroll_badge = tk.Frame(
-            card,
-            bg=badge_bg,
-            bd=1,
-            relief=tk.SOLID,
-            highlightbackground=badge_border,
-            highlightthickness=1
-        )
-        scroll_badge.pack(side=tk.RIGHT, padx=(8, 0))
-        tk.Frame(scroll_badge, bg=side_strip_bg, width=4).pack(side=tk.LEFT, fill=tk.Y)
-        tk.Frame(scroll_badge, bg=side_strip_bg, width=4).pack(side=tk.RIGHT, fill=tk.Y)
-        tk.Label(
-            scroll_badge,
-            text=slot["badge"],
-            font=("Segoe UI", 8, "bold"),
-            fg=badge_fg,
-            bg=badge_bg,
-            padx=7,
-            pady=2
-        ).pack(side=tk.LEFT)
+        badge_canvas = tk.Canvas(card, width=badge_w, height=badge_h, bg=card_bg, highlightthickness=0)
+        badge_canvas.pack(side=tk.RIGHT, padx=(8, 0))
+
+        scroll_photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(badge_w, badge_h, roller_width=8, is_mini_badge=True, is_rollover=is_rollover_slot)
+        if scroll_photo:
+            badge_canvas.photo = scroll_photo
+            badge_canvas.create_image(0, 0, image=scroll_photo, anchor="nw")
+            badge_canvas.create_text(badge_w // 2, badge_h // 2, text=badge_txt, font=("Segoe UI", 8, "bold"), fill=("#78350f" if is_rollover_slot else "#1f1206"))
 
         # 3. Center Task Title & Guidance Sub-Line
         mid_box = tk.Frame(card, bg=card_bg)
         mid_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        title_prefix = "🔥 " if is_active else ("✅ " if is_completed else "")
+        title_row = tk.Frame(mid_box, bg=card_bg)
+        title_row.pack(fill=tk.X)
+
+        if is_active:
+            # Active Sprint indicator pill
+            tk.Label(
+                title_row,
+                text="• ACTIVE SPRINT •",
+                font=("Segoe UI", 7, "bold"),
+                fg="#0f172a",
+                bg="#f59e0b",
+                padx=6,
+                pady=1
+            ).pack(side=tk.LEFT, padx=(0, 6))
+
+        title_prefix = "✅ " if is_completed else ""
         tk.Label(
-            mid_box,
+            title_row,
             text=f"{title_prefix}{slot['title']}",
             font=("Segoe UI", 9, "bold"),
             fg="#fef08a" if is_active else ("#94a3b8" if is_completed else "#f8fafc"),
             bg=card_bg,
             anchor="w"
-        ).pack(fill=tk.X)
+        ).pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         g_sub = slot.get("guidance", "")
         if len(g_sub) > 78:
@@ -8333,7 +8536,6 @@ class DesktopApp:
 
         cx = width // 2
         cy = height // 2
-        r = 46
         frac = max(0.0, min(1.0, fraction))
 
         is_break = False
@@ -8345,67 +8547,76 @@ class DesktopApp:
             if len(slot_badge) > 18:
                 slot_badge = slot_badge[:18]
 
-        flame_primary = self.colors.get("break_color", "#10b981") if is_break else self.colors.get("primary", "#f97316")
-        flame_accent = "#34d399" if is_break else self.colors.get("accent", "#f59e0b")
-        flame_core = "#a7f3d0" if is_break else "#fde047"
-        if not is_break and frac <= 0.2:
-            flame_primary = self.colors.get("danger", "#ef4444")
+        # 4x Supersampled SSAA High-DPI PIL Rendering with Gaussian Radial Aura
+        if Image and ImageDraw and ImageFilter and ImageTk:
+            scale = 3
+            sw, sh = max(1, width * scale), max(1, height * scale)
+            scx, scy = sw // 2, sh // 2
+            r = 46 * scale
+            thickness = 10 * scale
 
-        # 1. Character-Adaptive Outer Chakra Flame Glow Aura (radial flame tongues + concentric aura rings)
-        num_flames = 16
-        for i in range(num_flames):
-            ang = (2 * math.pi * i) / num_flames
-            ang_l = ang - 0.14
-            ang_r = ang + 0.14
-            tip_r = r + (16 if i % 2 == 0 else 12)
-            base_r = r + 3
-            x_tip = cx + tip_r * math.cos(ang)
-            y_tip = cy + tip_r * math.sin(ang)
-            x_l = cx + base_r * math.cos(ang_l)
-            y_l = cy + base_r * math.sin(ang_l)
-            x_r = cx + base_r * math.cos(ang_r)
-            y_r = cy + base_r * math.sin(ang_r)
-            f_col = flame_primary if i % 2 == 0 else flame_accent
-            self.timer_canvas.create_polygon(x_l, y_l, x_tip, y_tip, x_r, y_r, fill=f_col, outline="", smooth=True)
+            ring_img = Image.new("RGBA", (sw, sh), (11, 17, 30, 255))
 
-        self.timer_canvas.create_oval(cx - (r + 10), cy - (r + 10), cx + (r + 10), cy + (r + 10), outline=flame_accent, width=1)
-        self.timer_canvas.create_oval(cx - (r + 6), cy - (r + 6), cx + (r + 6), cy + (r + 6), outline=flame_primary, width=2)
+            # 1. Soft Radial Aura Halo (Golden-amber / Emerald break + Cyan inner glow)
+            aura_img = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
+            aura_draw = ImageDraw.Draw(aura_img)
+            glow_color = (16, 185, 129, 150) if is_break else (245, 158, 11, 160)
+            cyan_color = (56, 189, 248, 140)
+            aura_draw.ellipse([scx - (r + 18 * scale), scy - (r + 18 * scale), scx + (r + 18 * scale), scy + (r + 18 * scale)],
+                              outline=glow_color, width=12 * scale)
+            aura_draw.ellipse([scx - (r + 7 * scale), scy - (r + 7 * scale), scx + (r + 7 * scale), scy + (r + 7 * scale)],
+                              outline=cyan_color, width=8 * scale)
+            aura_blurred = aura_img.filter(ImageFilter.GaussianBlur(radius=8 * scale))
+            ring_img.paste(aura_blurred, (0, 0), aura_blurred)
 
-        # 2. Dark Slate Track Ring
-        self.timer_canvas.create_oval(cx - r, cy - r, cx + r, cy + r, fill="#080d19", outline="#1e293b", width=10)
+            # 2. Dark Slate Track Ring
+            draw = ImageDraw.Draw(ring_img)
+            track_bbox = [scx - r, scy - r, scx + r, scy + r]
+            draw.ellipse(track_bbox, outline=(30, 41, 59, 255), width=thickness)
 
-        # 3. Glowing Chakra Progress Arc
-        if frac > 0.005:
-            extent_deg = -max(2.0, min(359.8, 360.0 * frac))
-            self.timer_canvas.create_arc(
-                cx - r, cy - r, cx + r, cy + r,
-                start=90, extent=extent_deg,
-                style=tk.ARC, outline=flame_primary, width=10
-            )
-            self.timer_canvas.create_arc(
-                cx - r, cy - r, cx + r, cy + r,
-                start=90, extent=extent_deg,
-                style=tk.ARC, outline=flame_core, width=3
-            )
+            # 3. Glowing Progress Arc (Silky smooth SSAA)
+            if frac > 0.005:
+                start_angle = 270
+                end_angle = 270 + int(360.0 * frac)
+                arc_col = (16, 185, 129, 255) if is_break else (249, 115, 22, 255)
+                core_col = (167, 243, 208, 255) if is_break else (253, 224, 71, 255)
+                draw.arc(track_bbox, start=start_angle, end=end_angle, fill=arc_col, width=thickness)
+                draw.arc(track_bbox, start=start_angle, end=end_angle, fill=core_col, width=max(2, thickness // 3))
 
-        # 4. Inner Dark Core Disc
-        ir = r - 7
-        self.timer_canvas.create_oval(cx - ir, cy - ir, cx + ir, cy + ir, fill="#080d19", outline="#1e293b", width=1)
+            # 4. Inner Dark Core Disc
+            ir = r - (thickness // 2) - scale
+            draw.ellipse([scx - ir, scy - ir, scx + ir, scy + ir], fill=(8, 13, 25, 255), outline=(30, 41, 59, 255), width=scale)
 
-        # 5. Hero Digital Countdown & Sub-Badge Inside Ring
+            # Downsample to native canvas resolution
+            res = ring_img.resize((width, height), Image.Resampling.LANCZOS)
+            self._timer_ring_photo = ImageTk.PhotoImage(res)
+            self.timer_canvas.create_image(0, 0, image=self._timer_ring_photo, anchor="nw")
+        else:
+            # Fallback Tkinter Canvas Arc
+            r = 46
+            self.timer_canvas.create_oval(cx - r, cy - r, cx + r, cy + r, fill="#080d19", outline="#1e293b", width=10)
+            if frac > 0.005:
+                extent_deg = -max(2.0, min(359.8, 360.0 * frac))
+                self.timer_canvas.create_arc(cx - r, cy - r, cx + r, cy + r, start=90, extent=extent_deg,
+                                             style=tk.ARC, outline=("#10b981" if is_break else "#f97316"), width=10)
+
+        # 5. Clean, Zero-Overlap Text Rendering inside the Ring
         mins = getattr(self, "timer_seconds_left", 900) // 60
         secs = getattr(self, "timer_seconds_left", 900) % 60
         self.timer_canvas.create_text(
-            cx, cy - 7,
+            cx, cy - 10,
             text=f"{mins:02d}:{secs:02d}",
-            font=("Consolas", 24, "bold"),
-            fill="#f8fafc"
+            font=("Segoe UI", 28, "bold"),
+            fill="#ffffff"
         )
+        badge_clean = slot_badge.split("(")[0].strip() if "(" in slot_badge else slot_badge
+        if len(badge_clean) > 15:
+            badge_clean = badge_clean[:14] + "…"
         self.timer_canvas.create_text(
-            cx, cy + 20,
-            text=slot_badge,
-            font=("Segoe UI", 7, "bold"),
-            fill=flame_primary
+            cx, cy + 18,
+            text=badge_clean,
+            font=("Segoe UI", 8, "bold"),
+            fill=("#34d399" if is_break else "#38bdf8")
         )
 
     def toggle_timer(self):
@@ -9354,16 +9565,33 @@ class DesktopApp:
         canvas_outer.pack(fill=tk.BOTH, expand=True)
 
         self.portions_canvas = tk.Canvas(canvas_outer, bg=c["bg"], highlightthickness=0)
-        self.portions_scrollbar = ttk.Scrollbar(canvas_outer, orient="vertical", command=self.portions_canvas.yview)
         self.portions_inner = tk.Frame(self.portions_canvas, bg=c["bg"])
 
         self.portions_inner.bind("<Configure>", lambda e: self.portions_canvas.configure(scrollregion=self.portions_canvas.bbox("all")))
         self.portions_canvas_win = self.portions_canvas.create_window((0, 0), window=self.portions_inner, anchor="nw")
         self.portions_canvas.bind("<Configure>", lambda e: self.portions_canvas.itemconfig(self.portions_canvas_win, width=e.width))
 
-        self.portions_canvas.configure(yscrollcommand=self.portions_scrollbar.set)
+        # Ultra-slim 6px Custom Dark Canvas Scrollbar
+        self.portions_sb_canvas = tk.Canvas(canvas_outer, width=6, bg="#0b1120", highlightthickness=0)
+        self.portions_thumb = self.portions_sb_canvas.create_rectangle(0, 0, 6, 40, fill="#334155", outline="")
+
+        def _update_portions_scrollbar(*args):
+            if len(args) == 2:
+                try:
+                    top = float(args[0])
+                    bot = float(args[1])
+                    sh = self.portions_sb_canvas.winfo_height()
+                    if sh <= 0: return
+                    ty1 = int(top * sh)
+                    ty2 = max(ty1 + 24, int(bot * sh))
+                    self.portions_sb_canvas.coords(self.portions_thumb, 0, ty1, 6, ty2)
+                except Exception:
+                    pass
+
+        self.portions_canvas.configure(yscrollcommand=_update_portions_scrollbar)
         self.portions_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.portions_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.portions_sb_canvas.pack(side=tk.RIGHT, fill=tk.Y)
+        self.portions_scrollbar = self.portions_sb_canvas
 
         self.render_portion_cards()
 
@@ -10781,16 +11009,33 @@ class DesktopApp:
         tbl_frame.pack(fill=tk.BOTH, expand=True)
 
         self.diary_canvas = tk.Canvas(tbl_frame, bg=c["bg"], highlightthickness=0)
-        self.diary_scrollbar = ttk.Scrollbar(tbl_frame, orient="vertical", command=self.diary_canvas.yview)
         self.diary_inner = tk.Frame(self.diary_canvas, bg=c["bg"])
 
         self.diary_inner.bind("<Configure>", lambda e: self.diary_canvas.configure(scrollregion=self.diary_canvas.bbox("all")))
         self.diary_win = self.diary_canvas.create_window((0, 0), window=self.diary_inner, anchor="nw")
         self.diary_canvas.bind("<Configure>", lambda e: self.diary_canvas.itemconfig(self.diary_win, width=e.width))
 
-        self.diary_canvas.configure(yscrollcommand=self.diary_scrollbar.set)
+        # Ultra-slim 6px Custom Dark Canvas Scrollbar
+        self.diary_sb_canvas = tk.Canvas(tbl_frame, width=6, bg="#0b1120", highlightthickness=0)
+        self.diary_thumb = self.diary_sb_canvas.create_rectangle(0, 0, 6, 40, fill="#334155", outline="")
+
+        def _update_diary_scrollbar(*args):
+            if len(args) == 2:
+                try:
+                    top = float(args[0])
+                    bot = float(args[1])
+                    sh = self.diary_sb_canvas.winfo_height()
+                    if sh <= 0: return
+                    ty1 = int(top * sh)
+                    ty2 = max(ty1 + 24, int(bot * sh))
+                    self.diary_sb_canvas.coords(self.diary_thumb, 0, ty1, 6, ty2)
+                except Exception:
+                    pass
+
+        self.diary_canvas.configure(yscrollcommand=_update_diary_scrollbar)
         self.diary_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.diary_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.diary_sb_canvas.pack(side=tk.RIGHT, fill=tk.Y)
+        self.diary_scrollbar = self.diary_sb_canvas
 
         self.render_diary_table()
 
