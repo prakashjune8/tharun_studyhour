@@ -123,7 +123,13 @@ class HostExamTabController:
         self.uploaded_answer_files: List[str] = []
         self.active_model_var = tk.StringVar(value="gemini-3.8-flash")
 
-        # Explicit 6-subview architecture mapping
+        # Persistent subview frame references (instantiated in build_ui)
+        self.subview_1 = None
+        self.subview_2 = None
+        self.subview_3 = None
+        self.subview_4 = None
+        self.subview_5 = None
+        self.subview_6 = None
         self.subview_map = {
             'ledger': self.subview_1, 
             'textbook_vault': self.subview_2, 
@@ -138,24 +144,6 @@ class HostExamTabController:
             SubjectStudyLedger.auto_sync_from_diary_and_portions()
         except Exception as e:
             print(f"[HostExamTabController] Warning during ledger auto-sync: {e}")
-
-    def subview_1(self, parent=None):
-        return self._render_subview_ledger(parent or self.subview_container)
-
-    def subview_2(self, parent=None):
-        return self._render_subview_vault(parent or self.subview_container)
-
-    def subview_3(self, parent=None):
-        return self._render_subview_sample_questions(parent or self.subview_container)
-
-    def subview_4(self, parent=None):
-        return self._render_clean_face_a(parent or self.subview_container)
-
-    def subview_5(self, parent=None):
-        return self._render_subview_face_b(parent or self.subview_container)
-
-    def subview_6(self, parent=None):
-        return self._render_subview_topper(parent or self.subview_container)
 
     def build_ui(self):
         """Construct the entire Host Examination UI inside the tab frame with strict geometry lock."""
@@ -175,6 +163,32 @@ class HostExamTabController:
         # 3. Main Dynamic Sub-View Container
         self.subview_container = tk.Frame(pad, bg=self.colors.get("bg", "#0a0e17"))
         self.subview_container.pack(fill=tk.BOTH, expand=True, pady=(4, 0))
+
+        # Persistent subview frames
+        bg_col = self.colors.get("bg", "#0a0e17")
+        self.subview_1 = tk.Frame(self.subview_container, bg=bg_col)
+        self.subview_2 = tk.Frame(self.subview_container, bg=bg_col)
+        self.subview_3 = tk.Frame(self.subview_container, bg=bg_col)
+        self.subview_4 = tk.Frame(self.subview_container, bg=bg_col)
+        self.subview_5 = tk.Frame(self.subview_container, bg=bg_col)
+        self.subview_6 = tk.Frame(self.subview_container, bg=bg_col)
+
+        # Pre-render content into each persistent subview frame once
+        self._render_subview_ledger(self.subview_1)
+        self._render_subview_vault(self.subview_2)
+        self._render_subview_sample_questions(self.subview_3)
+        self._render_clean_face_a(self.subview_4)
+        self._render_subview_face_b(self.subview_5)
+        self._render_subview_topper(self.subview_6)
+
+        self.subview_map = {
+            'ledger': self.subview_1, 
+            'textbook_vault': self.subview_2, 
+            'sample_papers': self.subview_3, 
+            'face_a': self.subview_4, 
+            'face_b': self.subview_5, 
+            'topper_guide': self.subview_6
+        }
 
         # Show initial subview
         self.switch_subview("ledger")
@@ -476,11 +490,11 @@ class HostExamTabController:
                     activeforeground="#f8fafc"
                 )
 
-    def switch_subview(self, subview_key, exam_id: Optional[str] = None):
+    def switch_subview(self, target_alias, exam_id: Optional[str] = None):
         if exam_id:
             self.active_exam_id = exam_id
 
-        # Normalize old array indices (0-5, 1-6) and legacy alias strings
+        # Normalize target_alias to handle legacy keys/aliases and numeric indices
         key_alias_map = {
             0: 'ledger', '0': 'ledger',
             1: 'ledger', '1': 'ledger', 'phases': 'ledger', 'study_ledger': 'ledger',
@@ -490,20 +504,23 @@ class HostExamTabController:
             5: 'face_b', '5': 'face_b',
             6: 'topper_guide', '6': 'topper_guide', 'topper': 'topper_guide'
         }
-        normalized_key = key_alias_map.get(subview_key, str(subview_key).lower())
-        if normalized_key not in self.subview_map:
-            normalized_key = 'ledger'
+        target_alias = key_alias_map.get(target_alias, str(target_alias).lower())
 
-        self.active_subview = normalized_key
+        if target_alias not in self.subview_map:
+            print(f"Error: Subview {target_alias} not found.")
+            return
+
+        self.active_subview = target_alias
         self._update_subview_tab_styles()
 
-        if hasattr(self, "subview_container") and self.subview_container.winfo_exists():
-            for w in self.subview_container.winfo_children():
-                w.destroy()
+        # Hide all frames safely
+        for frame in self.subview_map.values():
+            if frame and hasattr(frame, "pack_forget"):
+                frame.pack_forget()
 
-            render_func = self.subview_map.get(normalized_key)
-            if render_func:
-                render_func(self.subview_container)
+        # Show the requested frame
+        if target_alias in self.subview_map and self.subview_map[target_alias]:
+            self.subview_map[target_alias].pack(fill="both", expand=True)
 
     def _render_subview_vault(self, parent):
         """Cleanly renders the dedicated Subject Vault & Upload Library (unmingled)."""
