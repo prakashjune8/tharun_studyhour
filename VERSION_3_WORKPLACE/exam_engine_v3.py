@@ -31,6 +31,86 @@ try:
 except ImportError:
     REPORTLAB_AVAILABLE = False
 
+UNICODE_FONT_NAME = 'IndicUnicode'
+UNICODE_BOLD_FONT_NAME = 'IndicUnicodeBold'
+
+def register_indic_unicode_fonts():
+    """Register Windows native Indic Unicode TrueType fonts for Tamil, Hindi, Math & English."""
+    if not REPORTLAB_AVAILABLE:
+        return 'Helvetica', 'Helvetica-Bold'
+    try:
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        
+        reg_names = pdfmetrics.getRegisteredFontNames()
+        if UNICODE_FONT_NAME in reg_names:
+            return UNICODE_FONT_NAME, UNICODE_BOLD_FONT_NAME if UNICODE_BOLD_FONT_NAME in reg_names else UNICODE_FONT_NAME
+
+        font_registered = False
+        bold_registered = False
+
+        windir = os.environ.get('WINDIR', r'C:\Windows')
+        fonts_dir = os.path.join(windir, 'Fonts')
+
+        nirmala_ttf = os.path.join(fonts_dir, 'Nirmala.ttf')
+        nirmala_b_ttf = os.path.join(fonts_dir, 'NirmalaB.ttf')
+        nirmala_ttc = os.path.join(fonts_dir, 'Nirmala.ttc')
+        arialuni_ttf = os.path.join(fonts_dir, 'ARIALUNI.TTF')
+        latha_ttf = os.path.join(fonts_dir, 'latha.ttf')
+        mangal_ttf = os.path.join(fonts_dir, 'mangal.ttf')
+
+        if os.path.exists(nirmala_ttf):
+            try:
+                pdfmetrics.registerFont(TTFont(UNICODE_FONT_NAME, nirmala_ttf))
+                font_registered = True
+            except Exception:
+                pass
+        elif os.path.exists(arialuni_ttf):
+            try:
+                pdfmetrics.registerFont(TTFont(UNICODE_FONT_NAME, arialuni_ttf))
+                font_registered = True
+            except Exception:
+                pass
+        elif os.path.exists(nirmala_ttc):
+            try:
+                pdfmetrics.registerFont(TTFont(UNICODE_FONT_NAME, nirmala_ttc, subfontIndex=0))
+                font_registered = True
+            except Exception:
+                pass
+        elif os.path.exists(latha_ttf):
+            try:
+                pdfmetrics.registerFont(TTFont(UNICODE_FONT_NAME, latha_ttf))
+                font_registered = True
+            except Exception:
+                pass
+
+        if os.path.exists(nirmala_b_ttf):
+            try:
+                pdfmetrics.registerFont(TTFont(UNICODE_BOLD_FONT_NAME, nirmala_b_ttf))
+                bold_registered = True
+            except Exception:
+                pass
+        elif os.path.exists(nirmala_ttc):
+            try:
+                pdfmetrics.registerFont(TTFont(UNICODE_BOLD_FONT_NAME, nirmala_ttc, subfontIndex=1))
+                bold_registered = True
+            except Exception:
+                pass
+        elif os.path.exists(arialuni_ttf):
+            try:
+                pdfmetrics.registerFont(TTFont(UNICODE_BOLD_FONT_NAME, arialuni_ttf))
+                bold_registered = True
+            except Exception:
+                pass
+
+        if font_registered:
+            bold_name = UNICODE_BOLD_FONT_NAME if bold_registered else UNICODE_FONT_NAME
+            return UNICODE_FONT_NAME, bold_name
+    except Exception as e:
+        print(f"[register_indic_unicode_fonts] Font register warning: {e}")
+
+    return 'Helvetica', 'Helvetica-Bold'
+
 
 # ==============================================================================
 # DIRECTORY & PATH RESOLUTION (STRICTLY ISOLATED TO V3)
@@ -198,6 +278,7 @@ class SubjectStudyLedger:
                     mode="balanced_daily",
                     source="weekly_routine_logger"
                 )
+        return cls.load_ledger()
 
     @classmethod
     def get_entries_by_week(cls, week_num: int, month: str = "October") -> List[Dict[str, Any]]:
@@ -1239,9 +1320,10 @@ REQUIREMENTS:
 
     @classmethod
     def render_question_paper_pdf(cls, q_paper: Dict[str, Any], output_pdf_path: str):
-        """Render vector-sharp PDF using ReportLab."""
+        """Render vector-sharp PDF using ReportLab with Tamil, Hindi, Math & English Indic Unicode fonts."""
         if not REPORTLAB_AVAILABLE:
             return
+        reg_font, bold_font = register_indic_unicode_fonts()
         meta = q_paper.get("metadata", {})
         doc = SimpleDocTemplate(
             output_pdf_path,
@@ -1254,7 +1336,7 @@ REQUIREMENTS:
         title_style = ParagraphStyle(
             'InstTitle',
             parent=styles['Heading1'],
-            fontName='Helvetica-Bold',
+            fontName=bold_font,
             fontSize=13,
             alignment=1,
             spaceAfter=2
@@ -1262,7 +1344,7 @@ REQUIREMENTS:
         sub_style = ParagraphStyle(
             'InstSub',
             parent=styles['Normal'],
-            fontName='Helvetica',
+            fontName=reg_font,
             fontSize=7.5,
             alignment=1,
             textColor=colors.HexColor('#475569'),
@@ -1271,14 +1353,14 @@ REQUIREMENTS:
         meta_style = ParagraphStyle(
             'MetaCell',
             parent=styles['Normal'],
-            fontName='Helvetica-Bold',
+            fontName=bold_font,
             fontSize=8,
             textColor=colors.HexColor('#0f172a')
         )
         sec_style = ParagraphStyle(
             'SectionHead',
             parent=styles['Heading2'],
-            fontName='Helvetica-Bold',
+            fontName=bold_font,
             fontSize=9.5,
             alignment=1,
             spaceBefore=10,
@@ -1288,7 +1370,7 @@ REQUIREMENTS:
         q_style = ParagraphStyle(
             'QuestionText',
             parent=styles['Normal'],
-            fontName='Times-Roman',
+            fontName=reg_font,
             fontSize=9.5,
             leading=13,
             textColor=colors.HexColor('#111827')
@@ -1296,7 +1378,7 @@ REQUIREMENTS:
         marks_style = ParagraphStyle(
             'MarksText',
             parent=styles['Normal'],
-            fontName='Helvetica-Bold',
+            fontName=bold_font,
             fontSize=9.5,
             alignment=2,
             textColor=colors.HexColor('#0f172a')
@@ -1460,17 +1542,18 @@ REQUIREMENTS:
 
     @classmethod
     def render_corrected_copy_pdf(cls, eval_data: Dict[str, Any], output_pdf_path: str):
-        """Render ReportLab PDF of Corrected Soft Copy."""
+        """Render ReportLab PDF of Corrected Soft Copy with Tamil, Hindi, Math & English Indic Unicode fonts."""
         if not REPORTLAB_AVAILABLE:
             return
+        reg_font, bold_font = register_indic_unicode_fonts()
         doc = SimpleDocTemplate(output_pdf_path, pagesize=A4, leftMargin=35, rightMargin=35, topMargin=30, bottomMargin=30)
         styles = getSampleStyleSheet()
 
-        title_style = ParagraphStyle('EvalTitle', parent=styles['Heading1'], fontSize=12, alignment=1, spaceAfter=2)
-        score_style = ParagraphStyle('EvalScore', parent=styles['Heading2'], fontSize=10, alignment=1, spaceAfter=8, textColor=colors.HexColor('#059669'))
-        q_head_style = ParagraphStyle('QHead', parent=styles['Normal'], fontSize=9, fontName='Helvetica-Bold')
-        trans_style = ParagraphStyle('TransText', parent=styles['Normal'], fontSize=8.5, fontName='Helvetica-Oblique', textColor=colors.HexColor('#334155'))
-        red_style = ParagraphStyle('RedText', parent=styles['Normal'], fontSize=8, fontName='Helvetica', textColor=colors.HexColor('#b91c1c'))
+        title_style = ParagraphStyle('EvalTitle', parent=styles['Heading1'], fontName=bold_font, fontSize=12, alignment=1, spaceAfter=2)
+        score_style = ParagraphStyle('EvalScore', parent=styles['Heading2'], fontName=bold_font, fontSize=10, alignment=1, spaceAfter=8, textColor=colors.HexColor('#059669'))
+        q_head_style = ParagraphStyle('QHead', parent=styles['Normal'], fontSize=9, fontName=bold_font)
+        trans_style = ParagraphStyle('TransText', parent=styles['Normal'], fontSize=8.5, fontName=reg_font, textColor=colors.HexColor('#334155'))
+        red_style = ParagraphStyle('RedText', parent=styles['Normal'], fontSize=8, fontName=reg_font, textColor=colors.HexColor('#b91c1c'))
 
         story = []
         story.append(Paragraph(f"CBSE SPOT EVALUATION SCORECARD - {eval_data.get('student_name')}", title_style))
@@ -1590,17 +1673,18 @@ REQUIREMENTS:
 
     @classmethod
     def render_model_answer_guide_pdf(cls, eval_data: Dict[str, Any], output_pdf_path: str):
-        """Render ReportLab PDF of Topper Model Answer Reference Guide."""
+        """Render ReportLab PDF of Topper Model Answer Reference Guide with Tamil, Hindi, Math & English Indic Unicode fonts."""
         if not REPORTLAB_AVAILABLE:
             return
+        reg_font, bold_font = register_indic_unicode_fonts()
         doc = SimpleDocTemplate(output_pdf_path, pagesize=A4, leftMargin=35, rightMargin=35, topMargin=30, bottomMargin=30)
         styles = getSampleStyleSheet()
 
-        title_style = ParagraphStyle('CompTitle', parent=styles['Heading1'], fontSize=11, alignment=1, spaceAfter=6)
-        q_head_style = ParagraphStyle('CompQHead', parent=styles['Heading2'], fontSize=9, fontName='Helvetica-Bold')
-        col_hdr_red = ParagraphStyle('ColHdrRed', parent=styles['Normal'], fontSize=8, fontName='Helvetica-Bold', textColor=colors.HexColor('#b91c1c'))
-        col_hdr_grn = ParagraphStyle('ColHdrGrn', parent=styles['Normal'], fontSize=8, fontName='Helvetica-Bold', textColor=colors.HexColor('#047857'))
-        body_style = ParagraphStyle('CompBody', parent=styles['Normal'], fontSize=8, fontName='Times-Roman', leading=11)
+        title_style = ParagraphStyle('CompTitle', parent=styles['Heading1'], fontName=bold_font, fontSize=11, alignment=1, spaceAfter=6)
+        q_head_style = ParagraphStyle('CompQHead', parent=styles['Heading2'], fontName=bold_font, fontSize=9)
+        col_hdr_red = ParagraphStyle('ColHdrRed', parent=styles['Normal'], fontName=bold_font, fontSize=8, textColor=colors.HexColor('#b91c1c'))
+        col_hdr_grn = ParagraphStyle('ColHdrGrn', parent=styles['Normal'], fontName=bold_font, fontSize=8, textColor=colors.HexColor('#047857'))
+        body_style = ParagraphStyle('CompBody', parent=styles['Normal'], fontName=reg_font, fontSize=8, leading=11)
 
         story = []
         story.append(Paragraph(f"HOW THARUN ANSWERED VS. CBSE TOPPER MODEL ANSWER - {eval_data.get('student_name')}", title_style))

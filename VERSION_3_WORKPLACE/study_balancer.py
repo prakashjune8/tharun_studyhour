@@ -14852,7 +14852,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             )
 
         # 9. Tab Frames Background Synchronization
-        for tab in [getattr(self, "tab_schedule", None), getattr(self, "tab_diary", None), getattr(self, "tab_portions", None)]:
+        for tab in [getattr(self, "tab_schedule", None), getattr(self, "tab_diary", None), getattr(self, "tab_portions", None), getattr(self, "tab_exam", None)]:
             if tab and tab.winfo_exists():
                 try:
                     tab.configure(bg=bg_col)
@@ -14901,6 +14901,13 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             self.diary_top_bar.configure(bg="#0e172a", highlightbackground=border_col)
         if hasattr(self, "diary_add_box") and self.diary_add_box.winfo_exists():
             self.diary_add_box.configure(bg="#0e172a", highlightbackground=border_col)
+
+        # 10. V3 Host Examination & Gemini Evaluator Dynamic Theme Hook
+        if hasattr(self, "host_exam_controller") and self.host_exam_controller:
+            try:
+                self.host_exam_controller.apply_theme(self.colors)
+            except Exception as e:
+                print(f"[apply_theme] Warning applying theme to host_exam_controller: {e}")
 
         style = ttk.Style()
         self.configure_notebook_styles(style)

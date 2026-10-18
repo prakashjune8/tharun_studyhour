@@ -1,0 +1,153 @@
+{
+  "exam_id": null,
+  "metadata": {
+    "school": "SENTHIL PUBLIC SCHOOL, DHARMAPURI",
+    "affiliation": "AFFILIATED TO CBSE, NEW DELHI (AFFL. NO. 1930248)",
+    "exam_title": "HOST-CONDUCTED ACADEMIC RETENTION & ANTI-DAYDREAMING TEST",
+    "class_standard": "CLASS 8 (CBSE)",
+    "subject": "MATHEMATICS",
+    "date": "18-OCT-2026",
+    "phase": "Phase 1: Comprehensive Weekly Sunday Examination",
+    "time_allowed_mins": 60,
+    "max_marks": 35,
+    "source_mode": "general_cbse_pattern"
+  },
+  "general_instructions": [
+    "All questions are compulsory. Internal choices are provided in selected questions.",
+    "Section A comprises Objective / Assertion-Reason questions of 1 mark each.",
+    "Section B comprises Very Short Answer questions of 2 marks each.",
+    "Section C comprises Short Answer questions of 3 marks each.",
+    "Section D comprises Long Answer / Case-study questions of 5 marks each.",
+    "Step calculations and SI units are mandatory for numerical questions."
+  ],
+  "sections": [
+    {
+      "section_id": "A",
+      "section_title": "SECTION A — OBJECTIVE & ASSERTION-REASONING",
+      "instruction": "Select the correct option. Each question carries 1 mark.",
+      "questions": [
+        {
+          "q_num": "Q.1",
+          "text": "Which of the following algebraic identities is universally correct for all real values of a and b?",
+          "options": [
+            "(a) (a + b)² = a² + b²",
+            "(b) (a - b)² = a² - 2ab + b²",
+            "(c) (a + b)(a - b) = a² + b²",
+            "(d) (a + b)² = a² - 2ab + b²"
+          ],
+          "marks": 1
+        },
+        {
+          "q_num": "Q.2",
+          "text": "Pressure is defined as the force acting per unit area of a surface. Its standard S.I. unit is:",
+          "options": [
+            "(a) Newton (N)",
+            "(b) Joule (J)",
+            "(c) Pascal (Pa)",
+            "(d) Watt (W)"
+          ],
+          "marks": 1
+        },
+        {
+          "q_num": "Q.3",
+          "text": "Which agricultural method is recognized as the most water-efficient modern irrigation system?",
+          "options": [
+            "(a) Moat (Pulley system)",
+            "(b) Rahat (Lever system)",
+            "(c) Drip Irrigation",
+            "(d) Chain Pump"
+          ],
+          "marks": 1
+        },
+        {
+          "q_num": "Q.4",
+          "text": "The British land revenue settlement that fixed the revenue demand permanently without periodic revision was:",
+          "options": [
+            "(a) Ryotwari Settlement",
+            "(b) Mahalwari Settlement",
+            "(c) Permanent Settlement (1793)",
+            "(d) Zabt System"
+          ],
+          "marks": 1
+        },
+        {
+          "q_num": "Q.5",
+          "text": "ASSERTION (A): The shoulder strap of a school bag is made broad.\nREASON (R): A broad strap increases the surface area of contact, thereby reducing the pressure exerted on the shoulder.",
+          "options": [
+            "(a) Both (A) and (R) are true and (R) is the correct explanation of (A).",
+            "(b) Both (A) and (R) are true but (R) is NOT the correct explanation of (A).",
+            "(c) (A) is true but (R) is false.",
+            "(d) (A) is false but (R) is true."
+          ],
+          "marks": 1
+        }
+      ]
+    },
+    {
+      "section_id": "B",
+      "section_title": "SECTION B — VERY SHORT ANSWER QUESTIONS",
+      "instruction": "Answer the following questions in 20–30 words. Each question carries 2 marks.",
+      "questions": [
+        {
+          "q_num": "Q.6",
+          "text": "Factorise the algebraic expression completely by grouping terms: 15xy - 6x + 5y - 2.",
+          "marks": 2
+        },
+        {
+          "q_num": "Q.7",
+          "text": "State two distinct physiological differences between Plant Cells and Animal Cells regarding cell wall and vacuole size.",
+          "marks": 2
+        },
+        {
+          "q_num": "Q.8",
+          "text": "Why is rolling friction substantially less than sliding friction? Give one practical engineering application where sliding friction is replaced by rolling friction.",
+          "marks": 2
+        }
+      ]
+    },
+    {
+      "section_id": "C",
+      "section_title": "SECTION C — SHORT ANSWER & NUMERICAL QUESTIONS",
+      "instruction": "Answer the following questions step-by-step. Each question carries 3 marks.",
+      "questions": [
+        {
+          "q_num": "Q.9",
+          "text": "A wooden block of dimensions 20 cm x 10 cm x 5 cm of mass 4 kg is kept on a tabletop. Calculate the maximum pressure exerted by the block on the tabletop in Pascals. (Take g = 10 m/s²).",
+          "marks": 3
+        },
+        {
+          "q_num": "Q.10",
+          "text": "The perimeter of a rectangular swimming pool is 154 m. Its length is 2 m more than twice its breadth. Find the length and breadth of the pool step-by-step.",
+          "marks": 3
+        },
+        {
+          "q_num": "Q.11",
+          "text": "Explain three major economic causes that triggered widespread discontent among Indian peasants and artisans during the Revolt of 1857.",
+          "marks": 3
+        }
+      ]
+    },
+    {
+      "section_id": "D",
+      "section_title": "SECTION D — LONG ANSWER & CASE-BASED INTEGRATED TASKS",
+      "instruction": "Answer the following detailed questions. Each question carries 5 marks.",
+      "questions": [
+        {
+          "q_num": "Q.12",
+          "text": "(a) A closed cylindrical storage tank of radius 7 m and height 3 m is made from a sheet of metal. How much sheet of metal is required? (Take π = 22/7).\n(b) If the metal costs ₹ 45 per square meter, calculate the total cost of metal used.",
+          "marks": 5
+        },
+        {
+          "q_num": "Q.13",
+          "text": "(a) Draw a neat labeled diagram of a Plant Cell showing at least 4 key organelles.\n(b) State the specific function of: (i) Mitochondria, and (ii) Chloroplast.",
+          "marks": 5
+        },
+        {
+          "q_num": "Q.14",
+          "text": "CASE STUDY: An organic farmer in Dharmapuri tests two identical soil plots. Plot A is treated with biological compost and cow dung manure. Plot B is treated with continuous chemical urea and ammonium sulfate.\n(i) State two long-term ecological advantages observed in Plot A regarding soil texture and water retention. [2]\n(ii) Why does excessive chemical fertilizer usage degrade soil fertility over multiple seasons? [2]\n(iii) What biological process restores nitrogen naturally to agricultural soil? [1]",
+          "marks": 5
+        }
+      ]
+    }
+  ]
+}

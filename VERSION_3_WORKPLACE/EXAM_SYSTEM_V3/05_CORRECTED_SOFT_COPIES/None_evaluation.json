@@ -1,0 +1,207 @@
+{
+  "evaluation_id": "EVAL-None",
+  "exam_id": null,
+  "student_name": "Tharun",
+  "class_standard": "Class 8 CBSE",
+  "school": "Senthil Public School, Dharmapuri",
+  "evaluated_at": "2026-10-18T07:25:44.133811",
+  "max_marks": 35.0,
+  "marks_obtained": 31.5,
+  "percentage": 90.0,
+  "grade": "A1",
+  "anti_daydreaming_status": "VERIFIED_ACTIVE_LEARNING",
+  "daydreaming_verdict": "VERIFIED: Tharun demonstrated high cognitive retention of all study slabs. Conceptual clarity is strong.",
+  "uploaded_sheets": [
+    "D:\\THARUN PROJECT\\VERSION_3_WORKPLACE\\EXAM_SYSTEM_V3\\04_UPLOADED_ANSWER_SHEETS\\None_sample_answer_sheet.txt"
+  ],
+  "question_evaluations": [
+    {
+      "q_num": "Q.1 to Q.5",
+      "question_text": "Section A: Objective & Assertion-Reasoning [5 Marks]",
+      "max_marks": 5.0,
+      "marks_awarded": 5.0,
+      "student_transcription": "1.(b) (a-b)²=a²-2ab+b²; 2.(c) Pascal; 3.(c) Drip Irrigation; 4.(c) Permanent Settlement; 5.(a) Both A and R are true and R explains A.",
+      "step_breakdown": [
+        {
+          "step": "All 5 objective choices correctly answered",
+          "mark": 5.0,
+          "status": "correct"
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +5.0] Perfect concept identification in Section A."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "None. Flawless recall.",
+        "topper_model_answer": "Option letter followed by full text correctly stated.",
+        "keywords_to_underline": [
+          "Identity (a-b)²",
+          "Pascal",
+          "Drip Irrigation",
+          "Permanent Settlement"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.6",
+      "question_text": "Factorise by grouping: 15xy - 6x + 5y - 2 [2 Marks]",
+      "max_marks": 2.0,
+      "marks_awarded": 2.0,
+      "student_transcription": "= 3x(5y - 2) + 1(5y - 2) = (5y - 2)(3x + 1)",
+      "step_breakdown": [
+        {
+          "step": "Grouped terms with common factor 3x and 1",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Factored out (5y - 2) for final binomial product",
+          "mark": 1.0,
+          "status": "correct"
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +2.0] Clean factorization by grouping."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "Good layout. Always write '=' at start of each line.",
+        "topper_model_answer": "15xy - 6x + 5y - 2 = 3x(5y - 2) + 1(5y - 2) = (5y - 2)(3x + 1). Boxed final answer.",
+        "keywords_to_underline": [
+          "Common factor (5y - 2)"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.9",
+      "question_text": "Calculate maximum pressure exerted by wooden block 20x10x5 cm of mass 4 kg [3 Marks]",
+      "max_marks": 3.0,
+      "marks_awarded": 2.5,
+      "student_transcription": "F = m*g = 4*10 = 40 N. Min Area = 10cm * 5cm = 0.10 * 0.05 = 0.005 m². P = F/A = 40 / 0.005 = 8000.",
+      "step_breakdown": [
+        {
+          "step": "Formula stated: P = F / A and F = mg",
+          "mark": 0.5,
+          "status": "correct"
+        },
+        {
+          "step": "Identified minimum area face for maximum pressure",
+          "mark": 0.5,
+          "status": "correct"
+        },
+        {
+          "step": "Accurate unit conversion (cm² to m²) and division",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Final Result with S.I. Unit (Pa or N/m²)",
+          "mark": 0.5,
+          "status": "missing_penalty",
+          "penalty": -0.5
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +2.5] Excellent formula application and conversion to meters.",
+        "[✗ -0.5 UNIT MISSING] Wrote 8000 without 'Pascals' (Pa). Never omit SI units!"
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "Omitted S.I. unit next to 8000. CBSE spot-evaluators deduct 0.5 mark immediately.",
+        "topper_model_answer": "Maximum Pressure (P) = Force / Minimum Area = 40 N / 0.005 m² = 8000 Pa (or N/m²). Boxed: [ P_max = 8,000 Pa ].",
+        "keywords_to_underline": [
+          "P = F / A",
+          "Minimum Surface Area",
+          "8,000 Pa"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.10",
+      "question_text": "Perimeter of pool is 154 m. Length is 2m more than 2b. Find l and b [3 Marks]",
+      "max_marks": 3.0,
+      "marks_awarded": 3.0,
+      "student_transcription": "Let b = x m. l = (2x + 2) m. P = 2(l + b) => 154 = 2(2x + 2 + x) => 154 = 2(3x + 2) => 77 = 3x + 2 => 3x = 75 => x = 25 m. Breadth = 25 m, Length = 2(25)+2 = 52 m.",
+      "step_breakdown": [
+        {
+          "step": "Variable declaration and equation formulation",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Step-by-step algebraic solving for x",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Calculated both breadth and length with meters",
+          "mark": 1.0,
+          "status": "correct"
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +3.0] Flawless step-by-step algebraic proof. Both values boxed with units."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "None. Excellent work.",
+        "topper_model_answer": "Breadth = 25 m, Length = 52 m. Verification: 2(52 + 25) = 2(77) = 154 m.",
+        "keywords_to_underline": [
+          "Let breadth = x m",
+          "Perimeter = 2(l + b)",
+          "25 m",
+          "52 m"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.12",
+      "question_text": "Cylindrical storage tank radius 7m, height 3m. Sheet required & cost [5 Marks]",
+      "max_marks": 5.0,
+      "marks_awarded": 4.5,
+      "student_transcription": "Total Surface Area = 2*pi*r*(r + h) = 2 * (22/7) * 7 * (7 + 3) = 44 * 10 = 440 m². Cost = 440 * 45 = ₹ 19,800.",
+      "step_breakdown": [
+        {
+          "step": "Formula stated for Total Surface Area: 2πr(r + h)",
+          "mark": 1.5,
+          "status": "correct"
+        },
+        {
+          "step": "Accurate substitution and cancellation of 7",
+          "mark": 1.5,
+          "status": "correct"
+        },
+        {
+          "step": "Correct surface area calculation (440 m²)",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Multiplication by rate ₹45 with currency symbol",
+          "mark": 0.5,
+          "status": "correct"
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +4.5] Correct formula and arithmetic.",
+        "[▲ -0.5] Missing concluding word statement: 'Total sheet required is 440 m² and total expenditure is ₹ 19,800'."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "Calculation was correct but missed the formal concluding statement required in 5M CBSE questions.",
+        "topper_model_answer": "1. TSA = 2πr(r + h) = 440 m². 2. Total Cost = Area x Rate = 440 x 45 = ₹ 19,800. Statement: Hence, 440 m² of sheet is needed at total cost of ₹ 19,800.",
+        "keywords_to_underline": [
+          "Total Surface Area = 2πr(r+h)",
+          "440 m²",
+          "₹ 19,800"
+        ]
+      }
+    }
+  ],
+  "recurring_mistakes_to_log": [
+    {
+      "subject": "Physical Science",
+      "category": "SI Unit Omission in Physics",
+      "trap_word": "Pressure (P=F/A)",
+      "slip": "Wrote 8000 without Pascal (Pa) or N/m²",
+      "fix": "Always write S.I. unit next to final answer: [ P = 8,000 Pa ]."
+    }
+  ],
+  "teacher_summary_feedback": "Tharun scored 31.5 / 35.0 (90.0% - Grade A1). Daydreaming DISPROVED! Concept retention from daily timetable blocks is verified. Critical remedy: Write S.I. units on all Physics answers to secure 100% full marks."
+}
