@@ -69,6 +69,7 @@ def run_verification():
     # -------------------------------------------------------------
     print("\n[Step 3] Architecting Multilingual CBSE Class 8 Question Paper...")
     exam_spec = {
+        "exam_id": "EXAM-V3-VERIFY-001",
         "phase": "Phase 1: Comprehensive Weekly Sunday Examination",
         "exam_title": "WEEKLY SUNDAY HOST EXAMINATION (COMPREHENSIVE MULTI-CORE)",
         "subject": "Mathematics & Indic Languages (Tamil & Hindi)",
@@ -223,10 +224,24 @@ def run_verification():
     render_unified_binder_pdf(eval_res, binder_pdf_file)
     assert os.path.exists(binder_pdf_file), "Unified Binder PDF must exist!"
     assert os.path.getsize(binder_pdf_file) > 1000, "Unified Binder PDF must be non-empty!"
-    print(f"  ✓ 1-Click Unified Physical Binder PDF: {binder_pdf_file} ({os.path.getsize(binder_pdf_file)} bytes)")
+    # -------------------------------------------------------------
+    # STEP 7: PERSISTENT EXAM SCORE HISTORY & ANTI-DAYDREAMING LOG
+    # -------------------------------------------------------------
+    print("\n[Step 7] Testing Persistent Exam Score History & Trend Tracker...")
+    from exam_engine_v3 import load_score_history, record_exam_score_history, SCORE_HISTORY_FILE
+    
+    # Record current test evaluation into persistent score history
+    history_rec = record_exam_score_history(eval_res, binder_pdf_path=binder_pdf_file)
+    print(f"  ✓ Score History Record saved: {history_rec.get('exam_id')} | {history_rec.get('percentage')}% | {history_rec.get('focus_verdict')}")
+    
+    # Load and verify history ledger
+    all_records = load_score_history()
+    print(f"  ✓ Total Persistent Records in {SCORE_HISTORY_FILE}: {len(all_records)}")
+    assert len(all_records) > 0, "Score history should contain at least 1 record!"
+    assert any(r.get("exam_id") == eval_res.get("exam_id") for r in all_records), "Newly recorded exam must be present in score history!"
 
     print("\n" + "=" * 80)
-    print("🏆 ALL 6 VERIFICATION PASSES COMPLETED WITH ZERO ERRORS!")
+    print("🏆 ALL 7 VERIFICATION PASSES COMPLETED WITH ZERO ERRORS!")
     print("=" * 80)
 
 if __name__ == "__main__":

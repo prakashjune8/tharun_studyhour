@@ -1,18 +1,24 @@
 {
-  "evaluation_id": "EVAL-None",
-  "exam_id": null,
+  "evaluation_id": "EVAL-EXAM-V3-VERIFY-001",
+  "exam_id": "EXAM-V3-VERIFY-001",
   "student_name": "Tharun",
   "class_standard": "Class 8 CBSE",
   "school": "Senthil Public School, Dharmapuri",
-  "evaluated_at": "2026-10-18T12:48:53.581855",
+  "evaluated_at": "2026-10-18T13:14:24.385877",
   "max_marks": 35.0,
   "marks_obtained": 31.5,
+  "marks_scored": 31.5,
   "percentage": 90.0,
   "grade": "A1",
+  "cbse_grade": "A1",
   "anti_daydreaming_status": "VERIFIED_ACTIVE_LEARNING",
   "daydreaming_verdict": "VERIFIED: Tharun demonstrated high cognitive retention of all study slabs. Conceptual clarity is strong.",
+  "daydreaming_audit": {
+    "verdict": "VERIFIED: High cognitive retention of all study slabs.",
+    "summary": "Attentive formula execution and full step layout verified."
+  },
   "uploaded_sheets": [
-    "D:\\THARUN PROJECT\\VERSION_3_WORKPLACE\\EXAM_SYSTEM_V3\\04_UPLOADED_ANSWER_SHEETS\\None_sample_answer_sheet.txt"
+    "D:\\THARUN PROJECT\\VERSION_3_WORKPLACE\\EXAM_SYSTEM_V3\\04_UPLOADED_ANSWER_SHEETS\\EXAM-V3-VERIFY-001_sample_answer_sheet.txt"
   ],
   "question_evaluations": [
     {

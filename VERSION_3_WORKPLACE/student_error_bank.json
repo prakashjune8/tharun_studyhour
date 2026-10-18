@@ -51,7 +51,7 @@
     "trap_word": "Pressure / Force / Focal Length",
     "slip": "Writing calculation result without Pascal (Pa) or Newtons (N)",
     "fix": "No SI unit = 1 mark lost! Check SI unit before turning the page.",
-    "occurrences": 10,
+    "occurrences": 14,
     "last_spotted": "2026-10-18"
   },
   {
@@ -61,9 +61,9 @@
     "trap_word": "P = F / A",
     "slip": "Omitted S.I. unit next to 8000. CBSE spot-evaluators deduct 0.5 mark immediately.",
     "fix": "Maximum Pressure (P) = Force / Minimum Area = 40 N / 0.005 m² = 8000 Pa (or N/m²). Boxed: [ P_max = 8,000 Pa ].",
-    "occurrences": 7,
+    "occurrences": 11,
     "last_spotted": "2026-10-18",
-    "last_exam_id": null
+    "last_exam_id": "EXAM-V3-VERIFY-001"
   },
   {
     "id": 8,
@@ -72,8 +72,8 @@
     "trap_word": "Total Surface Area = 2πr(r+h)",
     "slip": "Calculation was correct but missed the formal concluding statement required in 5M CBSE questions.",
     "fix": "1. TSA = 2πr(r + h) = 440 m². 2. Total Cost = Area x Rate = 440 x 45 = ₹ 19,800. Statement: Hence, 440 m² of sheet is needed at total cost of ₹ 19,800.",
-    "occurrences": 7,
+    "occurrences": 11,
     "last_spotted": "2026-10-18",
-    "last_exam_id": null
+    "last_exam_id": "EXAM-V3-VERIFY-001"
   }
 ]

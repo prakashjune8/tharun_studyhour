@@ -4658,6 +4658,36 @@
             </table>
           </div>
         </div>
+
+        <!-- Persistent Host Exam Score & Anti-Daydreaming Focus History Strip -->
+        <div class="exam-score-history-wrap" style="background: #0b1120; border: 1px solid #334155; border-radius: 8px; padding: 12px 14px; margin-top: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+            <div style="font-size: 0.82rem; font-weight: 800; color: #f59e0b;">
+              📊 HOST EXAM SCORE & ANTI-DAYDREAMING FOCUS HISTORY (CUMULATIVE PERFORMANCE VAULT)
+            </div>
+            <div id="scoreHistoryKpiBadge" style="font-size: 0.76rem; font-weight: 800; color: #34d399; background: #064e3b; padding: 4px 10px; border-radius: 6px; border: 1px solid #10b981;">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+          <div class="exam-table-responsive">
+            <table class="exam-ledger-table" id="examScoreHistoryTable">
+              <thead>
+                <tr>
+                  <th style="width: 100px;">Date</th>
+                  <th style="width: 190px;">Exam Title / Phase</th>
+                  <th style="width: 140px;">Subject</th>
+                  <th style="width: 150px;">Marks Scored</th>
+                  <th style="width: 80px;">CBSE Grade</th>
+                  <th style="width: 180px;">Anti-Daydreaming Audit</th>
+                  <th style="width: 130px; text-align: center;">Physical Binder</th>
+                </tr>
+              </thead>
+              <tbody id="examScoreHistoryTableBody">
+                <!-- Dynamically populated by renderScoreHistoryTable() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <!-- 4. Sub-View 2: Face A - Question Paper Architect & Print Studio -->
@@ -14587,6 +14617,41 @@ if (!studyLedgerEntries || studyLedgerEntries.length < 15) {
   localStorage.setItem('v3_study_ledger', JSON.stringify(studyLedgerEntries));
 }
 
+let examScoreHistory = JSON.parse(localStorage.getItem('v3_exam_score_history') || 'null');
+if (!examScoreHistory) {
+  examScoreHistory = [
+    {
+      exam_id: "EXAM-20261005-W1",
+      date: "2026-10-05",
+      phase: "Phase 1 Weekly",
+      title: "Week 1 Sunday Test",
+      subject: "Mathematics",
+      class_standard: "Class 8",
+      marks_awarded: 28.5,
+      max_marks: 35.0,
+      percentage: 81.4,
+      grade: "A2",
+      focus_verdict: "Deep Focus Verified",
+      binder_pdf_path: "EXAM_SYSTEM_V3/04_TOPPER_GUIDES_AND_BINDERS/EXAM-20261005-W1_Binder.pdf"
+    },
+    {
+      exam_id: "EXAM-20261012-W2",
+      date: "2026-10-12",
+      phase: "Phase 1 Weekly",
+      title: "Week 2 Sunday Test",
+      subject: "Physical Science",
+      class_standard: "Class 8",
+      marks_awarded: 30.0,
+      max_marks: 35.0,
+      percentage: 85.7,
+      grade: "A2",
+      focus_verdict: "Deep Focus Verified",
+      binder_pdf_path: "EXAM_SYSTEM_V3/04_TOPPER_GUIDES_AND_BINDERS/EXAM-20261012-W2_Binder.pdf"
+    }
+  ];
+  localStorage.setItem('v3_exam_score_history', JSON.stringify(examScoreHistory));
+}
+
 let activeP1SelectedWeek = null;
 
 function getP1WeekStats(weekNum) {
@@ -14627,6 +14692,24 @@ function renderP1WeekCards() {
   cardsData.forEach(c => {
     const stats = getP1WeekStats(c.wk);
     const isActive = activeP1SelectedWeek === c.wk;
+
+    // Look up completed score in examScoreHistory
+    let matchingScore = null;
+    if (examScoreHistory && examScoreHistory.length > 0) {
+      if (c.wk <= 4) {
+        matchingScore = examScoreHistory.find(rec => {
+          const t = (rec.title || '').toLowerCase();
+          const eid = (rec.exam_id || '').toLowerCase();
+          return t.includes(`week ${c.wk}`) || eid.includes(`w${c.wk}`) || t.includes(`w${c.wk}`);
+        });
+      } else {
+        matchingScore = examScoreHistory.find(rec => {
+          const t = (rec.title || '').toLowerCase();
+          return t.includes('month') || t.includes('mega');
+        });
+      }
+    }
+
     const card = document.createElement('div');
     card.className = `p1-week-card ${isActive ? 'active' : ''}`;
     card.onclick = () => selectP1WeekCard(c.wk);
@@ -14635,6 +14718,7 @@ function renderP1WeekCards() {
         <div class="p1-card-tag">${c.wk === 5 ? 'GRAND SYLLABUS' : 'WEEKLY TEST'}</div>
         <div class="p1-card-name" style="${isActive ? 'color:#f59e0b;' : ''}">${c.title}</div>
         <div style="font-size:0.7rem; color:#cbd5e1; margin-bottom:4px;">${c.sub}</div>
+        ${matchingScore ? `<div style="margin-top:4px; font-size:0.72rem; font-weight:800; color:#10b981; background:rgba(16, 185, 129, 0.15); padding:2px 6px; border-radius:4px; border:1px solid #059669; display:inline-block;">✅ Scored: ${matchingScore.marks_awarded}/${matchingScore.max_marks} (${matchingScore.percentage}%)</div>` : ''}
       </div>
       <div class="p1-card-stats">
         <div><strong style="color:${isActive ? '#f59e0b' : '#38bdf8'}; font-size:0.8rem;">${stats.count}</strong> Logged Entries</div>
@@ -14756,9 +14840,107 @@ function renderExamTab() {
   }
   renderP1WeekCards();
   renderExamLedgerTable();
+  renderScoreHistoryTable();
   if (!activeQuestionPaper) {
     generateExamPaperV3(true);
   }
+}
+
+function renderScoreHistoryTable() {
+  const tbody = document.getElementById('examScoreHistoryTableBody');
+  const badge = document.getElementById('scoreHistoryKpiBadge');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  const list = examScoreHistory || [];
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:16px; color:#94a3b8; font-style:italic;">No host examinations evaluated yet. Completed exams will automatically register here.</td></tr>`;
+    if (badge) badge.innerText = "0 Exams Recorded | 0% Avg";
+    return;
+  }
+
+  let totalPct = 0;
+  let focusCount = 0;
+  list.forEach(rec => {
+    totalPct += (rec.percentage || 0);
+    if ((rec.focus_verdict || '').toLowerCase().includes('focus')) focusCount++;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:600; color:#cbd5e1;">${rec.date || '2026-10-18'}</td>
+      <td>
+        <div style="font-weight:700; color:#f8fafc;">${rec.title || 'Host Exam'}</div>
+        <div style="font-size:0.68rem; color:#94a3b8;">${rec.phase || 'Phase 1'}</div>
+      </td>
+      <td style="color:#e2e8f0; font-weight:600;">${rec.subject || 'Mathematics'}</td>
+      <td>
+        <span style="font-weight:800; color:${(rec.percentage >= 75) ? '#34d399' : '#f59e0b'};">
+          ${rec.marks_awarded} / ${rec.max_marks} (${rec.percentage}%)
+        </span>
+      </td>
+      <td>
+        <span style="background:#1e293b; color:#38bdf8; font-weight:800; padding:2px 8px; border-radius:4px; border:1px solid #0ea5e9;">
+          ${rec.grade || 'A2'}
+        </span>
+      </td>
+      <td>
+        <span style="font-size:0.74rem; font-weight:700; color:${(rec.focus_verdict || '').toLowerCase().includes('focus') ? '#34d399' : '#f87171'}; background:${(rec.focus_verdict || '').toLowerCase().includes('focus') ? '#064e3b' : '#7f1d1d'}; padding:2px 8px; border-radius:4px; border:1px solid ${(rec.focus_verdict || '').toLowerCase().includes('focus') ? '#10b981' : '#ef4444'};">
+          ${(rec.focus_verdict || '').toLowerCase().includes('focus') ? '✓ ' : '⚠️ '}${rec.focus_verdict || 'Active'}
+        </span>
+      </td>
+      <td style="text-align:center;">
+        <button onclick="exportCompleteBinderPdf()" style="background:#0f172a; border:1px solid #f59e0b; color:#f59e0b; font-size:0.72rem; font-weight:700; padding:3px 8px; border-radius:4px; cursor:pointer;" title="Print / Export Complete Exam & Topper Binder PDF">
+          🖨️ Binder PDF
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const avgPct = (totalPct / list.length).toFixed(1);
+  const focusPct = Math.round((focusCount / list.length) * 100);
+  if (badge) {
+    badge.innerText = `${list.length} Exams Recorded | Cumulative Avg: ${avgPct}% | Focus Rate: ${focusPct}%`;
+  }
+}
+
+function recordExamScoreHistoryWeb(ev) {
+  if (!ev) return;
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10);
+  
+  let phaseStr = "Phase 1 Weekly";
+  let titleStr = activeQuestionPaper?.header_block?.exam_title || "Host Examination";
+  if (activeP1SelectedWeek === 5 || titleStr.toLowerCase().includes("month")) {
+    phaseStr = "Phase 1 Month-End";
+    titleStr = "Month-End Mega Exam";
+  } else if (activeP1SelectedWeek && activeP1SelectedWeek <= 4) {
+    phaseStr = "Phase 1 Weekly";
+    titleStr = `Week ${activeP1SelectedWeek} Sunday Test`;
+  } else if (titleStr.toLowerCase().includes("checkpoint") || (typeof isPreExamMode !== 'undefined' && isPreExamMode)) {
+    phaseStr = "Phase 2 Checkpoint";
+  } else if (titleStr.toLowerCase().includes("morning sprint")) {
+    phaseStr = "Phase 3 Sprint";
+  }
+
+  const record = {
+    exam_id: ev.exam_id || activeExamId || `EXAM-${dateStr}`,
+    date: dateStr,
+    phase: phaseStr,
+    title: titleStr,
+    subject: ev.subject || activeQuestionPaper?.header_block?.subject || "Mathematics",
+    class_standard: ev.class_standard || currentExamClass || "Class 8",
+    marks_awarded: ev.marks_scored,
+    max_marks: ev.max_marks,
+    percentage: parseFloat(ev.percentage) || 0,
+    grade: ev.cbse_grade || "A2",
+    focus_verdict: (ev.daydreaming_audit?.verdict?.includes("ACTIVE") || ev.percentage >= 70) ? "Deep Focus Verified" : "Partial Attention",
+    binder_pdf_path: `EXAM_SYSTEM_V3/04_TOPPER_GUIDES_AND_BINDERS/${ev.exam_id || activeExamId}_Binder.pdf`
+  };
+
+  examScoreHistory.unshift(record);
+  localStorage.setItem('v3_exam_score_history', JSON.stringify(examScoreHistory));
+  renderScoreHistoryTable();
+  renderP1WeekCards();
 }
 
 function switchExamSubTab(subtabKey) {
@@ -15149,6 +15331,7 @@ function evaluateExamPaperV3() {
     renderEvaluationReport(activeEvaluation);
     renderTopperGuide(activeEvaluation);
     syncEvalErrorsToErrorBankWeb(activeEvaluation);
+    recordExamScoreHistoryWeb(activeEvaluation);
 
     if (statusMsg) {
       statusMsg.innerText = "✓ Evaluation Complete! Scored " + scoredMarks + " / " + totalMarks + " (" + pct + "%). Error Bank synced!";
@@ -15513,6 +15696,7 @@ function openAddStudyEntryModalV3() {
 document.addEventListener('DOMContentLoaded', () => {
   renderP1WeekCards();
   renderExamLedgerTable();
+  renderScoreHistoryTable();
   updateHostExamDueBadge();
 });
 </script>

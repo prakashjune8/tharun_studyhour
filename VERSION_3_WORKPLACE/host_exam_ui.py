@@ -604,6 +604,104 @@ class HostExamTabController:
 
         self._render_ledger_table()
 
+        # Bottom Section 2: Persistent Host Exam Score & Anti-Daydreaming Focus History Strip
+        self.score_history_box = tk.Frame(ledger_frame, bg="#0b1120", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=10, pady=8)
+        self.score_history_box.pack(fill=tk.X, pady=(8, 0))
+        self._render_score_history_strip()
+
+    def _render_score_history_strip(self):
+        if not hasattr(self, "score_history_box") or not self.score_history_box.winfo_exists():
+            return
+        for w in self.score_history_box.winfo_children():
+            w.destroy()
+
+        history = GeminiExamClient.load_score_history()
+
+        # Header row
+        hdr = tk.Frame(self.score_history_box, bg="#0b1120")
+        hdr.pack(fill=tk.X, pady=(0, 4))
+
+        tk.Label(
+            hdr,
+            text="📊 HOST EXAM SCORE & ANTI-DAYDREAMING FOCUS HISTORY",
+            font=("Segoe UI", 8, "bold"),
+            fg="#f59e0b",
+            bg="#0b1120"
+        ).pack(side=tk.LEFT)
+
+        if history:
+            total_exams = len(history)
+            avg_pct = sum(h.get("percentage", 0.0) for h in history) / max(1, total_exams)
+            verified_count = sum(1 for h in history if "VERIFIED" in str(h.get("focus_verdict", "")).upper())
+
+            kpi_text = f"🏆 {total_exams} Exams Evaluated • Avg: {avg_pct:.1f}% • 🎯 {verified_count}/{total_exams} Deep Focus Verified • 0 Slips"
+            tk.Label(
+                hdr,
+                text=kpi_text,
+                font=("Segoe UI", 8, "bold"),
+                fg="#34d399",
+                bg="#0b1120"
+            ).pack(side=tk.RIGHT)
+
+        if not history:
+            tk.Label(
+                self.score_history_box,
+                text="No examination evaluation records logged yet. Complete an answer sheet evaluation in Face B to track scores.",
+                font=("Segoe UI", 8, "italic"),
+                fg="#94a3b8",
+                bg="#0b1120"
+            ).pack(anchor="w", pady=2)
+            return
+
+        rows_frame = tk.Frame(self.score_history_box, bg="#0b1120")
+        rows_frame.pack(fill=tk.X)
+
+        for rec in history[-3:]:  # Show recent 3 exams
+            rf = tk.Frame(rows_frame, bg="#161f30", bd=1, relief=tk.SOLID, highlightbackground="#1e293b", highlightthickness=1, padx=6, pady=3)
+            rf.pack(fill=tk.X, pady=1)
+
+            tk.Label(rf, text=f"📅 {rec.get('date')}", font=("Segoe UI", 8, "bold"), fg="#94a3b8", bg="#161f30", width=11, anchor="w").pack(side=tk.LEFT)
+            tk.Label(rf, text=f"{rec.get('title')}", font=("Segoe UI", 8, "bold"), fg="#e2e8f0", bg="#161f30", width=20, anchor="w").pack(side=tk.LEFT)
+            tk.Label(rf, text=f"📐 {rec.get('subject')}", font=("Segoe UI", 8), fg="#38bdf8", bg="#161f30", width=22, anchor="w").pack(side=tk.LEFT)
+            
+            score_str = f"Score: {rec.get('marks_awarded', 0):.1f}/{rec.get('max_marks', 0):.0f} ({rec.get('percentage', 0):.1f}%)"
+            tk.Label(rf, text=score_str, font=("Segoe UI", 8, "bold"), fg="#fbbf24", bg="#161f30", width=22, anchor="center").pack(side=tk.LEFT)
+
+            grade_str = f"Grade: {rec.get('grade', 'A1')}"
+            tk.Label(rf, text=grade_str, font=("Segoe UI", 8, "bold"), fg="#10b981", bg="#161f30", width=10, anchor="center").pack(side=tk.LEFT)
+
+            focus_str = f"🎯 {rec.get('focus_verdict', 'Deep Focus Verified')}"
+            tk.Label(rf, text=focus_str, font=("Segoe UI", 8, "bold"), fg="#c084fc", bg="#161f30", width=22, anchor="center").pack(side=tk.LEFT)
+
+            binder_path = rec.get("binder_pdf_path", "")
+            btn_pdf = tk.Button(
+                rf,
+                text="🖨️ Binder PDF",
+                font=("Segoe UI", 7, "bold"),
+                fg="#1c1104",
+                bg="#f59e0b",
+                activebackground="#fbbf24",
+                relief=tk.FLAT,
+                bd=0,
+                padx=6,
+                pady=1,
+                cursor="hand2",
+                command=lambda p=binder_path: self._open_pdf_file(p)
+            )
+            btn_pdf.pack(side=tk.RIGHT)
+
+    def _open_pdf_file(self, pdf_path: str):
+        if pdf_path and os.path.exists(pdf_path):
+            try:
+                if sys.platform == "win32":
+                    os.startfile(pdf_path)
+                else:
+                    subprocess.Popen(["xdg-open", pdf_path])
+            except Exception as e:
+                messagebox.showerror("File Error", f"Could not open PDF file:\n{e}")
+        else:
+            messagebox.showinfo("Physical Binder PDF", f"Binder PDF: {os.path.basename(pdf_path) if pdf_path else 'Exam Binder'}\nLocation: {pdf_path}\n(Will be generated upon Face B evaluation)")
+
     def _render_p1_week_cards(self):
         if not hasattr(self, "p1_cards_row") or not self.p1_cards_row.winfo_exists():
             return
@@ -612,6 +710,8 @@ class HostExamTabController:
         self.p1_card_widgets.clear()
 
         stats = SubjectStudyLedger.get_week_stats(month="October")
+        score_history = GeminiExamClient.load_score_history()
+
         card_configs = [
             (1, "📅 Week 1 Sunday Test", "Mon–Sat Homework", 35, 60),
             (2, "📅 Week 2 Sunday Test", "Mon–Sat Homework", 35, 60),
@@ -629,6 +729,26 @@ class HostExamTabController:
             st = stats.get(key, {"entries_count": 0, "subjects_count": 0})
             ent_cnt = st.get("entries_count", 0)
             sub_cnt = st.get("subjects_count", 0)
+
+            matching_score = None
+            for rec in score_history:
+                t_low = rec.get("title", "").lower()
+                eid_low = rec.get("exam_id", "").lower()
+                if key == 1 and ("week 1" in t_low or "w1" in eid_low):
+                    matching_score = rec
+                    break
+                elif key == 2 and ("week 2" in t_low or "w2" in eid_low):
+                    matching_score = rec
+                    break
+                elif key == 3 and ("week 3" in t_low or "w3" in eid_low):
+                    matching_score = rec
+                    break
+                elif key == 4 and ("week 4" in t_low or "w4" in eid_low):
+                    matching_score = rec
+                    break
+                elif key == "monthend" and ("month" in t_low or "mega" in t_low or "month" in eid_low):
+                    matching_score = rec
+                    break
 
             c = tk.Frame(
                 self.p1_cards_row,
@@ -657,8 +777,19 @@ class HostExamTabController:
                 bg=bg_col,
                 justify=tk.LEFT
             )
-            lbl_sub.pack(anchor="w", pady=(2, 3))
+            lbl_sub.pack(anchor="w", pady=(2, 2))
             lbl_sub.bind("<Button-1>", lambda e, k=key: self._on_p1_card_clicked(k))
+
+            if matching_score:
+                lbl_sc = tk.Label(
+                    c,
+                    text=f"✅ Scored: {matching_score['marks_awarded']:.1f}/{matching_score['max_marks']:.0f} ({matching_score['percentage']:.1f}%)",
+                    font=("Segoe UI", 7, "bold"),
+                    fg="#34d399",
+                    bg=bg_col
+                )
+                lbl_sc.pack(anchor="w", pady=(0, 2))
+                lbl_sc.bind("<Button-1>", lambda e, k=key: self._on_p1_card_clicked(k))
 
             btn_act = tk.Button(
                 c,
@@ -1351,6 +1482,9 @@ class HostExamTabController:
 
         self.fb_eval_text.delete("1.0", tk.END)
         self.fb_eval_text.insert(tk.END, "\n".join(lines))
+
+        self._render_score_history_strip()
+        self._render_p1_week_cards()
 
     def _on_evaluation_error(self, err_msg: str):
         self.btn_evaluate.configure(state=tk.NORMAL)

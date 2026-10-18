@@ -32,7 +32,8 @@ a = Analysis(
         'exam_engine_v3',
         'host_exam_ui',
         'shinobi_ui',
-        'schedule_engine'
+        'schedule_engine',
+        'winocr'
     ],
     excludes=[],
     noarchive=False,

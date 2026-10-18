@@ -1,0 +1,43 @@
+================================================================================
+SCHOLASTICPULSE: VERSION 2 (V2) IMMUTABLE BACKUP & RESTORE FAIL-SAFE GUIDE
+================================================================================
+Generated Date: October 18, 2026
+Target Machine: Windows 10/11 x64
+Root Directory: D:\THARUN PROJECT\
+================================================================================
+
+1. ZERO MODIFICATION INTEGRITY POLICY
+-------------------------------------
+Throughout all development phases of Version 3 (V3), the complete directory:
+    D:\THARUN PROJECT\VERSION_2_WORKPLACE\
+and the compiled executable:
+    D:\THARUN PROJECT\dist\ScholasticPulse_V2.exe
+have remained 100% untouched and locked. No files in VERSION_2_WORKPLACE have 
+been modified, renamed, deleted, or altered.
+
+2. RUNNING THE IMMUTABLE V2 BUILD
+---------------------------------
+Option A: Standalone Binary (Recommended for 1-Click Launch)
+    Execute directly without requiring Python or external dependencies:
+    Path: D:\THARUN PROJECT\dist\ScholasticPulse_V2.exe
+
+Option B: Source Code Execution via Python
+    Open PowerShell in D:\THARUN PROJECT\ and run:
+    python "D:\THARUN PROJECT\VERSION_2_WORKPLACE\study_balancer.py"
+
+3. FAIL-SAFE RESTORATION / ROLLBACK PROTOCOL
+--------------------------------------------
+If for any reason Tharun's father or an instructor wishes to revert to the 
+original Version 2 environment:
+1. All Version 2 daily routines, timetable presets, voice audio clips (43 tracks),
+   and diary import logic remain active in D:\THARUN PROJECT\VERSION_2_WORKPLACE\.
+2. Simply launch D:\THARUN PROJECT\dist\ScholasticPulse_V2.exe.
+3. No configuration rollback or data migration is required. Version 2 operates 
+   completely isolated from Version 3's EXAM_SYSTEM_V3 directory and schemas.
+
+4. REPOSITORY VERIFICATION
+--------------------------
+To verify zero modification git integrity at any time from terminal:
+    git status VERSION_2_WORKPLACE
+Expected result: "nothing to commit, working tree clean" (0 modified files).
+================================================================================
