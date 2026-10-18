@@ -11114,10 +11114,11 @@ class DesktopApp:
         self.portions_title_row = title_row
         self.portions_prog_row = prog_row
 
+        # Unified Portions Scanner & Reader Action
         self.btn_upload_portions = tk.Button(
             act_box,
-            text="📁 Upload Portions (PDF/Doc/JSON)",
-            font=("Segoe UI", 8, "bold"),
+            text="📷 Scan & Import Exam Portions (PDF / Photo / S1-S4)",
+            font=("Segoe UI", 9, "bold"),
             bg="#f59e0b",
             fg="#1c1104",
             activebackground="#fbbf24",
@@ -11126,69 +11127,12 @@ class DesktopApp:
             bd=0,
             highlightthickness=1,
             highlightbackground="#fde047",
-            padx=10,
-            pady=3,
+            padx=12,
+            pady=4,
             cursor="hand2",
             command=self.upload_portions_file_dialog
         )
-        self.btn_upload_portions.pack(side=tk.LEFT, padx=(0, 5))
-
-        self.btn_paste_portions = tk.Button(
-            act_box,
-            text="📝 Paste Syllabus",
-            font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#38bdf8",
-            relief=tk.FLAT,
-            bd=0,
-            highlightthickness=1,
-            highlightbackground="#334155",
-            activebackground="#1e293b",
-            activeforeground="#38bdf8",
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.open_portions_text_paste_modal
-        )
-        self.btn_paste_portions.pack(side=tk.LEFT, padx=(0, 5))
-
-        self.btn_launch_pre_exam = tk.Button(
-            act_box,
-            text="📅 Pre-Exam Roadmap & Day Planner",
-            font=("Segoe UI", 8, "bold"),
-            bg="#161006",
-            fg="#facc15",
-            activebackground="#f59e0b",
-            activeforeground="#1c1104",
-            relief=tk.FLAT,
-            bd=0,
-            highlightthickness=1,
-            highlightbackground="#eab308",
-            padx=10,
-            pady=3,
-            cursor="hand2",
-            command=self.open_pre_exam_day_picker_modal
-        )
-        self.btn_launch_pre_exam.pack(side=tk.LEFT, padx=(0, 5))
-
-        self.btn_copy_portions = tk.Button(
-            act_box,
-            text="📋 Copy Full Syllabus",
-            font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            relief=tk.FLAT,
-            bd=0,
-            highlightthickness=1,
-            highlightbackground="#334155",
-            activebackground="#1e293b",
-            activeforeground="#f8fafc",
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.copy_full_portions_summary
-        )
-        self.btn_copy_portions.pack(side=tk.LEFT, padx=(0, 5))
+        self.btn_upload_portions.pack(side=tk.LEFT, padx=(0, 6))
 
         self.btn_reset_checks = tk.Button(
             act_box,
@@ -12073,12 +12017,16 @@ class DesktopApp:
                 if not ExamPortionParser:
                     messagebox.showerror("Parser Unavailable", "Exam portion parser module could not be loaded.")
                     return
-                t, raw_text = ExamPortionParser.extract_text_from_file(filepath)
-                if not raw_text or not raw_text.strip():
-                    messagebox.showwarning("Empty File", "No readable text or images could be extracted from this file.")
-                    return
-                parsed_json = ExamPortionParser.parse_portions_text(raw_text)
-                self.open_portions_review_modal(parsed_json, source_path=filepath, raw_text=raw_text)
+                res_type, res_content = ExamPortionParser.extract_text_from_file(filepath)
+                if res_type == "JSON_DIRECT":
+                    self.open_portions_review_modal(res_content, source_path=filepath, raw_text="")
+                else:
+                    raw_text = res_content
+                    if not raw_text or not raw_text.strip():
+                        messagebox.showwarning("Empty File", "No readable text or images could be extracted from this file.")
+                        return
+                    parsed_json = ExamPortionParser.parse_portions_text(raw_text)
+                    self.open_portions_review_modal(parsed_json, source_path=filepath, raw_text=raw_text)
 
         except Exception as e:
             messagebox.showerror("Import Error", f"An error occurred while processing the portions file:\n\n{e}")

@@ -4244,18 +4244,9 @@
             </p>
           </div>
           <div class="portions-actions-bar">
-            <input type="file" id="portionsFileInput" accept=".pdf,.json,.txt,.docx" onchange="handlePortionsFileUpload(event)" style="display: none;">
-            <button class="btn-diary-ledger" onclick="document.getElementById('portionsFileInput').click()">
-              <span style="color:#fbbf24;">📁</span> Upload Portions (PDF/JSON)
-            </button>
-            <button class="btn-diary-ledger" onclick="openPastePortionsModal()">
-              <span style="color:#93c5fd;">📝</span> Paste Syllabus
-            </button>
-            <button class="btn-diary-ledger gold-fill" onclick="openPreExamRoadmapModal()">
-              📅 Pre-Exam Roadmap &amp; Day Planner
-            </button>
-            <button class="btn-diary-ledger" onclick="copyFullPortionsSummary()">
-              <span style="color:#c084fc;">📋</span> Copy Full Syllabus
+            <input type="file" id="portionsFileInput" accept=".pdf,.json,.txt,.docx,.png,.jpg,.jpeg" onchange="handlePortionsFileUpload(event)" style="display: none;">
+            <button class="btn-diary-ledger gold-fill" onclick="document.getElementById('portionsFileInput').click()" style="padding: 5px 14px; font-size: 0.82rem; font-weight: 800;">
+              <span>📷</span> Scan &amp; Import Exam Portions (PDF / Photo / S1-S4)
             </button>
             <button class="btn-diary-ledger" onclick="resetPortionProgress()">
               <span style="color:#f87171;">🔄</span> Reset
