@@ -16,7 +16,11 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import Dict, Any, List, Optional
 
-sys.stdout.reconfigure(encoding="utf-8")
+if sys.stdout is not None and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 from exam_evaluator_v3 import CBSEEvaluatorV3, CORRECTED_COPIES_DIR, TOPPER_GUIDES_DIR
 from host_exam_face_b_ui_v3 import CustomDarkScrollbar

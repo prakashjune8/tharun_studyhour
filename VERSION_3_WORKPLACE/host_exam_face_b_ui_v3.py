@@ -21,7 +21,11 @@ from tkinter import ttk, messagebox, filedialog
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-sys.stdout.reconfigure(encoding="utf-8")
+if sys.stdout is not None and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 from exam_vision_ocr_engine_v3 import VisionOCREngineV3, QUESTION_PAPERS_DIR, ANSWER_SHEETS_DIR
 

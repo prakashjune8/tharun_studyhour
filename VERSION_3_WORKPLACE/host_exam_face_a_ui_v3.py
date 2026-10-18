@@ -25,7 +25,11 @@ from tkinter import ttk, messagebox, simpledialog
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
-sys.stdout.reconfigure(encoding="utf-8")
+if sys.stdout is not None and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 # Import Verified Engine Modules from Sessions 1 - 5
 from exam_ground_truth_v3 import SubjectCatalog, GeminiGateway, DiaryGroundTruth, EXAM_SYSTEM_DIR

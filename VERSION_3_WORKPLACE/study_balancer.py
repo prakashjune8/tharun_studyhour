@@ -9,6 +9,18 @@ Includes School Diary Entry Engine (Senthil Public School Format)
 
 import sys
 import os
+
+# Safe stream fallback for PyInstaller windowed/noconsole mode where sys.stdout/sys.stderr are None
+class _SafeStream:
+    def write(self, *args, **kwargs): pass
+    def flush(self, *args, **kwargs): pass
+    def reconfigure(self, *args, **kwargs): pass
+
+if sys.stdout is None:
+    sys.stdout = _SafeStream()
+if sys.stderr is None:
+    sys.stderr = _SafeStream()
+
 import re
 import json
 import math

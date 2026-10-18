@@ -31,7 +31,11 @@ from tkinter import ttk, messagebox, filedialog
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-sys.stdout.reconfigure(encoding="utf-8")
+if sys.stdout is not None and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 from exam_ground_truth_v3 import SubjectCatalog, EXAM_SYSTEM_DIR, BASE_DIR
 from exam_smart_ingestion_wizard_v3 import SmartIngestionWizard, TEXTBOOKS_VAULT_ROOT

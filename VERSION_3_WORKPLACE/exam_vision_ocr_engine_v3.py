@@ -20,7 +20,11 @@ import base64
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 
-sys.stdout.reconfigure(encoding="utf-8")
+if sys.stdout is not None and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 WORK_DIR = os.path.dirname(os.path.abspath(__file__))
 EXAM_SYSTEM_DIR = os.path.join(WORK_DIR, "EXAM_SYSTEM_V3")

@@ -17,7 +17,11 @@ import re
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 
-sys.stdout.reconfigure(encoding="utf-8")
+if sys.stdout is not None and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EXAM_SYS_DIR = os.path.join(BASE_DIR, "EXAM_SYSTEM_V3")
