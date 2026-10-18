@@ -62,6 +62,10 @@ try:
 except ImportError:
     HostExamTabController = None
 
+# Modular UI Design System & Schedule Balancer Engine
+from shinobi_ui import ShinobiGraphicsEngine, ShinobiPillButton, ShinobiPillSelector, ShinobiTabBar
+from schedule_engine import SubjectRepresentationTracker, TharunScheduleBalancer, CANONICAL_SUBDIVISIONS, EXECUTION_LEVELS
+
 # Optional Windows sound support
 if sys.platform == "win32":
     try:
@@ -7821,8 +7825,13 @@ class DesktopApp:
 
         tk.Label(add_frame, text="➕ Quick Log New Slip:", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#0f172a").grid(row=0, column=0, sticky="w", pady=2)
         
-        cmb_sub = ttk.Combobox(add_frame, values=["Tamil", "Hindi", "Mathematics", "Physical Science", "Biological Science", "Social Science", "English"], font=("Segoe UI", 8), state="readonly", width=14)
-        cmb_sub.set("Tamil")
+        cmb_sub = ShinobiPillSelector(
+            add_frame,
+            values=["Tamil", "Hindi", "Mathematics", "Physical Science", "Biological Science", "Social Science", "English"],
+            initial_value="Tamil",
+            width=140,
+            height=28
+        )
         cmb_sub.grid(row=0, column=1, padx=4, pady=2)
 
         ent_cat = tk.Entry(add_frame, font=("Segoe UI", 8), bg="#070b14", fg="#f1f5f9", insertbackground="#38bdf8", bd=1, relief=tk.SOLID, width=22)
@@ -8596,8 +8605,13 @@ class DesktopApp:
         form_frame.pack(fill=tk.X, pady=(0, 6))
 
         tk.Label(form_frame, text="Subject:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=0, column=0, sticky="w", pady=2)
-        combo_subject = ttk.Combobox(form_frame, values=["Mathematics", "Physical Science", "Biological Science", "Social Science", "Tamil", "English", "Hindi"], font=("Segoe UI", 8), state="readonly", width=18)
-        combo_subject.set("Mathematics")
+        combo_subject = ShinobiPillSelector(
+            form_frame,
+            values=["Mathematics", "Physical Science", "Biological Science", "Social Science", "Tamil", "English", "Hindi"],
+            initial_value="Mathematics",
+            width=150,
+            height=28
+        )
         combo_subject.grid(row=0, column=1, sticky="w", padx=4, pady=2)
 
         tk.Label(form_frame, text="Chapter / Q#:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=1, column=0, sticky="w", pady=2)
@@ -8606,7 +8620,7 @@ class DesktopApp:
         ent_prob.grid(row=1, column=1, sticky="w", padx=4, pady=2)
 
         tk.Label(form_frame, text="Stuck Point:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=2, column=0, sticky="w", pady=2)
-        combo_impasse = ttk.Combobox(
+        combo_impasse = ShinobiPillSelector(
             form_frame,
             values=[
                 "Cannot translate question words into formula",
@@ -8615,11 +8629,10 @@ class DesktopApp:
                 "Final answer does not match textbook back-of-book answer",
                 "Did not understand teacher's board classwork example"
             ],
-            font=("Segoe UI", 8),
-            state="readonly",
-            width=36
+            initial_value="Completed Step 1, but got stuck in Step 2 algebraic transition",
+            width=260,
+            height=28
         )
-        combo_impasse.set("Completed Step 1, but got stuck in Step 2 algebraic transition")
         combo_impasse.grid(row=2, column=1, sticky="w", padx=4, pady=2)
 
         txt_slip_output = tk.Text(slip_card, font=("Segoe UI", 8), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, padx=8, pady=6, height=10, wrap=tk.WORD)
@@ -8701,22 +8714,21 @@ class DesktopApp:
         diag_selectors.pack(fill=tk.X, pady=(0, 6))
 
         tk.Label(diag_selectors, text="1. Where did ink physically stop?", font=("Segoe UI", 8, "bold"), fg=c["warning"], bg=c["card_bg"]).grid(row=0, column=0, sticky="w", pady=2)
-        combo_pen = ttk.Combobox(
+        combo_pen = ShinobiPillSelector(
             diag_selectors,
             values=[
                 "Pen stopped immediately under question (Blank page)",
                 "Pen stopped after Line 1 or Line 2 (Mid-calculation)",
                 "Completed to the end, but final answer is wrong"
             ],
-            font=("Segoe UI", 8),
-            state="readonly",
-            width=50
+            initial_value="Pen stopped after Line 1 or Line 2 (Mid-calculation)",
+            width=320,
+            height=28
         )
-        combo_pen.set("Pen stopped after Line 1 or Line 2 (Mid-calculation)")
         combo_pen.grid(row=0, column=1, sticky="w", padx=6, pady=2)
 
         tk.Label(diag_selectors, text="2. What is his body language?", font=("Segoe UI", 8, "bold"), fg=c["warning"], bg=c["card_bg"]).grid(row=1, column=0, sticky="w", pady=2)
-        combo_beh = ttk.Combobox(
+        combo_beh = ShinobiPillSelector(
             diag_selectors,
             values=[
                 "Frozen / staring into distance (>5 minutes)",
@@ -8724,26 +8736,24 @@ class DesktopApp:
                 "Reaching for mobile phone / asking for WhatsApp group",
                 "Complaining of sudden headache / feigning sleep"
             ],
-            font=("Segoe UI", 8),
-            state="readonly",
-            width=50
+            initial_value="Frozen / staring into distance (>5 minutes)",
+            width=320,
+            height=28
         )
-        combo_beh.set("Frozen / staring into distance (>5 minutes)")
         combo_beh.grid(row=1, column=1, sticky="w", padx=6, pady=2)
 
         tk.Label(diag_selectors, text="3. Where did teacher cut marks?", font=("Segoe UI", 8, "bold"), fg=c["warning"], bg=c["card_bg"]).grid(row=2, column=0, sticky="w", pady=2)
-        combo_test = ttk.Combobox(
+        combo_test = ShinobiPillSelector(
             diag_selectors,
             values=[
                 "Bucket A: Concept Blindspot (0 marks on definition/theory)",
                 "Bucket B: Careless Slip (Lost 1 mark on calculation/sign/units)",
                 "Bucket C: CBSE Presentation Penalty (Lost marks for informal text)"
             ],
-            font=("Segoe UI", 8),
-            state="readonly",
-            width=50
+            initial_value="Bucket B: Careless Slip (Lost 1 mark on calculation/sign/units)",
+            width=320,
+            height=28
         )
-        combo_test.set("Bucket B: Careless Slip (Lost 1 mark on calculation/sign/units)")
         combo_test.grid(row=2, column=1, sticky="w", padx=6, pady=2)
 
         txt_diag_out = tk.Text(diag_card, font=("Segoe UI", 8), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, padx=10, pady=8, wrap=tk.WORD)
@@ -10822,7 +10832,14 @@ class DesktopApp:
             "Overcoming study friction / building chair-time"
         ]
         reason_var = tk.StringVar(value=reasons[0])
-        reason_combo = ttk.Combobox(ext_win, textvariable=reason_var, values=reasons, state="readonly", width=48)
+        reason_combo = ShinobiPillSelector(
+            ext_win,
+            values=reasons,
+            initial_value=reasons[0],
+            textvariable=reason_var,
+            width=360,
+            height=32
+        )
         reason_combo.pack(fill=tk.X, pady=(0, 18))
 
         def confirm_extension():
@@ -12033,103 +12050,6 @@ class DesktopApp:
         finally:
             self.root.config(cursor="")
 
-    def open_portions_text_paste_modal(self):
-        c = self.colors
-        win = tk.Toplevel(self.root)
-        win.title("📝 Paste Exam Portions / Syllabus Notice")
-        win.geometry("780x600")
-        win.configure(bg=c["bg"])
-
-        top = tk.Frame(win, bg=c["card_bg"], padx=16, pady=12, bd=1, relief=tk.SOLID)
-        top.pack(fill=tk.X)
-        tk.Label(
-            top,
-            text="📝 Paste Syllabus Text or JSON Circular",
-            font=("Segoe UI", 11, "bold"),
-            fg=c["primary"],
-            bg=c["card_bg"]
-        ).pack(anchor="w")
-        tk.Label(
-            top,
-            text="Paste syllabus circular text from WhatsApp, school email, or notice sheet. The AI parser will detect subjects, chapters, and dates.",
-            font=("Segoe UI", 8),
-            fg=c["fg_muted"],
-            bg=c["card_bg"]
-        ).pack(anchor="w", pady=(2, 0))
-
-        content_box = tk.Frame(win, bg=c["bg"], padx=16, pady=10)
-        content_box.pack(fill=tk.BOTH, expand=True)
-
-        txt_area = tk.Text(content_box, font=("Consolas", 10), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID)
-        txt_area.pack(fill=tk.BOTH, expand=True)
-
-        btn_bar = tk.Frame(win, bg=c["card_bg"], padx=16, pady=10, bd=1, relief=tk.SOLID)
-        btn_bar.pack(fill=tk.X)
-
-        def do_parse():
-            pasted = txt_area.get("1.0", tk.END).strip()
-            if not pasted:
-                messagebox.showwarning("Empty Content", "Please paste syllabus text or JSON before proceeding.", parent=win)
-                return
-            if pasted.startswith("{") or pasted.startswith("["):
-                try:
-                    data = json.loads(pasted)
-                    if isinstance(data, dict) and "subjects" in data:
-                        win.destroy()
-                        self.open_portions_review_modal(data, raw_text=pasted)
-                        return
-                    elif isinstance(data, list):
-                        wrapped = {
-                            "school_name": "Senthil Public School",
-                            "stream": "Montessori & CBSE Stream",
-                            "examination": "Portions for Examination - Class VIII",
-                            "student_name": "Tharun",
-                            "academic_year": "2026-2027",
-                            "total_subjects": len(data),
-                            "subjects": data
-                        }
-                        win.destroy()
-                        self.open_portions_review_modal(wrapped, raw_text=pasted)
-                        return
-                except Exception:
-                    pass
-
-            if not ExamPortionParser:
-                messagebox.showerror("Error", "Portion parser not available.", parent=win)
-                return
-
-            parsed = ExamPortionParser.parse_portions_text(pasted)
-            win.destroy()
-            self.open_portions_review_modal(parsed, raw_text=pasted)
-
-        btn_parse = tk.Button(
-            btn_bar,
-            text="⚡ Parse & Preview Syllabus",
-            font=("Segoe UI", 9, "bold"),
-            bg="#2563eb",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=14,
-            pady=5,
-            cursor="hand2",
-            command=do_parse
-        )
-        btn_parse.pack(side=tk.RIGHT, padx=(8, 0))
-
-        btn_cancel = tk.Button(
-            btn_bar,
-            text="Cancel",
-            font=("Segoe UI", 9),
-            bg=c["card_border"],
-            fg=c["fg"],
-            relief=tk.FLAT,
-            padx=12,
-            pady=5,
-            cursor="hand2",
-            command=win.destroy
-        )
-        btn_cancel.pack(side=tk.RIGHT)
-
     def open_portions_review_modal(self, parsed_json, source_path=None, raw_text=""):
         c = self.colors
         win = tk.Toplevel(self.root)
@@ -12192,19 +12112,9 @@ class DesktopApp:
         ).pack(side=tk.LEFT, padx=(0, 8))
 
         target_term_var = tk.StringVar(value=active_t if active_t in target_options else "Term-II")
-        cmb_target_term = ttk.Combobox(
-            sub_top_row,
-            textvariable=target_term_var,
-            values=target_options,
-            state="readonly",
-            font=("Segoe UI", 9, "bold"),
-            width=26
-        )
-        cmb_target_term.pack(side=tk.LEFT, padx=(0, 10))
-
         ent_custom_term = tk.Entry(sub_top_row, font=("Segoe UI", 9), bg="#1e293b", fg="#f8fafc", insertbackground="#f8fafc", bd=1, relief=tk.SOLID, width=28)
 
-        def _on_target_term_changed(e=None):
+        def _on_target_term_changed(sel_val=None):
             sel = target_term_var.get()
             if sel == "➕ Custom Exam Heading...":
                 ent_custom_term.pack(side=tk.LEFT, padx=(4, 0))
@@ -12212,7 +12122,16 @@ class DesktopApp:
             else:
                 ent_custom_term.pack_forget()
 
-        cmb_target_term.bind("<<ComboboxSelected>>", _on_target_term_changed)
+        cmb_target_term = ShinobiPillSelector(
+            sub_top_row,
+            values=target_options,
+            initial_value=active_t if active_t in target_options else "Term-II",
+            textvariable=target_term_var,
+            on_select_callback=_on_target_term_changed,
+            width=220,
+            height=32
+        )
+        cmb_target_term.pack(side=tk.LEFT, padx=(0, 10))
 
         # Prominent Pointing Out Alert Banner
         tk.Label(
@@ -13351,7 +13270,15 @@ class DesktopApp:
         all_dates = [e["date"] for e in self.diary_data.get("diary_entries", [])]
         audit_date_var = tk.StringVar(value=self.active_diary_date if self.active_diary_date in all_dates else (all_dates[-1] if all_dates else ""))
 
-        date_combo = ttk.Combobox(bar, textvariable=audit_date_var, values=all_dates, state="readonly", width=16)
+        date_combo = ShinobiPillSelector(
+            bar,
+            values=all_dates,
+            initial_value=audit_date_var.get(),
+            textvariable=audit_date_var,
+            on_select_callback=lambda val: refresh_audit_table() if 'refresh_audit_table' in locals() else None,
+            width=160,
+            height=32
+        )
         date_combo.pack(side=tk.LEFT, padx=4)
 
         lbl_count = tk.Label(bar, text="", font=("Segoe UI", 9, "bold"), fg=c["primary"], bg=c["bg"])
@@ -13424,7 +13351,7 @@ class DesktopApp:
                     )
                 )
 
-        date_combo.bind("<<ComboboxSelected>>", lambda e: refresh_audit_table())
+        date_combo.on_select_callback = lambda val: refresh_audit_table()
         refresh_audit_table()
 
         # Action bar under table
@@ -13951,15 +13878,16 @@ class DesktopApp:
             chk_exam.pack(side=tk.LEFT, padx=10)
 
             grav_var = tk.StringVar(value=f"Score {sub.get('gravity', 2)}")
-            grav_combo = ttk.Combobox(
+            grav_combo = ShinobiPillSelector(
                 ctrl_block,
-                textvariable=grav_var,
                 values=["Score 1 (Low)", "Score 2 (Med)", "Score 3 (High)"],
-                state="readonly",
-                width=14
+                initial_value=grav_var.get(),
+                textvariable=grav_var,
+                on_select_callback=lambda val, s=sub, gv=grav_var: self.change_sub_gravity(s, gv),
+                width=135,
+                height=30
             )
             grav_combo.pack(side=tk.LEFT, padx=8)
-            grav_combo.bind("<<ComboboxSelected>>", lambda e, s=sub, gv=grav_var: self.change_sub_gravity(s, gv))
 
     def toggle_exam_soon(self, sub, var):
         sub["exam_soon"] = var.get()
@@ -15414,11 +15342,11 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             sub_line.pack(fill=tk.X, pady=(0, 3))
 
             sub_var = tk.StringVar(value=subject)
-            sub_combo = ttk.Combobox(sub_line, textvariable=sub_var, values=SUBJECT_OPTIONS, width=20, state="readonly")
+            sub_combo = ShinobiPillSelector(sub_line, values=SUBJECT_OPTIONS, initial_value=subject, textvariable=sub_var, width=150, height=28)
             sub_combo.pack(side=tk.LEFT, padx=(0, 4))
 
             type_var = tk.StringVar(value=task_type)
-            type_combo = ttk.Combobox(sub_line, textvariable=type_var, values=[t[0] for t in TASK_TYPES], width=10, state="readonly")
+            type_combo = ShinobiPillSelector(sub_line, values=[t[0] for t in TASK_TYPES], initial_value=task_type, textvariable=type_var, width=105, height=28)
             type_combo.pack(side=tk.LEFT, padx=(0, 4))
 
             mins_var = tk.StringVar(value=str(duration))
