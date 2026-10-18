@@ -1,0 +1,166 @@
+{
+  "exam_id": "EXAM-P3-SPRINT-MATH-20261018",
+  "metadata": {
+    "school": "SENTHIL PUBLIC SCHOOL, DHARMAPURI",
+    "affiliation": "AFFILIATED TO CBSE, NEW DELHI (AFFL. NO. 1930248)",
+    "exam_title": "HOST-CONDUCTED ACADEMIC RETENTION & ANTI-DAYDREAMING TEST",
+    "class_standard": "CLASS 8 (CBSE)",
+    "subject": "MATHEMATICS",
+    "date": "18-OCT-2026",
+    "phase": "Phase 3: Morning Exam Sprint (Mathematics Rapid Recall)",
+    "time_allowed_mins": 45,
+    "max_marks": 25,
+    "source_mode": "general_cbse_pattern"
+  },
+  "general_instructions": [
+    "Conducted on Exam Morning (06:40 AM – 07:45 AM) before departure for school.",
+    "Rapid confidence warm-up sprint covering Mathematics.",
+    "Tests high-frequency board questions, formula derivation, and labeled diagram precision.",
+    "Section A: 5 MCQs/A-R [1M] | Section B: 3 VSA [2M] | Section C: 3 SA [3M] | Section D: 1 LA [5M].",
+    "Concludes at 07:45 AM sharp for wholesome breakfast and calm school departure."
+  ],
+  "sections": [
+    {
+      "section_id": "A",
+      "section_title": "SECTION A — OBJECTIVE & ASSERTION-REASON",
+      "questions": [
+        {
+          "q_num": "Q.1",
+          "tag": "[MTH-P3-Q01]",
+          "subject": "Mathematics",
+          "text": "Which of the following algebraic identities is universally correct for all real values of a and b?",
+          "options": [
+            "(a) (a + b)² = a² + b²",
+            "(b) (a - b)² = a² - 2ab + b²",
+            "(c) (a + b)(a - b) = a² + b²",
+            "(d) (a + b)² = a² - 2ab + b²"
+          ],
+          "marks": 1,
+          "competency_type": "Algebraic Identity Recall"
+        },
+        {
+          "q_num": "Q.2",
+          "tag": "[MTH-P3-Q02]",
+          "subject": "Mathematics",
+          "text": "The coefficient of x² in the expanded form of (3x - 4)² is:",
+          "options": [
+            "(a) 9",
+            "(b) -24",
+            "(c) 16",
+            "(d) -9"
+          ],
+          "marks": 1,
+          "competency_type": "Polynomial Coefficient"
+        },
+        {
+          "q_num": "Q.3",
+          "tag": "[MTH-P3-Q03]",
+          "subject": "Mathematics",
+          "text": "The value of (-2/3)⁴ expressed as a positive rational number is:",
+          "options": [
+            "(a) 16/81",
+            "(b) -16/81",
+            "(c) 8/27",
+            "(d) -8/27"
+          ],
+          "marks": 1,
+          "competency_type": "Exponential Laws"
+        },
+        {
+          "q_num": "Q.4",
+          "tag": "[MTH-P3-Q04]",
+          "subject": "Mathematics",
+          "text": "Which of the following algebraic identities is universally correct for all real values of a and b?",
+          "options": [
+            "(a) (a + b)² = a² + b²",
+            "(b) (a - b)² = a² - 2ab + b²",
+            "(c) (a + b)(a - b) = a² + b²",
+            "(d) (a + b)² = a² - 2ab + b²"
+          ],
+          "marks": 1,
+          "competency_type": "Algebraic Identity Recall"
+        },
+        {
+          "q_num": "Q.5",
+          "tag": "[MTH-P3-Q05]",
+          "subject": "Mathematics",
+          "text": "The coefficient of x² in the expanded form of (3x - 4)² is:",
+          "options": [
+            "(a) 9",
+            "(b) -24",
+            "(c) 16",
+            "(d) -9"
+          ],
+          "marks": 1,
+          "competency_type": "Polynomial Coefficient"
+        }
+      ]
+    },
+    {
+      "section_id": "B",
+      "section_title": "SECTION B — VERY SHORT CONCEPT DRILL",
+      "questions": [
+        {
+          "q_num": "Q.6",
+          "tag": "[MTH-P3-Q06]",
+          "subject": "Mathematics",
+          "text": "Factorise the algebraic expression completely by grouping terms: 15xy - 6x + 5y - 2.",
+          "marks": 2,
+          "competency_type": "Factorisation by Grouping"
+        },
+        {
+          "q_num": "Q.7",
+          "tag": "[MTH-P3-Q07]",
+          "subject": "Mathematics",
+          "text": "Solve the linear equation for y: 5y - 7 = 2y + 8 and verify your solution step-by-step.",
+          "marks": 2,
+          "competency_type": "Linear Equation in One Variable"
+        }
+      ]
+    },
+    {
+      "section_id": "C",
+      "section_title": "SECTION C — NUMERICAL & CONCEPT APPLICATION",
+      "questions": [
+        {
+          "q_num": "Q.8",
+          "tag": "[MTH-P3-Q08]",
+          "subject": "Mathematics",
+          "text": "A cuboid has dimensions 60 cm x 54 cm x 30 cm. How many small cubes with side 6 cm can be placed in the given cuboid?",
+          "marks": 3,
+          "competency_type": "Spatial Mensuration & Volume"
+        },
+        {
+          "q_num": "Q.9",
+          "tag": "[MTH-P3-Q09]",
+          "subject": "Mathematics",
+          "text": "The perimeter of a rectangular swimming pool is 154 m. Its length is 2 m more than twice its breadth. Find the length and breadth of the pool.",
+          "marks": 3,
+          "competency_type": "Applied Algebraic Modeling"
+        }
+      ]
+    },
+    {
+      "section_id": "D",
+      "section_title": "SECTION D — DERIVATION & APPLICATION TASK",
+      "questions": [
+        {
+          "q_num": "Q.10",
+          "tag": "[MTH-P3-Q10]",
+          "subject": "Mathematics",
+          "text": "(a) A closed cylindrical storage tank of radius 7 m and height 3 m is made from a sheet of metal. How much sheet of metal is required? (Take π = 22/7).\n(b) If the metal costs ₹ 45 per square meter, calculate the total cost.",
+          "marks": 5,
+          "competency_type": "Cylindrical Surface Area & Costing"
+        },
+        {
+          "q_num": "Q.11",
+          "tag": "[MTH-P3-Q11]",
+          "subject": "Mathematics",
+          "text": "A road roller takes 750 complete revolutions to move once over to level a road. Find the area of the road if the diameter of the road roller is 84 cm and length is 1 m. (Take π = 22/7).",
+          "marks": 5,
+          "competency_type": "Lateral Surface Area Application"
+        }
+      ]
+    }
+  ]
+}

@@ -479,11 +479,366 @@
       ]
     },
     {
+      "date": "2026-10-14",
+      "display_date": "14/10/2026",
+      "source_label": "Source S5 (Photo 3 Top: 14/10/2026)",
+      "metrics": {
+        "wake": "6:45 AM",
+        "sleep": "9:00 PM",
+        "morning_study": "No",
+        "evening_study": "7:15 PM to 9:00 PM",
+        "screen_or_self_study": "15 mins",
+        "yoga": "No",
+        "reading_habit": "Yes"
+      },
+      "items": [
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Exercise: 9.3",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Math: Exercise: 9.3",
+          "match_source": "Senthil Handbook S5 (14/10/26)",
+          "categorization_reason": "Algebraic identities & polynomial multiplication exercises"
+        },
+        {
+          "subject": "Physical Science",
+          "code": "Chem",
+          "task": "Practice Balancing equation with steps, Molecular mass calculation",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Chem: Practice Balancing equation with steps, Molecular mass calculation",
+          "match_source": "Senthil Handbook S5 (14/10/26)",
+          "categorization_reason": "Chemical equation balancing & molecular mass computation"
+        },
+        {
+          "subject": "Biological Science",
+          "code": "Bio",
+          "task": "Pg.no: 8 Mind map write",
+          "task_type": "written",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Bio: Pgno: 8 Mind map write",
+          "match_source": "Senthil Handbook S5 (14/10/26)",
+          "categorization_reason": "Biology visual concept structuring & mind map note"
+        },
+        {
+          "subject": "Hindi",
+          "code": "Hindi",
+          "task": "Read Ln-10",
+          "task_type": "reading",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Hin: Read Ln-10",
+          "match_source": "Senthil Handbook S5 (14/10/26)",
+          "categorization_reason": "Hindi prose reading & pronunciation practice"
+        }
+      ],
+      "subjects": [
+        {
+          "subject": "Mathematics",
+          "type": "written",
+          "daily_activities": "Exercise: 9.3",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "Physical Science",
+          "type": "written",
+          "daily_activities": "Practice Balancing equation with steps, Molecular mass calculation",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "Biological Science",
+          "type": "written",
+          "daily_activities": "Pg.no: 8 Mind map write",
+          "suggested_duration_mins": 20
+        },
+        {
+          "subject": "Hindi",
+          "type": "reading",
+          "daily_activities": "Read Ln-10",
+          "suggested_duration_mins": 20
+        }
+      ]
+    },
+    {
+      "date": "2026-10-15",
+      "display_date": "15/10/2026",
+      "source_label": "Source S5-B (Consolidated Study & Revision: 15/10/2026)",
+      "metrics": {
+        "wake": "6:45 AM",
+        "sleep": "9:00 PM",
+        "morning_study": "6:45 AM to 7:15 AM",
+        "evening_study": "7:00 PM to 9:00 PM",
+        "screen_or_self_study": "20 mins",
+        "yoga": "No",
+        "reading_habit": "Yes"
+      },
+      "items": [
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Exercise 9.3 Algebraic Expressions & Identity Consolidation",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Math: Exercise 9.3 Identity Practice",
+          "match_source": "Senthil Handbook (15/10/26 Prep)",
+          "categorization_reason": "Formula consolidation & identity review"
+        },
+        {
+          "subject": "Physical Science",
+          "code": "Chem",
+          "task": "Chemical Reaction Balancing & Step Layout Review",
+          "task_type": "written",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Chem: Balancing equations step review",
+          "match_source": "Senthil Handbook (15/10/26 Prep)",
+          "categorization_reason": "Chemical formula review & step verification"
+        },
+        {
+          "subject": "Tamil",
+          "code": "Tamil",
+          "task": "இயல் - 1 உரைநடை வினா விடை தயாரித்தல்",
+          "task_type": "reading",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Tam: இயல் 1 வினா விடை",
+          "match_source": "Senthil Handbook (15/10/26 Prep)",
+          "categorization_reason": "Tamil comprehension review"
+        },
+        {
+          "subject": "English",
+          "code": "Eng",
+          "task": "Verb Forms v1, v2, v3 Grammar Memorization",
+          "task_type": "memorize",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Eng: Verb forms v1, v2, v3 practice",
+          "match_source": "Senthil Handbook (15/10/26 Prep)",
+          "categorization_reason": "English verb conjugations & tenses clinic"
+        }
+      ],
+      "subjects": [
+        {
+          "subject": "Mathematics",
+          "type": "written",
+          "daily_activities": "Exercise 9.3 Algebraic Expressions & Identity Consolidation",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "Physical Science",
+          "type": "written",
+          "daily_activities": "Chemical Reaction Balancing & Step Layout Review",
+          "suggested_duration_mins": 20
+        },
+        {
+          "subject": "Tamil",
+          "type": "reading",
+          "daily_activities": "இயல் - 1 உரைநடை வினா விடை தயாரித்தல்",
+          "suggested_duration_mins": 20
+        },
+        {
+          "subject": "English",
+          "type": "memorize",
+          "daily_activities": "Verb Forms v1, v2, v3 Grammar Memorization",
+          "suggested_duration_mins": 20
+        }
+      ]
+    },
+    {
+      "date": "2026-10-16",
+      "display_date": "16/10/2026",
+      "source_label": "Source S6 (Photo 3 Bottom: 16/10/2026)",
+      "metrics": {
+        "wake": "7:30 AM",
+        "sleep": "9:00 PM",
+        "morning_study": "No",
+        "evening_study": "7:00 PM to 9:00 PM",
+        "screen_or_self_study": "30 mins",
+        "yoga": "No",
+        "reading_habit": "Yes"
+      },
+      "items": [
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Practice Ch-5 (all topics 2 sums)",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Math: Practice Ch-5 (all topics 2 sums)",
+          "match_source": "Senthil Handbook S6 (16/10/26)",
+          "categorization_reason": "Data handling & square roots 2-sum mastery sprint"
+        },
+        {
+          "subject": "Tamil",
+          "code": "Tamil",
+          "task": "இயல் - 1 உரை - குறுவினா 1, 2 சிறுவினா",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Tam: இயல்-1 உரை - குறுவினா 1,2 சிறுவினா",
+          "match_source": "Senthil Handbook S6 (16/10/26)",
+          "categorization_reason": "Tamil prose short & detailed question answering"
+        },
+        {
+          "subject": "English",
+          "code": "Eng",
+          "task": "Learn v1, v2, v3 form of verbs",
+          "task_type": "memorize",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Eng: Learn v1, v2, v3 form of verbs",
+          "match_source": "Senthil Handbook S6 (16/10/26)",
+          "categorization_reason": "English grammatical verb conjugation forms"
+        },
+        {
+          "subject": "Handwriting & Language Clinic",
+          "code": "Lang",
+          "task": "School Alert: We should go to 6-E",
+          "task_type": "bag_pack",
+          "est_mins": 5,
+          "completed": false,
+          "raw_source": "D/B: We should go to 6-E",
+          "match_source": "Senthil Handbook S6 (16/10/26)",
+          "categorization_reason": "School room change notice & bag preparation"
+        }
+      ],
+      "subjects": [
+        {
+          "subject": "Mathematics",
+          "type": "written",
+          "daily_activities": "Practice Ch-5 (all topics 2 sums)",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "Tamil",
+          "type": "written",
+          "daily_activities": "இயல் - 1 உரை - குறுவினா 1, 2 சிறுவினா",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "English",
+          "type": "memorize",
+          "daily_activities": "Learn v1, v2, v3 form of verbs",
+          "suggested_duration_mins": 20
+        },
+        {
+          "subject": "Handwriting & Language Clinic",
+          "type": "bag_pack",
+          "daily_activities": "School Alert: We should go to 6-E",
+          "suggested_duration_mins": 5
+        }
+      ]
+    },
+    {
+      "date": "2026-10-17",
+      "display_date": "17/10/2026",
+      "source_label": "Source S7 (Photo 4 Top: 17/10/2026)",
+      "metrics": {
+        "wake": "6:45 AM",
+        "sleep": "9:30 PM",
+        "morning_study": "No",
+        "evening_study": "7:00 PM to 8:30 PM",
+        "screen_or_self_study": "15 mins",
+        "yoga": "No",
+        "reading_habit": "Yes"
+      },
+      "items": [
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Ex: 9.3 (2) Practice Matrix for CIT",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Math: Ex: 9.3 (2) Practice Matrix for CIT",
+          "match_source": "Senthil Handbook S7 (17/10/26)",
+          "categorization_reason": "Ex 9.3 polynomial product matrix practice for CIT exam"
+        },
+        {
+          "subject": "Social Science",
+          "code": "His",
+          "task": "Read upto Raja Ram Mohan Roy",
+          "task_type": "reading",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "His: Read upto Raja Ram Mohan Roy",
+          "match_source": "Senthil Handbook S7 (17/10/26)",
+          "categorization_reason": "Social reform movement history reading"
+        },
+        {
+          "subject": "Physical Science",
+          "code": "Phy",
+          "task": "Kinetic theory of matter and Properties of state of matter",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Phy: Kinetic theory of matter and Properties of state of matter",
+          "match_source": "Senthil Handbook S7 (17/10/26)",
+          "categorization_reason": "Physics state laws, molecular kinetics & properties"
+        }
+      ],
+      "subjects": [
+        {
+          "subject": "Mathematics",
+          "type": "written",
+          "daily_activities": "Ex: 9.3 (2) Practice Matrix for CIT",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "Social Science",
+          "type": "reading",
+          "daily_activities": "Read upto Raja Ram Mohan Roy",
+          "suggested_duration_mins": 20
+        },
+        {
+          "subject": "Physical Science",
+          "type": "written",
+          "daily_activities": "Kinetic theory of matter and Properties of state of matter",
+          "suggested_duration_mins": 25
+        }
+      ]
+    },
+    {
       "date": "2026-10-18",
       "display_date": "18/10/2026",
       "efficiency_split_core": true,
       "items": [],
       "subjects": []
+    },
+    {
+      "date": "2026-10-19",
+      "display_date": "19/10/2026",
+      "items": [
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Error Bank Mastery: Algebraic Negative Sign Distribution, SI Unit & Boxed Answer Omission",
+          "task_type": "error_bank_healing",
+          "est_mins": 35,
+          "completed": false,
+          "raw_source": "No Homework Day: Strengthening Mathematics weak spots"
+        }
+      ],
+      "no_homework_flag": true,
+      "weak_subject_focus": {
+        "date": "2026-10-19",
+        "is_no_homework_day": true,
+        "chosen_weak_subject": "Mathematics",
+        "focus_areas": [
+          "Algebraic Negative Sign Distribution",
+          "SI Unit & Boxed Answer Omission",
+          "CBSE Step Precision (Q.12)"
+        ],
+        "student_notes": "Review SI units in pressure calculations and negative signs in math",
+        "logged_at": "2026-10-18T19:47:44.701485"
+      }
     }
   ]
 }

@@ -2451,7 +2451,8 @@ class DesktopApp:
             exam_mode=self.is_exam_mode, exam_subject=self.selected_exam_subject,
             start_time_str=self.schedule_start_time,
             pre_exam_mode=self.is_pre_exam_mode, pre_exam_day=self.pre_exam_day,
-            pre_exam_duration_days=self.pre_exam_duration_days
+            pre_exam_duration_days=self.pre_exam_duration_days,
+            target_date=getattr(self, "active_diary_date", None)
         )
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
 
@@ -10718,7 +10719,8 @@ class DesktopApp:
         self.evening_schedule, self.morning_schedule = TharunScheduleBalancer.generate_schedule(
             self.subjects, active_items, self.current_level, self.selected_language,
             exam_mode=self.is_exam_mode, exam_subject=self.selected_exam_subject,
-            start_time_str=self.schedule_start_time
+            start_time_str=self.schedule_start_time,
+            target_date=getattr(self, "active_diary_date", None)
         )
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
         self.render_timetable_cards()
@@ -11370,15 +11372,17 @@ class DesktopApp:
             due_bg = "#7f1d1d"
             due_fg = "#fecaca"
             due_border = "#ef4444"
-        elif getattr(self, "is_pre_exam_mode", False) and (getattr(self, "pre_exam_day", 1) % 3 == 0):
-            day_num = getattr(self, "pre_exam_day", 3)
-            due_text = f"🎯 DAY {day_num} CHECKPOINT EXAM DUE"
+        elif getattr(self, "is_pre_exam_mode", False) and (getattr(self, "pre_exam_day", 1) > 1 and (getattr(self, "pre_exam_day", 1) - 1) % 3 == 0):
+            day_num = getattr(self, "pre_exam_day", 4)
+            p_start = day_num - 3
+            p_end = day_num - 1
+            due_text = f"🎯 DAY {day_num} MORNING CHECKPOINT DUE (DAYS {p_start}–{p_end})"
             due_bg = "#581c87"
             due_fg = "#f3e8ff"
             due_border = "#a855f7"
         elif getattr(self, "is_exam_mode", False) and today.hour < 12:
             sub = getattr(self, "selected_exam_subject", "Mathematics")
-            due_text = f"🔥 MORNING SPRINT DUE: {sub.upper()}"
+            due_text = f"⚡ MORNING SPRINT DUE: {sub.upper()} (6:40-7:45 AM)"
             due_bg = "#064e3b"
             due_fg = "#d1fae5"
             due_border = "#10b981"
@@ -11409,7 +11413,7 @@ class DesktopApp:
         if hasattr(self, "host_exam_controller") and self.host_exam_controller:
             if today.weekday() == 6:
                 self.host_exam_controller._launch_phase(1, "weekly")
-            elif getattr(self, "is_pre_exam_mode", False) and (getattr(self, "pre_exam_day", 1) % 3 == 0):
+            elif getattr(self, "is_pre_exam_mode", False) and (getattr(self, "pre_exam_day", 1) > 1 and (getattr(self, "pre_exam_day", 1) - 1) % 3 == 0):
                 self.host_exam_controller._launch_phase(2, "3day")
             elif getattr(self, "is_exam_mode", False):
                 self.host_exam_controller._launch_phase(3, getattr(self, "selected_exam_subject", "Mathematics"))
@@ -12194,7 +12198,8 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             start_time_str=self.schedule_start_time,
             pre_exam_mode=self.is_pre_exam_mode, pre_exam_day=self.pre_exam_day,
             pre_exam_duration_days=self.pre_exam_duration_days,
-            bedtime_rollovers=active_rollovers
+            bedtime_rollovers=active_rollovers,
+            target_date=getattr(self, "active_diary_date", None)
         )
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
         self.render_timetable_cards()

@@ -1,0 +1,578 @@
+{
+  "exam_metadata": {
+    "institution_name": "Senthil Public School, Dharmapuri",
+    "cbse_affiliation_number": "1930248",
+    "target_student": "Tharun",
+    "class_grade": "Class 8 CBSE",
+    "examination_phase": "Phase 1: Sunday Weekly Test",
+    "phase_code": "P1",
+    "time_allowed": "60 Minutes (06:40 AM – 07:45 AM)",
+    "maximum_marks": 25,
+    "mark_distribution": "13 Marks Mathematics + 12 Marks Physical Science",
+    "syllabus_coverage": {
+      "mathematics": "Ex 9.1-9.3 Algebraic Expressions & Identities (multiplication, standard identities (a+b)^2, (a-b)^2, a^2-b^2), Linear Equations in One Variable, Mensuration (trapezium & cylinder)",
+      "physical_science": "Force & Pressure (P=F/A numerical calculations, broad bag straps, liquid pressure), Friction (rolling vs sliding friction), Chemical Effects of Electric Current"
+    },
+    "general_instructions": [
+      "This question paper comprises two sequential parts: PART 1 (Mathematics - 13 Marks) and PART 2 (Physical Science - 12 Marks).",
+      "Total duration is 60 minutes. Read all instructions and questions carefully before writing.",
+      "The paper consists of 10 mandatory questions categorized into Section A (Objective/AR, 1 Mark), Section B (VSA, 2 Marks), Section C (SA, 3 Marks), and Section D (LA, 5 Marks).",
+      "All working, intermediate algebraic steps, balanced chemical explanations, and numerical units must be shown neatly.",
+      "Internal choices are provided in Section D of both parts. Tharun must attempt only one of the alternatives where given."
+    ]
+  },
+  "parts": [
+    {
+      "part_number": "PART 1",
+      "subject": "Mathematics",
+      "marks_allocated": 13,
+      "sections": [
+        {
+          "section_name": "SECTION A",
+          "section_type": "Objective & Conceptual Verification",
+          "marks_per_question": 1,
+          "questions": [
+            {
+              "q_num": "Q.1",
+              "tag": "[MTH-P1-Q01]",
+              "subject": "Mathematics",
+              "competency_type": "Concept Recall & Algebraic Identity",
+              "question_text": "Using the standard algebraic identity $(a - b)^2 = a^2 - 2ab + b^2$, evaluate the expanded expression of $(2x - 3y)^2$: [1]",
+              "options": [
+                "(a) 4x^2 - 9y^2",
+                "(b) 4x^2 - 12xy + 9y^2",
+                "(c) 4x^2 + 12xy + 9y^2",
+                "(d) 4x^2 - 6xy + 9y^2"
+              ],
+              "correct_answer": "(b) 4x^2 - 12xy + 9y^2",
+              "marks": 1,
+              "text": "Using the standard algebraic identity $(a - b)^2 = a^2 - 2ab + b^2$, evaluate the expanded expression of $(2x - 3y)^2$: [1]"
+            }
+          ],
+          "part": "Mathematics",
+          "subject": "Mathematics",
+          "section_title": "SECTION A"
+        },
+        {
+          "section_name": "SECTION B",
+          "section_type": "Very Short Answer (VSA)",
+          "marks_per_question": 2,
+          "questions": [
+            {
+              "q_num": "Q.2",
+              "tag": "[MTH-P1-Q02]",
+              "subject": "Mathematics",
+              "competency_type": "Numerical Application",
+              "question_text": "Solve the linear equation for $x$ by transposing terms systematically and verify your solution: $5x - 7 = 2x + 8$. [2]",
+              "marks": 2,
+              "text": "Solve the linear equation for $x$ by transposing terms systematically and verify your solution: $5x - 7 = 2x + 8$. [2]"
+            },
+            {
+              "q_num": "Q.3",
+              "tag": "[MTH-P1-Q03]",
+              "subject": "Mathematics",
+              "competency_type": "Algebraic Manipulation",
+              "question_text": "Multiply the binomials $(3a + 4b)$ and $(2a - 5b)$, and simplify the resulting polynomial by grouping and combining all like terms. [2]",
+              "marks": 2,
+              "text": "Multiply the binomials $(3a + 4b)$ and $(2a - 5b)$, and simplify the resulting polynomial by grouping and combining all like terms. [2]"
+            }
+          ],
+          "part": "Mathematics",
+          "subject": "Mathematics",
+          "section_title": "SECTION B"
+        },
+        {
+          "section_name": "SECTION C",
+          "section_type": "Short Answer (SA)",
+          "marks_per_question": 3,
+          "questions": [
+            {
+              "q_num": "Q.4",
+              "tag": "[MTH-P1-Q04]",
+              "subject": "Mathematics",
+              "competency_type": "Step-by-Step Problem Solving & Mensuration",
+              "question_text": "The area of a trapezium is $168\\text{ cm}^2$ and the perpendicular distance (height) between its parallel sides is $8\\text{ cm}$. If one of the parallel sides measures $18\\text{ cm}$, find the length of the other parallel side. [3]",
+              "marks": 3,
+              "text": "The area of a trapezium is $168\\text{ cm}^2$ and the perpendicular distance (height) between its parallel sides is $8\\text{ cm}$. If one of the parallel sides measures $18\\text{ cm}$, find the length of the other parallel side. [3]"
+            }
+          ],
+          "part": "Mathematics",
+          "subject": "Mathematics",
+          "section_title": "SECTION C"
+        },
+        {
+          "section_name": "SECTION D",
+          "section_type": "Long Answer (LA)",
+          "marks_per_question": 5,
+          "questions": [
+            {
+              "q_num": "Q.5",
+              "tag": "[MTH-P1-Q05]",
+              "subject": "Mathematics",
+              "competency_type": "Multi-Step Geometric Problem Solving",
+              "question_text": "A cylindrical metal water tank open at the top has a base radius of $7\\text{ m}$ and a height of $10\\text{ m}$.\n(a) Calculate the curved surface area (CSA) of the cylinder (use $\\pi = \\frac{22}{7}$). [2]\n(b) Calculate the total surface area of sheet metal required to construct this open-top tank (Base Area + CSA) and the total volume of water it can hold in $\\text{m}^3$. [3]\n\nOR\n\n(a) Using standard identities, factorize completely: $49x^2 - 64y^2$. [2]\n(b) Solve the following linear equation for $x$: $\\frac{x - 3}{5} + 1 = \\frac{2x + 1}{3}$. [3] [5]",
+              "marks": 5,
+              "has_internal_choice": true,
+              "text": "A cylindrical metal water tank open at the top has a base radius of $7\\text{ m}$ and a height of $10\\text{ m}$.\n(a) Calculate the curved surface area (CSA) of the cylinder (use $\\pi = \\frac{22}{7}$). [2]\n(b) Calculate the total surface area of sheet metal required to construct this open-top tank (Base Area + CSA) and the total volume of water it can hold in $\\text{m}^3$. [3]\n\nOR\n\n(a) Using standard identities, factorize completely: $49x^2 - 64y^2$. [2]\n(b) Solve the following linear equation for $x$: $\\frac{x - 3}{5} + 1 = \\frac{2x + 1}{3}$. [3] [5]"
+            }
+          ],
+          "part": "Mathematics",
+          "subject": "Mathematics",
+          "section_title": "SECTION D"
+        }
+      ]
+    },
+    {
+      "part_number": "PART 2",
+      "subject": "Physical Science",
+      "marks_allocated": 12,
+      "sections": [
+        {
+          "section_name": "SECTION A",
+          "section_type": "Objective & Assertion-Reasoning",
+          "marks_per_question": 1,
+          "questions": [
+            {
+              "q_num": "Q.6",
+              "tag": "[SCI-P1-Q06]",
+              "subject": "Physical Science",
+              "competency_type": "Concept Recall",
+              "question_text": "Ball bearings are widely installed between the hub and axle of bicycles and ceiling fan motors. Which of the following statements correctly explains their functional purpose? [1]",
+              "options": [
+                "(a) They replace sliding friction with rolling friction, substantially decreasing frictional resistance.",
+                "(b) They increase surface roughness to enhance mechanical grip during high-speed rotation.",
+                "(c) They eliminate gravitational force acting on the rotating parts.",
+                "(d) They convert rolling friction into fluid friction to lubricate the joint."
+              ],
+              "correct_answer": "(a) They replace sliding friction with rolling friction, substantially decreasing frictional resistance.",
+              "marks": 1,
+              "text": "Ball bearings are widely installed between the hub and axle of bicycles and ceiling fan motors. Which of the following statements correctly explains their functional purpose? [1]"
+            },
+            {
+              "q_num": "Q.7",
+              "tag": "[SCI-P1-Q07]",
+              "subject": "Physical Science",
+              "competency_type": "Assertion-Reasoning",
+              "question_text": "Given below are two statements labeled Assertion (A) and Reason (R):\nAssertion (A): Heavy school bags and backpacks are designed with broad and wide shoulder straps instead of thin cord straps.\nReason (R): For a constant applied load (weight), pressure is inversely proportional to contact area ($P = \\frac{F}{A}$); hence, increasing strap surface area reduces pressure on the shoulder.\nSelect the correct option from the following: [1]",
+              "options": [
+                "(a) Both Assertion (A) and Reason (R) are true and Reason (R) is the correct explanation of Assertion (A).",
+                "(b) Both Assertion (A) and Reason (R) are true but Reason (R) is NOT the correct explanation of Assertion (A).",
+                "(c) Assertion (A) is true but Reason (R) is false.",
+                "(d) Assertion (A) is false but Reason (R) is true."
+              ],
+              "correct_answer": "(a) Both Assertion (A) and Reason (R) are true and Reason (R) is the correct explanation of Assertion (A).",
+              "marks": 1,
+              "text": "Given below are two statements labeled Assertion (A) and Reason (R):\nAssertion (A): Heavy school bags and backpacks are designed with broad and wide shoulder straps instead of thin cord straps.\nReason (R): For a constant applied load (weight), pressure is inversely proportional to contact area ($P = \\frac{F}{A}$); hence, increasing strap surface area reduces pressure on the shoulder.\nSelect the correct option from the following: [1]"
+            }
+          ],
+          "part": "Physical Science",
+          "subject": "Physical Science",
+          "section_title": "SECTION A"
+        },
+        {
+          "section_name": "SECTION B",
+          "section_type": "Very Short Answer (VSA)",
+          "marks_per_question": 2,
+          "questions": [
+            {
+              "q_num": "Q.8",
+              "tag": "[SCI-P1-Q08]",
+              "subject": "Physical Science",
+              "competency_type": "Experimental Application",
+              "question_text": "Explain why ordinary tap water conducts electricity and causes the magnetic needle of a tester to deflect, whereas pure distilled water does not conduct electricity. State one simple method to convert distilled water into a conducting liquid. [2]",
+              "marks": 2,
+              "text": "Explain why ordinary tap water conducts electricity and causes the magnetic needle of a tester to deflect, whereas pure distilled water does not conduct electricity. State one simple method to convert distilled water into a conducting liquid. [2]"
+            }
+          ],
+          "part": "Physical Science",
+          "subject": "Physical Science",
+          "section_title": "SECTION B"
+        },
+        {
+          "section_name": "SECTION C",
+          "section_type": "Short Answer (SA)",
+          "marks_per_question": 3,
+          "questions": [
+            {
+              "q_num": "Q.9",
+              "tag": "[SCI-P1-Q09]",
+              "subject": "Physical Science",
+              "competency_type": "Numerical Application & Physical Reasoning",
+              "question_text": "A solid rectangular wooden block of mass $6\\text{ kg}$ is placed on a flat horizontal table. The base face touching the table has dimensions $0.3\\text{ m} \\times 0.2\\text{ m}$.\n(a) Taking $g = 10\\text{ m/s}^2$, calculate the downward force (thrust) exerted by the block on the table surface. [1]\n(b) Calculate the pressure exerted by the block on the tabletop in $\\text{N/m}^2$ (Pascals). [2] [3]",
+              "marks": 3,
+              "text": "A solid rectangular wooden block of mass $6\\text{ kg}$ is placed on a flat horizontal table. The base face touching the table has dimensions $0.3\\text{ m} \\times 0.2\\text{ m}$.\n(a) Taking $g = 10\\text{ m/s}^2$, calculate the downward force (thrust) exerted by the block on the table surface. [1]\n(b) Calculate the pressure exerted by the block on the tabletop in $\\text{N/m}^2$ (Pascals). [2] [3]"
+            }
+          ],
+          "part": "Physical Science",
+          "subject": "Physical Science",
+          "section_title": "SECTION C"
+        },
+        {
+          "section_name": "SECTION D",
+          "section_type": "Long Answer (LA)",
+          "marks_per_question": 5,
+          "questions": [
+            {
+              "q_num": "Q.10",
+              "tag": "[SCI-P1-Q10]",
+              "subject": "Physical Science",
+              "competency_type": "Scientific Analysis & Application",
+              "question_text": "(a) Define the process of electroplating. In an electrolytic circuit set up to electroplate copper onto an iron key, identify which electrode (anode or cathode) the iron key should be connected to, and specify the electrolyte solution required. [3]\n(b) State two key observations demonstrating that liquid pressure increases with increasing depth in a liquid column. [2]\n\nOR\n\n(a) Differentiate between sliding friction and rolling friction with two real-world examples. Explain why rolling friction is always significantly smaller in magnitude than sliding friction. [3]\n(b) Why do deep-sea divers wear specially designed reinforced diving suits before venturing deep underwater? State the relationship between liquid pressure, depth, and density. [2] [5]",
+              "marks": 5,
+              "has_internal_choice": true,
+              "text": "(a) Define the process of electroplating. In an electrolytic circuit set up to electroplate copper onto an iron key, identify which electrode (anode or cathode) the iron key should be connected to, and specify the electrolyte solution required. [3]\n(b) State two key observations demonstrating that liquid pressure increases with increasing depth in a liquid column. [2]\n\nOR\n\n(a) Differentiate between sliding friction and rolling friction with two real-world examples. Explain why rolling friction is always significantly smaller in magnitude than sliding friction. [3]\n(b) Why do deep-sea divers wear specially designed reinforced diving suits before venturing deep underwater? State the relationship between liquid pressure, depth, and density. [2] [5]"
+            }
+          ],
+          "part": "Physical Science",
+          "subject": "Physical Science",
+          "section_title": "SECTION D"
+        }
+      ]
+    }
+  ],
+  "marking_scheme_summary": {
+    "total_marks": 25,
+    "breakdown": {
+      "mathematics_total": 13,
+      "physical_science_total": 12
+    },
+    "solutions": [
+      {
+        "q_num": "Q.1",
+        "tag": "[MTH-P1-Q01]",
+        "subject": "Mathematics",
+        "marks": 1,
+        "key_steps": [
+          "$(2x - 3y)^2 = (2x)^2 - 2(2x)(3y) + (3y)^2 = 4x^2 - 12xy + 9y^2$.",
+          "Correct option is (b)."
+        ]
+      },
+      {
+        "q_num": "Q.2",
+        "tag": "[MTH-P1-Q02]",
+        "subject": "Mathematics",
+        "marks": 2,
+        "key_steps": [
+          "Transposition of variable and constant terms: $5x - 2x = 8 + 7$ [1 Mark]",
+          "$3x = 15 \\implies x = 5$ [0.5 Mark]",
+          "Verification: $\\text{LHS} = 5(5) - 7 = 18$; $\\text{RHS} = 2(5) + 8 = 18$ (LHS = RHS) [0.5 Mark]"
+        ]
+      },
+      {
+        "q_num": "Q.3",
+        "tag": "[MTH-P1-Q03]",
+        "subject": "Mathematics",
+        "marks": 2,
+        "key_steps": [
+          "Distributive law expansion: $(3a)(2a - 5b) + (4b)(2a - 5b) = 6a^2 - 15ab + 8ab - 20b^2$ [1 Mark]",
+          "Combining like terms: $6a^2 - 7ab - 20b^2$ [1 Mark]"
+        ]
+      },
+      {
+        "q_num": "Q.4",
+        "tag": "[MTH-P1-Q04]",
+        "subject": "Mathematics",
+        "marks": 3,
+        "key_steps": [
+          "Formula: $\\text{Area of trapezium} = \\frac{1}{2} \\times (a + b) \\times h$ [0.5 Mark]",
+          "Substitution: $168 = \\frac{1}{2} \\times (18 + b) \\times 8$ [1 Mark]",
+          "$168 = 4 \\times (18 + b) \\implies 18 + b = \\frac{168}{4} = 42$ [1 Mark]",
+          "$b = 42 - 18 = 24\\text{ cm}$. Length of other parallel side is $24\\text{ cm}$ [0.5 Mark]"
+        ]
+      },
+      {
+        "q_num": "Q.5",
+        "tag": "[MTH-P1-Q05]",
+        "subject": "Mathematics",
+        "marks": 5,
+        "key_steps": [
+          "Main Question:",
+          "(a) $\\text{CSA} = 2\\pi r h = 2 \\times \\frac{22}{7} \\times 7 \\times 10 = 440\\text{ m}^2$ [2 Marks]",
+          "(b) $\\text{Base Area} = \\pi r^2 = \\frac{22}{7} \\times 7 \\times 7 = 154\\text{ m}^2$. $\\text{Total Sheet Metal Required} = \\text{CSA} + \\text{Base Area} = 440 + 154 = 594\\text{ m}^2$ [1.5 Marks]",
+          "$\\text{Volume} = \\pi r^2 h = \\frac{22}{7} \\times 7^2 \\times 10 = 1540\\text{ m}^3$ [1.5 Marks]",
+          "OR Option:",
+          "(a) $49x^2 - 64y^2 = (7x)^2 - (8y)^2 = (7x - 8y)(7x + 8y)$ [2 Marks]",
+          "(b) $\\frac{x-3}{5} + 1 = \\frac{2x+1}{3} \\implies \\frac{x-3+5}{5} = \\frac{2x+1}{3} \\implies \\frac{x+2}{5} = \\frac{2x+1}{3}$ [1 Mark]",
+          "Cross multiplying: $3(x + 2) = 5(2x + 1) \\implies 3x + 6 = 10x + 5 \\implies 7x = 1 \\implies x = \\frac{1}{7}$ [2 Marks]"
+        ]
+      },
+      {
+        "q_num": "Q.6",
+        "tag": "[SCI-P1-Q06]",
+        "subject": "Physical Science",
+        "marks": 1,
+        "key_steps": [
+          "Ball bearings convert sliding friction into rolling friction. Rolling friction is much less than sliding friction, minimizing heat and energy loss.",
+          "Correct option is (a)."
+        ]
+      },
+      {
+        "q_num": "Q.7",
+        "tag": "[SCI-P1-Q07]",
+        "subject": "Physical Science",
+        "marks": 1,
+        "key_steps": [
+          "Assertion is true: broad straps reduce shoulder pain. Reason is true: $P = F/A$; increasing contact area decreases pressure. Reason correctly explains Assertion.",
+          "Correct option is (a)."
+        ]
+      },
+      {
+        "q_num": "Q.8",
+        "tag": "[SCI-P1-Q08]",
+        "subject": "Physical Science",
+        "marks": 2,
+        "key_steps": [
+          "Tap water contains dissolved mineral salts that dissociate into free ions to conduct electric current [1 Mark]",
+          "Distilled water is free of dissolved salts and ions, making it a poor conductor. Adding common salt (NaCl), an acid, or a base makes it conductive [1 Mark]"
+        ]
+      },
+      {
+        "q_num": "Q.9",
+        "tag": "[SCI-P1-Q09]",
+        "subject": "Physical Science",
+        "marks": 3,
+        "key_steps": [
+          "(a) $\\text{Thrust } F = m \\times g = 6\\text{ kg} \\times 10\\text{ m/s}^2 = 60\\text{ N}$ [1 Mark]",
+          "(b) $\\text{Area of contact } A = 0.3\\text{ m} \\times 0.2\\text{ m} = 0.06\\text{ m}^2$ [1 Mark]",
+          "$\\text{Pressure } P = \\frac{F}{A} = \\frac{60}{0.06} = 1000\\text{ Pa}$ (or $\\text{N/m}^2$) [1 Mark]"
+        ]
+      },
+      {
+        "q_num": "Q.10",
+        "tag": "[SCI-P1-Q10]",
+        "subject": "Physical Science",
+        "marks": 5,
+        "key_steps": [
+          "Main Question:",
+          "(a) Definition: Electroplating is the process of depositing a layer of any desired metal on another material by means of electricity [1 Mark]. Iron key connected to negative terminal (cathode) [1 Mark]. Copper plate at anode, copper sulphate solution (CuSO4) as electrolyte [1 Mark].",
+          "(b) Pressure increases with depth: deeper holes in a plastic bottle squirt water much farther out; pressure gauge/manometer shows higher liquid column difference at greater depth [2 Marks].",
+          "OR Option:",
+          "(a) Distinction: Sliding friction occurs when one surface slides over another (e.g., sliding a heavy box on the floor); rolling friction occurs when an object rolls over a surface (e.g., luggage roller wheels) [1.5 Marks]. Contact area and surface interlocking during rolling is momentary and extremely small compared to continuous sliding [1.5 Marks].",
+          "(b) Hydrostatic pressure increases with depth ($P = h \\rho g$). At $15\\text{ m}$, the column of water exerts immense compressive force, requiring rigid reinforced diving suits to prevent bodily injury [2 Marks]."
+        ]
+      }
+    ]
+  },
+  "source_mode": "general_cbse_pattern",
+  "metadata": {
+    "school": "SENTHIL PUBLIC SCHOOL, DHARMAPURI",
+    "affiliation": "AFFILIATED TO CBSE, NEW DELHI (AFFL. NO. 1930248)",
+    "exam_title": "PHASE 1: SUNDAY CUMULATIVE RETENTION TEST (WEEK 2-3)",
+    "class_standard": "Class 8 CBSE",
+    "subject": "MATHEMATICS & PHYSICAL SCIENCE",
+    "date": "18-OCT-2026",
+    "phase": "Phase 1: Sunday Weekly Test",
+    "time_allowed_mins": 60,
+    "max_marks": 25,
+    "source_mode": "general_cbse_pattern",
+    "generated_by": "Google Gemini AI",
+    "ai_model": "gemini-3.8-flash",
+    "grounding_source": "Official CBSE Blueprint grounded on Senthil Diary Entries (Oct 12–17)",
+    "is_ai_generated": true
+  },
+  "exam_id": "EXAM-P1-SUN-20261018-W3",
+  "general_instructions": [
+    "All questions are compulsory. Internal choices are provided in selected questions.",
+    "SECTION A comprises Objective & Assertion-Reasoning questions of 1 mark each.",
+    "SECTION B comprises Very Short Answer (VSA) questions of 2 marks each.",
+    "SECTION C comprises Short Answer (SA) questions of 3 marks each.",
+    "SECTION D comprises Long Answer / Derivation questions of 5 marks each.",
+    "PART 1 (Mathematics, 13M) must be answered completely before starting PART 2 (Physical Science, 12M).",
+    "Step-by-step calculations and SI units are mandatory for numerical problems."
+  ],
+  "sections": [
+    {
+      "section_name": "SECTION A",
+      "section_type": "Objective & Conceptual Verification",
+      "marks_per_question": 1,
+      "questions": [
+        {
+          "q_num": "Q.1",
+          "tag": "[MTH-P1-Q01]",
+          "subject": "Mathematics",
+          "competency_type": "Concept Recall & Algebraic Identity",
+          "question_text": "Using the standard algebraic identity $(a - b)^2 = a^2 - 2ab + b^2$, evaluate the expanded expression of $(2x - 3y)^2$: [1]",
+          "options": [
+            "(a) 4x^2 - 9y^2",
+            "(b) 4x^2 - 12xy + 9y^2",
+            "(c) 4x^2 + 12xy + 9y^2",
+            "(d) 4x^2 - 6xy + 9y^2"
+          ],
+          "correct_answer": "(b) 4x^2 - 12xy + 9y^2",
+          "marks": 1,
+          "text": "Using the standard algebraic identity $(a - b)^2 = a^2 - 2ab + b^2$, evaluate the expanded expression of $(2x - 3y)^2$: [1]"
+        }
+      ],
+      "part": "Mathematics",
+      "subject": "Mathematics",
+      "section_title": "SECTION A"
+    },
+    {
+      "section_name": "SECTION B",
+      "section_type": "Very Short Answer (VSA)",
+      "marks_per_question": 2,
+      "questions": [
+        {
+          "q_num": "Q.2",
+          "tag": "[MTH-P1-Q02]",
+          "subject": "Mathematics",
+          "competency_type": "Numerical Application",
+          "question_text": "Solve the linear equation for $x$ by transposing terms systematically and verify your solution: $5x - 7 = 2x + 8$. [2]",
+          "marks": 2,
+          "text": "Solve the linear equation for $x$ by transposing terms systematically and verify your solution: $5x - 7 = 2x + 8$. [2]"
+        },
+        {
+          "q_num": "Q.3",
+          "tag": "[MTH-P1-Q03]",
+          "subject": "Mathematics",
+          "competency_type": "Algebraic Manipulation",
+          "question_text": "Multiply the binomials $(3a + 4b)$ and $(2a - 5b)$, and simplify the resulting polynomial by grouping and combining all like terms. [2]",
+          "marks": 2,
+          "text": "Multiply the binomials $(3a + 4b)$ and $(2a - 5b)$, and simplify the resulting polynomial by grouping and combining all like terms. [2]"
+        }
+      ],
+      "part": "Mathematics",
+      "subject": "Mathematics",
+      "section_title": "SECTION B"
+    },
+    {
+      "section_name": "SECTION C",
+      "section_type": "Short Answer (SA)",
+      "marks_per_question": 3,
+      "questions": [
+        {
+          "q_num": "Q.4",
+          "tag": "[MTH-P1-Q04]",
+          "subject": "Mathematics",
+          "competency_type": "Step-by-Step Problem Solving & Mensuration",
+          "question_text": "The area of a trapezium is $168\\text{ cm}^2$ and the perpendicular distance (height) between its parallel sides is $8\\text{ cm}$. If one of the parallel sides measures $18\\text{ cm}$, find the length of the other parallel side. [3]",
+          "marks": 3,
+          "text": "The area of a trapezium is $168\\text{ cm}^2$ and the perpendicular distance (height) between its parallel sides is $8\\text{ cm}$. If one of the parallel sides measures $18\\text{ cm}$, find the length of the other parallel side. [3]"
+        }
+      ],
+      "part": "Mathematics",
+      "subject": "Mathematics",
+      "section_title": "SECTION C"
+    },
+    {
+      "section_name": "SECTION D",
+      "section_type": "Long Answer (LA)",
+      "marks_per_question": 5,
+      "questions": [
+        {
+          "q_num": "Q.5",
+          "tag": "[MTH-P1-Q05]",
+          "subject": "Mathematics",
+          "competency_type": "Multi-Step Geometric Problem Solving",
+          "question_text": "A cylindrical metal water tank open at the top has a base radius of $7\\text{ m}$ and a height of $10\\text{ m}$.\n(a) Calculate the curved surface area (CSA) of the cylinder (use $\\pi = \\frac{22}{7}$). [2]\n(b) Calculate the total surface area of sheet metal required to construct this open-top tank (Base Area + CSA) and the total volume of water it can hold in $\\text{m}^3$. [3]\n\nOR\n\n(a) Using standard identities, factorize completely: $49x^2 - 64y^2$. [2]\n(b) Solve the following linear equation for $x$: $\\frac{x - 3}{5} + 1 = \\frac{2x + 1}{3}$. [3] [5]",
+          "marks": 5,
+          "has_internal_choice": true,
+          "text": "A cylindrical metal water tank open at the top has a base radius of $7\\text{ m}$ and a height of $10\\text{ m}$.\n(a) Calculate the curved surface area (CSA) of the cylinder (use $\\pi = \\frac{22}{7}$). [2]\n(b) Calculate the total surface area of sheet metal required to construct this open-top tank (Base Area + CSA) and the total volume of water it can hold in $\\text{m}^3$. [3]\n\nOR\n\n(a) Using standard identities, factorize completely: $49x^2 - 64y^2$. [2]\n(b) Solve the following linear equation for $x$: $\\frac{x - 3}{5} + 1 = \\frac{2x + 1}{3}$. [3] [5]"
+        }
+      ],
+      "part": "Mathematics",
+      "subject": "Mathematics",
+      "section_title": "SECTION D"
+    },
+    {
+      "section_name": "SECTION A",
+      "section_type": "Objective & Assertion-Reasoning",
+      "marks_per_question": 1,
+      "questions": [
+        {
+          "q_num": "Q.6",
+          "tag": "[SCI-P1-Q06]",
+          "subject": "Physical Science",
+          "competency_type": "Concept Recall",
+          "question_text": "Ball bearings are widely installed between the hub and axle of bicycles and ceiling fan motors. Which of the following statements correctly explains their functional purpose? [1]",
+          "options": [
+            "(a) They replace sliding friction with rolling friction, substantially decreasing frictional resistance.",
+            "(b) They increase surface roughness to enhance mechanical grip during high-speed rotation.",
+            "(c) They eliminate gravitational force acting on the rotating parts.",
+            "(d) They convert rolling friction into fluid friction to lubricate the joint."
+          ],
+          "correct_answer": "(a) They replace sliding friction with rolling friction, substantially decreasing frictional resistance.",
+          "marks": 1,
+          "text": "Ball bearings are widely installed between the hub and axle of bicycles and ceiling fan motors. Which of the following statements correctly explains their functional purpose? [1]"
+        },
+        {
+          "q_num": "Q.7",
+          "tag": "[SCI-P1-Q07]",
+          "subject": "Physical Science",
+          "competency_type": "Assertion-Reasoning",
+          "question_text": "Given below are two statements labeled Assertion (A) and Reason (R):\nAssertion (A): Heavy school bags and backpacks are designed with broad and wide shoulder straps instead of thin cord straps.\nReason (R): For a constant applied load (weight), pressure is inversely proportional to contact area ($P = \\frac{F}{A}$); hence, increasing strap surface area reduces pressure on the shoulder.\nSelect the correct option from the following: [1]",
+          "options": [
+            "(a) Both Assertion (A) and Reason (R) are true and Reason (R) is the correct explanation of Assertion (A).",
+            "(b) Both Assertion (A) and Reason (R) are true but Reason (R) is NOT the correct explanation of Assertion (A).",
+            "(c) Assertion (A) is true but Reason (R) is false.",
+            "(d) Assertion (A) is false but Reason (R) is true."
+          ],
+          "correct_answer": "(a) Both Assertion (A) and Reason (R) are true and Reason (R) is the correct explanation of Assertion (A).",
+          "marks": 1,
+          "text": "Given below are two statements labeled Assertion (A) and Reason (R):\nAssertion (A): Heavy school bags and backpacks are designed with broad and wide shoulder straps instead of thin cord straps.\nReason (R): For a constant applied load (weight), pressure is inversely proportional to contact area ($P = \\frac{F}{A}$); hence, increasing strap surface area reduces pressure on the shoulder.\nSelect the correct option from the following: [1]"
+        }
+      ],
+      "part": "Physical Science",
+      "subject": "Physical Science",
+      "section_title": "SECTION A"
+    },
+    {
+      "section_name": "SECTION B",
+      "section_type": "Very Short Answer (VSA)",
+      "marks_per_question": 2,
+      "questions": [
+        {
+          "q_num": "Q.8",
+          "tag": "[SCI-P1-Q08]",
+          "subject": "Physical Science",
+          "competency_type": "Experimental Application",
+          "question_text": "Explain why ordinary tap water conducts electricity and causes the magnetic needle of a tester to deflect, whereas pure distilled water does not conduct electricity. State one simple method to convert distilled water into a conducting liquid. [2]",
+          "marks": 2,
+          "text": "Explain why ordinary tap water conducts electricity and causes the magnetic needle of a tester to deflect, whereas pure distilled water does not conduct electricity. State one simple method to convert distilled water into a conducting liquid. [2]"
+        }
+      ],
+      "part": "Physical Science",
+      "subject": "Physical Science",
+      "section_title": "SECTION B"
+    },
+    {
+      "section_name": "SECTION C",
+      "section_type": "Short Answer (SA)",
+      "marks_per_question": 3,
+      "questions": [
+        {
+          "q_num": "Q.9",
+          "tag": "[SCI-P1-Q09]",
+          "subject": "Physical Science",
+          "competency_type": "Numerical Application & Physical Reasoning",
+          "question_text": "A solid rectangular wooden block of mass $6\\text{ kg}$ is placed on a flat horizontal table. The base face touching the table has dimensions $0.3\\text{ m} \\times 0.2\\text{ m}$.\n(a) Taking $g = 10\\text{ m/s}^2$, calculate the downward force (thrust) exerted by the block on the table surface. [1]\n(b) Calculate the pressure exerted by the block on the tabletop in $\\text{N/m}^2$ (Pascals). [2] [3]",
+          "marks": 3,
+          "text": "A solid rectangular wooden block of mass $6\\text{ kg}$ is placed on a flat horizontal table. The base face touching the table has dimensions $0.3\\text{ m} \\times 0.2\\text{ m}$.\n(a) Taking $g = 10\\text{ m/s}^2$, calculate the downward force (thrust) exerted by the block on the table surface. [1]\n(b) Calculate the pressure exerted by the block on the tabletop in $\\text{N/m}^2$ (Pascals). [2] [3]"
+        }
+      ],
+      "part": "Physical Science",
+      "subject": "Physical Science",
+      "section_title": "SECTION C"
+    },
+    {
+      "section_name": "SECTION D",
+      "section_type": "Long Answer (LA)",
+      "marks_per_question": 5,
+      "questions": [
+        {
+          "q_num": "Q.10",
+          "tag": "[SCI-P1-Q10]",
+          "subject": "Physical Science",
+          "competency_type": "Scientific Analysis & Application",
+          "question_text": "(a) Define the process of electroplating. In an electrolytic circuit set up to electroplate copper onto an iron key, identify which electrode (anode or cathode) the iron key should be connected to, and specify the electrolyte solution required. [3]\n(b) State two key observations demonstrating that liquid pressure increases with increasing depth in a liquid column. [2]\n\nOR\n\n(a) Differentiate between sliding friction and rolling friction with two real-world examples. Explain why rolling friction is always significantly smaller in magnitude than sliding friction. [3]\n(b) Why do deep-sea divers wear specially designed reinforced diving suits before venturing deep underwater? State the relationship between liquid pressure, depth, and density. [2] [5]",
+          "marks": 5,
+          "has_internal_choice": true,
+          "text": "(a) Define the process of electroplating. In an electrolytic circuit set up to electroplate copper onto an iron key, identify which electrode (anode or cathode) the iron key should be connected to, and specify the electrolyte solution required. [3]\n(b) State two key observations demonstrating that liquid pressure increases with increasing depth in a liquid column. [2]\n\nOR\n\n(a) Differentiate between sliding friction and rolling friction with two real-world examples. Explain why rolling friction is always significantly smaller in magnitude than sliding friction. [3]\n(b) Why do deep-sea divers wear specially designed reinforced diving suits before venturing deep underwater? State the relationship between liquid pressure, depth, and density. [2] [5]"
+        }
+      ],
+      "part": "Physical Science",
+      "subject": "Physical Science",
+      "section_title": "SECTION D"
+    }
+  ]
+}

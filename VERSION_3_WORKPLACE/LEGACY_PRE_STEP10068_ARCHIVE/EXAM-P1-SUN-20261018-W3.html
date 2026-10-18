@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PHASE 1: SUNDAY CUMULATIVE RETENTION TEST (WEEK 2-3) - MATHEMATICS & PHYSICAL SCIENCE</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm 18mm 15mm 18mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Times New Roman', 'DejaVu Serif', serif;
+      color: #111827;
+      background: #ffffff;
+      margin: 0;
+      padding: 24px;
+      line-height: 1.45;
+      font-size: 11pt;
+    }
+    .print-toolbar {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      border-radius: 8px;
+    }
+    .print-btn {
+      background: #f59e0b;
+      color: #0f172a;
+      border: none;
+      font-weight: 800;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .exam-header-block {
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .inst-title { font-size: 16pt; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; }
+    .inst-subtitle { font-size: 8.5pt; color: #475569; font-weight: 600; margin-top: 2px; }
+    .exam-type-pill {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 8pt;
+      font-weight: 800;
+      background: #f1f5f9;
+      padding: 3px 12px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+    }
+    .exam-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      margin-top: 10px;
+      font-size: 9.5pt;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 8px;
+      gap: 6px;
+    }
+    .meta-cell { text-align: left; }
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .general-instructions-box {
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      background: #f8fafc;
+      padding: 8px 14px;
+      margin-bottom: 18px;
+      font-size: 8.5pt;
+    }
+    .gi-title { font-weight: bold; margin-bottom: 4px; text-transform: uppercase; }
+    .general-instructions-box ol { margin: 0; padding-left: 18px; }
+    .part-header-banner {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #ffffff;
+      padding: 10px 18px;
+      margin: 24px 0 14px 0;
+      border-radius: 6px;
+      text-align: center;
+      border-left: 5px solid #0284c7;
+    }
+    .part-banner-title {
+      font-size: 11pt;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #38bdf8;
+    }
+    .part-banner-sub {
+      font-size: 8pt;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+    .section-divider {
+      text-align: center;
+      margin: 18px 0 10px 0;
+      border-bottom: 1px solid #94a3b8;
+      line-height: 0.1em;
+    }
+    .section-title {
+      background: #ffffff;
+      padding: 0 14px;
+      font-weight: 900;
+      font-size: 10.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .question-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      page-break-inside: avoid;
+    }
+    .question-left { display: flex; gap: 8px; flex: 1; }
+    .q-num { font-weight: 900; min-width: 32px; }
+    .q-tag {
+      display: inline-block;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 8pt;
+      font-weight: 700;
+      padding: 1px 5px;
+      margin-right: 6px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .q-body { flex: 1; text-align: justify; padding-right: 14px; }
+    .q-marks {
+      font-weight: 900;
+      font-family: monospace;
+      white-space: nowrap;
+      min-width: 30px;
+      text-align: right;
+    }
+    .mcq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 14px;
+      margin-top: 6px;
+      font-size: 9pt;
+    }
+    @media print {
+      .print-toolbar { display: none !important; }
+      body { padding: 0; font-size: 10pt; }
+      .section-divider { page-break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-toolbar">
+    <div><strong>ScholasticPulse V3 Print Studio</strong> — Phase 1: Sunday Weekly Test (MATHEMATICS & PHYSICAL SCIENCE)</div>
+    <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+  </div>
+
+  <div class="exam-header-block">
+    <div class="inst-title">SENTHIL PUBLIC SCHOOL, DHARMAPURI</div>
+    <div class="inst-subtitle">AFFILIATED TO CBSE, NEW DELHI (AFFL. NO. 1930248)</div>
+    <div class="exam-type-pill">PHASE 1: SUNDAY CUMULATIVE RETENTION TEST (WEEK 2-3)</div>
+    <div style="margin-top: 6px; display: flex; justify-content: center;">
+      <div style="display: inline-flex; align-items: center; gap: 8px; background: #ecfdf5; border: 1px solid #10b981; color: #047857; font-size: 7.5pt; font-weight: 700; padding: 3px 12px; border-radius: 9999px;">
+        <span>🟢 <strong>AI GENERATION CONFIRMED:</strong> Google Gemini (gemini-3.8-flash)</span>
+        <span>•</span>
+        <span><strong>GROUNDING:</strong> Official CBSE Blueprint grounded on Senthil Diary Entries (Oct 12–17)</span>
+      </div>
+    </div>
+    <div class="exam-meta-grid">
+      <div class="meta-cell"><strong>CLASS:</strong> Class 8 CBSE</div>
+      <div class="meta-cell text-center"><strong>SUBJECT:</strong> MATHEMATICS & PHYSICAL SCIENCE</div>
+      <div class="meta-cell text-right"><strong>DATE:</strong> 18-OCT-2026</div>
+      <div class="meta-cell"><strong>TIME ALLOWED:</strong> 60 MINS</div>
+      <div class="meta-cell text-center"><strong>EXAM PHASE:</strong> Phase 1: Sunday Weekly Test</div>
+      <div class="meta-cell text-right"><strong>MAX. MARKS:</strong> 25</div>
+    </div>
+  </div>
+
+  <div class="general-instructions-box">
+    <div class="gi-title">General Instructions:</div>
+    <ol><li>All questions are compulsory. Internal choices are provided in selected questions.</li><li>SECTION A comprises Objective & Assertion-Reasoning questions of 1 mark each.</li><li>SECTION B comprises Very Short Answer (VSA) questions of 2 marks each.</li><li>SECTION C comprises Short Answer (SA) questions of 3 marks each.</li><li>SECTION D comprises Long Answer / Derivation questions of 5 marks each.</li><li>PART 1 (Mathematics, 13M) must be answered completely before starting PART 2 (Physical Science, 12M).</li><li>Step-by-step calculations and SI units are mandatory for numerical problems.</li></ol>
+  </div>
+
+  
+            
+                <div class="part-header-banner">
+                  <div class="part-banner-title">Mathematics</div>
+                  <div class="part-banner-sub">Complete all questions in this subject completely before proceeding</div>
+                </div>
+                
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION A</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.1</span>
+                    <span class='q-tag'>[MTH-P1-Q01]</span>
+                    <div class="q-body">
+                      Using the standard algebraic identity $(a - b)^2 = a^2 - 2ab + b^2$, evaluate the expanded expression of $(2x - 3y)^2$: [1]
+                      <div class='mcq-grid'><div class='mcq-opt'>(a) 4x^2 - 9y^2</div><div class='mcq-opt'>(b) 4x^2 - 12xy + 9y^2</div><div class='mcq-opt'>(c) 4x^2 + 12xy + 9y^2</div><div class='mcq-opt'>(d) 4x^2 - 6xy + 9y^2</div></div>
+                    </div>
+                  </div>
+                  <div class="q-marks">[1]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+            
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION B</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.2</span>
+                    <span class='q-tag'>[MTH-P1-Q02]</span>
+                    <div class="q-body">
+                      Solve the linear equation for $x$ by transposing terms systematically and verify your solution: $5x - 7 = 2x + 8$. [2]
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[2]</div>
+                </div>
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.3</span>
+                    <span class='q-tag'>[MTH-P1-Q03]</span>
+                    <div class="q-body">
+                      Multiply the binomials $(3a + 4b)$ and $(2a - 5b)$, and simplify the resulting polynomial by grouping and combining all like terms. [2]
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[2]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+            
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION C</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.4</span>
+                    <span class='q-tag'>[MTH-P1-Q04]</span>
+                    <div class="q-body">
+                      The area of a trapezium is $168\text{ cm}^2$ and the perpendicular distance (height) between its parallel sides is $8\text{ cm}$. If one of the parallel sides measures $18\text{ cm}$, find the length of the other parallel side. [3]
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[3]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+            
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION D</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.5</span>
+                    <span class='q-tag'>[MTH-P1-Q05]</span>
+                    <div class="q-body">
+                      A cylindrical metal water tank open at the top has a base radius of $7\text{ m}$ and a height of $10\text{ m}$.<br>(a) Calculate the curved surface area (CSA) of the cylinder (use $\pi = \frac{22}{7}$). [2]<br>(b) Calculate the total surface area of sheet metal required to construct this open-top tank (Base Area + CSA) and the total volume of water it can hold in $\text{m}^3$. [3]<br><br>OR<br><br>(a) Using standard identities, factorize completely: $49x^2 - 64y^2$. [2]<br>(b) Solve the following linear equation for $x$: $\frac{x - 3}{5} + 1 = \frac{2x + 1}{3}$. [3] [5]
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[5]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+            
+                <div class="part-header-banner">
+                  <div class="part-banner-title">Physical Science</div>
+                  <div class="part-banner-sub">Complete all questions in this subject completely before proceeding</div>
+                </div>
+                
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION A</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.6</span>
+                    <span class='q-tag'>[SCI-P1-Q06]</span>
+                    <div class="q-body">
+                      Ball bearings are widely installed between the hub and axle of bicycles and ceiling fan motors. Which of the following statements correctly explains their functional purpose? [1]
+                      <div class='mcq-grid'><div class='mcq-opt'>(a) They replace sliding friction with rolling friction, substantially decreasing frictional resistance.</div><div class='mcq-opt'>(b) They increase surface roughness to enhance mechanical grip during high-speed rotation.</div><div class='mcq-opt'>(c) They eliminate gravitational force acting on the rotating parts.</div><div class='mcq-opt'>(d) They convert rolling friction into fluid friction to lubricate the joint.</div></div>
+                    </div>
+                  </div>
+                  <div class="q-marks">[1]</div>
+                </div>
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.7</span>
+                    <span class='q-tag'>[SCI-P1-Q07]</span>
+                    <div class="q-body">
+                      Given below are two statements labeled Assertion (A) and Reason (R):<br>Assertion (A): Heavy school bags and backpacks are designed with broad and wide shoulder straps instead of thin cord straps.<br>Reason (R): For a constant applied load (weight), pressure is inversely proportional to contact area ($P = \frac{F}{A}$); hence, increasing strap surface area reduces pressure on the shoulder.<br>Select the correct option from the following: [1]
+                      <div class='mcq-grid'><div class='mcq-opt'>(a) Both Assertion (A) and Reason (R) are true and Reason (R) is the correct explanation of Assertion (A).</div><div class='mcq-opt'>(b) Both Assertion (A) and Reason (R) are true but Reason (R) is NOT the correct explanation of Assertion (A).</div><div class='mcq-opt'>(c) Assertion (A) is true but Reason (R) is false.</div><div class='mcq-opt'>(d) Assertion (A) is false but Reason (R) is true.</div></div>
+                    </div>
+                  </div>
+                  <div class="q-marks">[1]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+            
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION B</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.8</span>
+                    <span class='q-tag'>[SCI-P1-Q08]</span>
+                    <div class="q-body">
+                      Explain why ordinary tap water conducts electricity and causes the magnetic needle of a tester to deflect, whereas pure distilled water does not conduct electricity. State one simple method to convert distilled water into a conducting liquid. [2]
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[2]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+            
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION C</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.9</span>
+                    <span class='q-tag'>[SCI-P1-Q09]</span>
+                    <div class="q-body">
+                      A solid rectangular wooden block of mass $6\text{ kg}$ is placed on a flat horizontal table. The base face touching the table has dimensions $0.3\text{ m} \times 0.2\text{ m}$.<br>(a) Taking $g = 10\text{ m/s}^2$, calculate the downward force (thrust) exerted by the block on the table surface. [1]<br>(b) Calculate the pressure exerted by the block on the tabletop in $\text{N/m}^2$ (Pascals). [2] [3]
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[3]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+            
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION D</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.10</span>
+                    <span class='q-tag'>[SCI-P1-Q10]</span>
+                    <div class="q-body">
+                      (a) Define the process of electroplating. In an electrolytic circuit set up to electroplate copper onto an iron key, identify which electrode (anode or cathode) the iron key should be connected to, and specify the electrolyte solution required. [3]<br>(b) State two key observations demonstrating that liquid pressure increases with increasing depth in a liquid column. [2]<br><br>OR<br><br>(a) Differentiate between sliding friction and rolling friction with two real-world examples. Explain why rolling friction is always significantly smaller in magnitude than sliding friction. [3]<br>(b) Why do deep-sea divers wear specially designed reinforced diving suits before venturing deep underwater? State the relationship between liquid pressure, depth, and density. [2] [5]
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[5]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+</body>
+</html>

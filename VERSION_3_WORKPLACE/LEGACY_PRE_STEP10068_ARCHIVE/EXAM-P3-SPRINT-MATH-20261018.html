@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HOST-CONDUCTED ACADEMIC RETENTION & ANTI-DAYDREAMING TEST - MATHEMATICS</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm 18mm 15mm 18mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Times New Roman', 'DejaVu Serif', serif;
+      color: #111827;
+      background: #ffffff;
+      margin: 0;
+      padding: 24px;
+      line-height: 1.45;
+      font-size: 11pt;
+    }
+    .print-toolbar {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      border-radius: 8px;
+    }
+    .print-btn {
+      background: #f59e0b;
+      color: #0f172a;
+      border: none;
+      font-weight: 800;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .exam-header-block {
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .inst-title { font-size: 16pt; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; }
+    .inst-subtitle { font-size: 8.5pt; color: #475569; font-weight: 600; margin-top: 2px; }
+    .exam-type-pill {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 8pt;
+      font-weight: 800;
+      background: #f1f5f9;
+      padding: 3px 12px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+    }
+    .exam-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      margin-top: 10px;
+      font-size: 9.5pt;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 8px;
+      gap: 6px;
+    }
+    .meta-cell { text-align: left; }
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .general-instructions-box {
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      background: #f8fafc;
+      padding: 8px 14px;
+      margin-bottom: 18px;
+      font-size: 8.5pt;
+    }
+    .gi-title { font-weight: bold; margin-bottom: 4px; text-transform: uppercase; }
+    .general-instructions-box ol { margin: 0; padding-left: 18px; }
+    .part-header-banner {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #ffffff;
+      padding: 10px 18px;
+      margin: 24px 0 14px 0;
+      border-radius: 6px;
+      text-align: center;
+      border-left: 5px solid #0284c7;
+    }
+    .part-banner-title {
+      font-size: 11pt;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #38bdf8;
+    }
+    .part-banner-sub {
+      font-size: 8pt;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+    .section-divider {
+      text-align: center;
+      margin: 18px 0 10px 0;
+      border-bottom: 1px solid #94a3b8;
+      line-height: 0.1em;
+    }
+    .section-title {
+      background: #ffffff;
+      padding: 0 14px;
+      font-weight: 900;
+      font-size: 10.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .question-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      page-break-inside: avoid;
+    }
+    .question-left { display: flex; gap: 8px; flex: 1; }
+    .q-num { font-weight: 900; min-width: 32px; }
+    .q-tag {
+      display: inline-block;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 8pt;
+      font-weight: 700;
+      padding: 1px 5px;
+      margin-right: 6px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .q-body { flex: 1; text-align: justify; padding-right: 14px; }
+    .q-marks {
+      font-weight: 900;
+      font-family: monospace;
+      white-space: nowrap;
+      min-width: 30px;
+      text-align: right;
+    }
+    .mcq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 14px;
+      margin-top: 6px;
+      font-size: 9pt;
+    }
+    @media print {
+      .print-toolbar { display: none !important; }
+      body { padding: 0; font-size: 10pt; }
+      .section-divider { page-break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-toolbar">
+    <div><strong>ScholasticPulse V3 Print Studio</strong> — Phase 3: Morning Exam Sprint (Mathematics Rapid Recall) (MATHEMATICS)</div>
+    <button class="print-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+  </div>
+
+  <div class="exam-header-block">
+    <div class="inst-title">SENTHIL PUBLIC SCHOOL, DHARMAPURI</div>
+    <div class="inst-subtitle">AFFILIATED TO CBSE, NEW DELHI (AFFL. NO. 1930248)</div>
+    <div class="exam-type-pill">HOST-CONDUCTED ACADEMIC RETENTION & ANTI-DAYDREAMING TEST</div>
+    <div class="exam-meta-grid">
+      <div class="meta-cell"><strong>CLASS:</strong> CLASS 8 (CBSE)</div>
+      <div class="meta-cell text-center"><strong>SUBJECT:</strong> MATHEMATICS</div>
+      <div class="meta-cell text-right"><strong>DATE:</strong> 18-OCT-2026</div>
+      <div class="meta-cell"><strong>TIME ALLOWED:</strong> 45 MINS</div>
+      <div class="meta-cell text-center"><strong>EXAM PHASE:</strong> Phase 3: Morning Exam Sprint (Mathematics Rapid Recall)</div>
+      <div class="meta-cell text-right"><strong>MAX. MARKS:</strong> 25</div>
+    </div>
+  </div>
+
+  <div class="general-instructions-box">
+    <div class="gi-title">General Instructions:</div>
+    <ol><li>Conducted on Exam Morning (06:40 AM – 07:45 AM) before departure for school.</li><li>Rapid confidence warm-up sprint covering Mathematics.</li><li>Tests high-frequency board questions, formula derivation, and labeled diagram precision.</li><li>Section A: 5 MCQs/A-R [1M] | Section B: 3 VSA [2M] | Section C: 3 SA [3M] | Section D: 1 LA [5M].</li><li>Concludes at 07:45 AM sharp for wholesome breakfast and calm school departure.</li></ol>
+  </div>
+
+  
+            
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION A — OBJECTIVE & ASSERTION-REASON</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.1</span>
+                    <span class='q-tag'>[MTH-P3-Q01]</span>
+                    <div class="q-body">
+                      Which of the following algebraic identities is universally correct for all real values of a and b?
+                      <div class='mcq-grid'><div class='mcq-opt'>(a) (a + b)² = a² + b²</div><div class='mcq-opt'>(b) (a - b)² = a² - 2ab + b²</div><div class='mcq-opt'>(c) (a + b)(a - b) = a² + b²</div><div class='mcq-opt'>(d) (a + b)² = a² - 2ab + b²</div></div>
+                    </div>
+                  </div>
+                  <div class="q-marks">[1]</div>
+                </div>
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.2</span>
+                    <span class='q-tag'>[MTH-P3-Q02]</span>
+                    <div class="q-body">
+                      The coefficient of x² in the expanded form of (3x - 4)² is:
+                      <div class='mcq-grid'><div class='mcq-opt'>(a) 9</div><div class='mcq-opt'>(b) -24</div><div class='mcq-opt'>(c) 16</div><div class='mcq-opt'>(d) -9</div></div>
+                    </div>
+                  </div>
+                  <div class="q-marks">[1]</div>
+                </div>
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.3</span>
+                    <span class='q-tag'>[MTH-P3-Q03]</span>
+                    <div class="q-body">
+                      The value of (-2/3)⁴ expressed as a positive rational number is:
+                      <div class='mcq-grid'><div class='mcq-opt'>(a) 16/81</div><div class='mcq-opt'>(b) -16/81</div><div class='mcq-opt'>(c) 8/27</div><div class='mcq-opt'>(d) -8/27</div></div>
+                    </div>
+                  </div>
+                  <div class="q-marks">[1]</div>
+                </div>
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.4</span>
+                    <span class='q-tag'>[MTH-P3-Q04]</span>
+                    <div class="q-body">
+                      Which of the following algebraic identities is universally correct for all real values of a and b?
+                      <div class='mcq-grid'><div class='mcq-opt'>(a) (a + b)² = a² + b²</div><div class='mcq-opt'>(b) (a - b)² = a² - 2ab + b²</div><div class='mcq-opt'>(c) (a + b)(a - b) = a² + b²</div><div class='mcq-opt'>(d) (a + b)² = a² - 2ab + b²</div></div>
+                    </div>
+                  </div>
+                  <div class="q-marks">[1]</div>
+                </div>
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.5</span>
+                    <span class='q-tag'>[MTH-P3-Q05]</span>
+                    <div class="q-body">
+                      The coefficient of x² in the expanded form of (3x - 4)² is:
+                      <div class='mcq-grid'><div class='mcq-opt'>(a) 9</div><div class='mcq-opt'>(b) -24</div><div class='mcq-opt'>(c) 16</div><div class='mcq-opt'>(d) -9</div></div>
+                    </div>
+                  </div>
+                  <div class="q-marks">[1]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+            
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION B — VERY SHORT CONCEPT DRILL</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.6</span>
+                    <span class='q-tag'>[MTH-P3-Q06]</span>
+                    <div class="q-body">
+                      Factorise the algebraic expression completely by grouping terms: 15xy - 6x + 5y - 2.
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[2]</div>
+                </div>
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.7</span>
+                    <span class='q-tag'>[MTH-P3-Q07]</span>
+                    <div class="q-body">
+                      Solve the linear equation for y: 5y - 7 = 2y + 8 and verify your solution step-by-step.
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[2]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+            
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION C — NUMERICAL & CONCEPT APPLICATION</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.8</span>
+                    <span class='q-tag'>[MTH-P3-Q08]</span>
+                    <div class="q-body">
+                      A cuboid has dimensions 60 cm x 54 cm x 30 cm. How many small cubes with side 6 cm can be placed in the given cuboid?
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[3]</div>
+                </div>
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.9</span>
+                    <span class='q-tag'>[MTH-P3-Q09]</span>
+                    <div class="q-body">
+                      The perimeter of a rectangular swimming pool is 154 m. Its length is 2 m more than twice its breadth. Find the length and breadth of the pool.
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[3]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+            
+            <div class="exam-section">
+              <div class="section-divider">
+                <span class="section-title">SECTION D — DERIVATION & APPLICATION TASK</span>
+              </div>
+              <div class="questions-container">
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.10</span>
+                    <span class='q-tag'>[MTH-P3-Q10]</span>
+                    <div class="q-body">
+                      (a) A closed cylindrical storage tank of radius 7 m and height 3 m is made from a sheet of metal. How much sheet of metal is required? (Take π = 22/7).<br>(b) If the metal costs ₹ 45 per square meter, calculate the total cost.
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[5]</div>
+                </div>
+                
+                <div class="question-row">
+                  <div class="question-left">
+                    <span class="q-num">Q.11</span>
+                    <span class='q-tag'>[MTH-P3-Q11]</span>
+                    <div class="q-body">
+                      A road roller takes 750 complete revolutions to move once over to level a road. Find the area of the road if the diameter of the road roller is 84 cm and length is 1 m. (Take π = 22/7).
+                      
+                    </div>
+                  </div>
+                  <div class="q-marks">[5]</div>
+                </div>
+                
+              </div>
+            </div>
+            
+</body>
+</html>

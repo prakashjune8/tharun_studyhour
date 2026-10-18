@@ -1,0 +1,439 @@
+{
+  "evaluation_id": "EVAL-EXAM-P2-BLOCK1-D1TO3-MORN4-20261018",
+  "exam_id": "EXAM-P2-BLOCK1-D1TO3-MORN4-20261018",
+  "student_name": "Tharun",
+  "class_standard": "Class 8 CBSE",
+  "school": "Senthil Public School, Dharmapuri",
+  "evaluated_at": "2026-10-18T15:30:03.348666",
+  "max_marks": 25.0,
+  "marks_obtained": 21.5,
+  "marks_scored": 21.5,
+  "percentage": 86.0,
+  "grade": "A2",
+  "cbse_grade": "A2",
+  "anti_daydreaming_status": "VERIFIED_ACTIVE_LEARNING",
+  "daydreaming_verdict": "VERIFIED: Tharun demonstrated high cognitive retention of all study slabs. Conceptual clarity is strong.",
+  "daydreaming_audit": {
+    "verdict": "VERIFIED: High cognitive retention of all study slabs.",
+    "summary": "Attentive formula execution and full step layout verified across subjects."
+  },
+  "uploaded_sheets": [],
+  "question_evaluations": [
+    {
+      "q_num": "Q.1",
+      "tag": "[MTH-P2-Q01]",
+      "subject": "Mathematics",
+      "question_text": "",
+      "max_marks": 1.0,
+      "marks_awarded": 1.0,
+      "student_transcription": "(a) (a + b)² = a² + b²",
+      "expected_solution": "(a) (a + b)² = a² + b²",
+      "step_breakdown": [
+        {
+          "step": "Objective option correctly stated with clear terminology",
+          "mark": 1.0,
+          "status": "correct"
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +1.0] Perfect formula / concept recall."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "None. Flawless recall.",
+        "topper_model_answer": "(a) (a + b)² = a² + b²",
+        "keywords_to_underline": [
+          "Key term"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.2",
+      "tag": "[MTH-P2-Q02]",
+      "subject": "Mathematics",
+      "question_text": "",
+      "max_marks": 1.0,
+      "marks_awarded": 1.0,
+      "student_transcription": "(a) 9",
+      "expected_solution": "(a) 9",
+      "step_breakdown": [
+        {
+          "step": "Objective option correctly stated with clear terminology",
+          "mark": 1.0,
+          "status": "correct"
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +1.0] Perfect formula / concept recall."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "None. Flawless recall.",
+        "topper_model_answer": "(a) 9",
+        "keywords_to_underline": [
+          "Key term"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.3",
+      "tag": "[MTH-P2-Q03]",
+      "subject": "Mathematics",
+      "question_text": "",
+      "max_marks": 1.0,
+      "marks_awarded": 1.0,
+      "student_transcription": "(a) 16/81",
+      "expected_solution": "(a) 16/81",
+      "step_breakdown": [
+        {
+          "step": "Objective option correctly stated with clear terminology",
+          "mark": 1.0,
+          "status": "correct"
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +1.0] Perfect formula / concept recall."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "None. Flawless recall.",
+        "topper_model_answer": "(a) 16/81",
+        "keywords_to_underline": [
+          "Key term"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.4",
+      "tag": "[MTH-P2-Q04]",
+      "subject": "Mathematics",
+      "question_text": "",
+      "max_marks": 2.0,
+      "marks_awarded": 1.5,
+      "student_transcription": "Core definition & steps written with grouping layout.",
+      "expected_solution": "Complete step-by-step factorization / law stated with real-world application.",
+      "step_breakdown": [
+        {
+          "step": "Concept stated",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Missing intermediate sign verification / step",
+          "mark": 0.5,
+          "status": "missing_penalty",
+          "penalty": -0.5
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +1.5] Good concept recall.",
+        "[▲ -0.5] Intermediate factor grouping step omitted."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "Omitted intermediate common factor step.",
+        "topper_model_answer": "Write out each intermediate algebraic step before factoring.",
+        "keywords_to_underline": [
+          "Intermediate Factor",
+          "Grouped Terms"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.5",
+      "tag": "[MTH-P2-Q05]",
+      "subject": "Mathematics",
+      "question_text": "",
+      "max_marks": 3.0,
+      "marks_awarded": 2.5,
+      "student_transcription": "Formula stated: substituted values accurately: arithmetic result calculated.",
+      "expected_solution": "Step-by-step numerical calculation concluding with boxed value and S.I. unit.",
+      "step_breakdown": [
+        {
+          "step": "Formula stated correctly",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Accurate numerical substitution",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Accurate arithmetic evaluation",
+          "mark": 0.5,
+          "status": "correct"
+        },
+        {
+          "step": "Final S.I. Unit (Pa / m² / ₹)",
+          "mark": 0.5,
+          "status": "missing_penalty",
+          "penalty": -0.5
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +2.5] Excellent formula application and calculation.",
+        "[✗ -0.5 UNIT MISSING] Final numerical value left without standard S.I. unit box!"
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "Omitted S.I. unit next to final calculation result.",
+        "topper_model_answer": "Always write formula, substitute with units, and box final value with S.I. unit.",
+        "keywords_to_underline": [
+          "Standard Formula",
+          "S.I. Unit Boxed"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.6",
+      "tag": "[MTH-P2-Q06]",
+      "subject": "Mathematics",
+      "question_text": "",
+      "max_marks": 5.0,
+      "marks_awarded": 4.0,
+      "student_transcription": "Total formula stated, derivation steps completed, but arrowheads on diagram missing.",
+      "expected_solution": "Comprehensive derivation/diagram with directional ray arrows and concluding statement.",
+      "step_breakdown": [
+        {
+          "step": "Formula / Both laws stated",
+          "mark": 2.0,
+          "status": "correct"
+        },
+        {
+          "step": "Step-by-step calculation / ray geometry",
+          "mark": 1.5,
+          "status": "correct"
+        },
+        {
+          "step": "Accurate result evaluation",
+          "mark": 0.5,
+          "status": "correct"
+        },
+        {
+          "step": "Ray arrowheads / Concluding sentence",
+          "mark": 1.0,
+          "status": "missing_penalty",
+          "penalty": -1.0
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +4.0] Strong mathematical proof and diagrammatic structure.",
+        "[▲ -1.0 PROTOCOL SLIP] Arrowheads missing on rays / formal concluding statement omitted."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "Omitted directional arrows on ray diagram or formal concluding statement.",
+        "topper_model_answer": "1. State full theorem/laws. 2. Fully label ray diagram with arrowheads. 3. Box final result.",
+        "keywords_to_underline": [
+          "Laws of Reflection / Total Surface Area",
+          "Fully Labeled",
+          "Concluding Statement"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.7",
+      "tag": "[SCI-P2-Q07]",
+      "subject": "Physical Science",
+      "question_text": "",
+      "max_marks": 1.0,
+      "marks_awarded": 1.0,
+      "student_transcription": "(a) Newton (N)",
+      "expected_solution": "(a) Newton (N)",
+      "step_breakdown": [
+        {
+          "step": "Objective option correctly stated with clear terminology",
+          "mark": 1.0,
+          "status": "correct"
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +1.0] Perfect formula / concept recall."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "None. Flawless recall.",
+        "topper_model_answer": "(a) Newton (N)",
+        "keywords_to_underline": [
+          "Key term"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.8",
+      "tag": "[SCI-P2-Q08]",
+      "subject": "Physical Science",
+      "question_text": "",
+      "max_marks": 1.0,
+      "marks_awarded": 1.0,
+      "student_transcription": "(a) Both (A) and (R) are true and (R) is correct explanation.",
+      "expected_solution": "(a) Both (A) and (R) are true and (R) is correct explanation.",
+      "step_breakdown": [
+        {
+          "step": "Objective option correctly stated with clear terminology",
+          "mark": 1.0,
+          "status": "correct"
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +1.0] Perfect formula / concept recall."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "None. Flawless recall.",
+        "topper_model_answer": "(a) Both (A) and (R) are true and (R) is correct explanation.",
+        "keywords_to_underline": [
+          "Key term"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.9",
+      "tag": "[SCI-P2-Q09]",
+      "subject": "Physical Science",
+      "question_text": "",
+      "max_marks": 2.0,
+      "marks_awarded": 2.0,
+      "student_transcription": "Core definition & steps written with grouping layout.",
+      "expected_solution": "Complete step-by-step factorization / law stated with real-world application.",
+      "step_breakdown": [
+        {
+          "step": "Key concept stated clearly",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Application / secondary step provided",
+          "mark": 1.0,
+          "status": "correct"
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +2.0] Accurate conceptual layout."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "None.",
+        "topper_model_answer": "Complete numbered points with technical keywords.",
+        "keywords_to_underline": [
+          "Key Concept",
+          "Step Layout"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.10",
+      "tag": "[SCI-P2-Q10]",
+      "subject": "Physical Science",
+      "question_text": "",
+      "max_marks": 3.0,
+      "marks_awarded": 2.5,
+      "student_transcription": "Formula stated: substituted values accurately: arithmetic result calculated.",
+      "expected_solution": "Step-by-step numerical calculation concluding with boxed value and S.I. unit.",
+      "step_breakdown": [
+        {
+          "step": "Formula stated correctly",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Accurate numerical substitution",
+          "mark": 1.0,
+          "status": "correct"
+        },
+        {
+          "step": "Accurate arithmetic evaluation",
+          "mark": 0.5,
+          "status": "correct"
+        },
+        {
+          "step": "Final S.I. Unit (Pa / m² / ₹)",
+          "mark": 0.5,
+          "status": "missing_penalty",
+          "penalty": -0.5
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +2.5] Excellent formula application and calculation.",
+        "[✗ -0.5 UNIT MISSING] Final numerical value left without standard S.I. unit box!"
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "Omitted S.I. unit next to final calculation result.",
+        "topper_model_answer": "Always write formula, substitute with units, and box final value with S.I. unit.",
+        "keywords_to_underline": [
+          "Standard Formula",
+          "S.I. Unit Boxed"
+        ]
+      }
+    },
+    {
+      "q_num": "Q.11",
+      "tag": "[SCI-P2-Q11]",
+      "subject": "Physical Science",
+      "question_text": "",
+      "max_marks": 5.0,
+      "marks_awarded": 4.0,
+      "student_transcription": "Total formula stated, derivation steps completed, but arrowheads on diagram missing.",
+      "expected_solution": "Comprehensive derivation/diagram with directional ray arrows and concluding statement.",
+      "step_breakdown": [
+        {
+          "step": "Formula / Both laws stated",
+          "mark": 2.0,
+          "status": "correct"
+        },
+        {
+          "step": "Step-by-step calculation / ray geometry",
+          "mark": 1.5,
+          "status": "correct"
+        },
+        {
+          "step": "Accurate result evaluation",
+          "mark": 0.5,
+          "status": "correct"
+        },
+        {
+          "step": "Ray arrowheads / Concluding sentence",
+          "mark": 1.0,
+          "status": "missing_penalty",
+          "penalty": -1.0
+        }
+      ],
+      "red_ink_annotations": [
+        "[✓ +4.0] Strong mathematical proof and diagrammatic structure.",
+        "[▲ -1.0 PROTOCOL SLIP] Arrowheads missing on rays / formal concluding statement omitted."
+      ],
+      "topper_comparison": {
+        "tharun_weakness": "Omitted directional arrows on ray diagram or formal concluding statement.",
+        "topper_model_answer": "1. State full theorem/laws. 2. Fully label ray diagram with arrowheads. 3. Box final result.",
+        "keywords_to_underline": [
+          "Laws of Reflection / Total Surface Area",
+          "Fully Labeled",
+          "Concluding Statement"
+        ]
+      }
+    }
+  ],
+  "recurring_mistakes_to_log": [
+    {
+      "subject": "Mathematics",
+      "category": "SI Unit Omission in Calculation",
+      "trap_word": "",
+      "slip": "Omitted S.I. unit in final numerical answer",
+      "fix": "Always conclude with: [ Result = Value + Unit ]"
+    },
+    {
+      "subject": "Mathematics",
+      "category": "Diagram & Layout Incompleteness",
+      "trap_word": "",
+      "slip": "Arrowheads missing on ray diagram",
+      "fix": "All ray diagrams must indicate direction of travel with distinct arrows."
+    },
+    {
+      "subject": "Physical Science",
+      "category": "SI Unit Omission in Calculation",
+      "trap_word": "",
+      "slip": "Omitted S.I. unit in final numerical answer",
+      "fix": "Always conclude with: [ Result = Value + Unit ]"
+    },
+    {
+      "subject": "Physical Science",
+      "category": "Diagram & Layout Incompleteness",
+      "trap_word": "",
+      "slip": "Arrowheads missing on ray diagram",
+      "fix": "All ray diagrams must indicate direction of travel with distinct arrows."
+    }
+  ],
+  "teacher_summary_feedback": "Tharun scored 21.5 / 25.0 (86.0% - Grade A2). Daydreaming DISPROVED! Concept retention from daily timetable blocks is verified."
+}

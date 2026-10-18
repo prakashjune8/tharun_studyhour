@@ -1,0 +1,200 @@
+{
+  "exam_id": "EXAM-P2-BLOCK1-D1TO3-MORN4-20261018",
+  "metadata": {
+    "school": "SENTHIL PUBLIC SCHOOL, DHARMAPURI",
+    "affiliation": "AFFILIATED TO CBSE, NEW DELHI (AFFL. NO. 1930248)",
+    "exam_title": "HOST-CONDUCTED ACADEMIC RETENTION & ANTI-DAYDREAMING TEST",
+    "class_standard": "CLASS 8 (CBSE)",
+    "subject": "MATHEMATICS & PHYSICAL SCIENCE",
+    "date": "18-OCT-2026",
+    "phase": "Phase 2: 3-Day Checkpoint (Days 1–3 Audit | Day 4 Morning)",
+    "time_allowed_mins": 45,
+    "max_marks": 25,
+    "source_mode": "general_cbse_pattern"
+  },
+  "general_instructions": [
+    "Conducted on Day 4 Morning (06:40 AM – 07:45 AM).",
+    "Audits multi-subject retention from Days 1 to 3: Mathematics (13M) + Physical Science (12M).",
+    "Section A comprises 5 Objective / Competency questions (1 mark each).",
+    "Section B comprises 3 Conceptual Short Questions (2 marks each).",
+    "Section C comprises 3 Numerical / Application Questions (3 marks each).",
+    "Section D comprises 1 Core Derivation / Diagram Question (5 marks).",
+    "Final 10 minutes (07:30 – 07:40 AM) reserved for Underline Protocol & SI Unit verification."
+  ],
+  "sections": [
+    {
+      "section_id": "PART 1 - SEC A",
+      "part": "PART 1: MATHEMATICS (13 MARKS)",
+      "section_title": "PART 1: MATHEMATICS (13 MARKS) — SECTION A: OBJECTIVE & FORMULAS",
+      "questions": [
+        {
+          "q_num": "Q.1",
+          "tag": "[MTH-P2-Q01]",
+          "subject": "Mathematics",
+          "text": "Which of the following algebraic identities is universally correct for all real values of a and b?",
+          "options": [
+            "(a) (a + b)² = a² + b²",
+            "(b) (a - b)² = a² - 2ab + b²",
+            "(c) (a + b)(a - b) = a² + b²",
+            "(d) (a + b)² = a² - 2ab + b²"
+          ],
+          "marks": 1,
+          "competency_type": "Algebraic Identity Recall"
+        },
+        {
+          "q_num": "Q.2",
+          "tag": "[MTH-P2-Q02]",
+          "subject": "Mathematics",
+          "text": "The coefficient of x² in the expanded form of (3x - 4)² is:",
+          "options": [
+            "(a) 9",
+            "(b) -24",
+            "(c) 16",
+            "(d) -9"
+          ],
+          "marks": 1,
+          "competency_type": "Polynomial Coefficient"
+        },
+        {
+          "q_num": "Q.3",
+          "tag": "[MTH-P2-Q03]",
+          "subject": "Mathematics",
+          "text": "The value of (-2/3)⁴ expressed as a positive rational number is:",
+          "options": [
+            "(a) 16/81",
+            "(b) -16/81",
+            "(c) 8/27",
+            "(d) -8/27"
+          ],
+          "marks": 1,
+          "competency_type": "Exponential Laws"
+        }
+      ]
+    },
+    {
+      "section_id": "PART 1 - SEC B",
+      "part": "PART 1: MATHEMATICS (13 MARKS)",
+      "section_title": "PART 1: MATHEMATICS — SECTION B: VERY SHORT ANSWER",
+      "questions": [
+        {
+          "q_num": "Q.4",
+          "tag": "[MTH-P2-Q04]",
+          "subject": "Mathematics",
+          "text": "Factorise the algebraic expression completely by grouping terms: 15xy - 6x + 5y - 2.",
+          "marks": 2,
+          "competency_type": "Factorisation by Grouping"
+        }
+      ]
+    },
+    {
+      "section_id": "PART 1 - SEC C",
+      "part": "PART 1: MATHEMATICS (13 MARKS)",
+      "section_title": "PART 1: MATHEMATICS — SECTION C: SHORT ANSWER & NUMERICAL",
+      "questions": [
+        {
+          "q_num": "Q.5",
+          "tag": "[MTH-P2-Q05]",
+          "subject": "Mathematics",
+          "text": "A cuboid has dimensions 60 cm x 54 cm x 30 cm. How many small cubes with side 6 cm can be placed in the given cuboid?",
+          "marks": 3,
+          "competency_type": "Spatial Mensuration & Volume"
+        }
+      ]
+    },
+    {
+      "section_id": "PART 1 - SEC D",
+      "part": "PART 1: MATHEMATICS (13 MARKS)",
+      "section_title": "PART 1: MATHEMATICS — SECTION D: LONG ANSWER & DERIVATION",
+      "questions": [
+        {
+          "q_num": "Q.6",
+          "tag": "[MTH-P2-Q06]",
+          "subject": "Mathematics",
+          "text": "(a) A closed cylindrical storage tank of radius 7 m and height 3 m is made from a sheet of metal. How much sheet of metal is required? (Take π = 22/7).\n(b) If the metal costs ₹ 45 per square meter, calculate the total cost.",
+          "marks": 5,
+          "competency_type": "Cylindrical Surface Area & Costing"
+        }
+      ]
+    },
+    {
+      "section_id": "PART 2 - SEC A",
+      "part": "PART 2: PHYSICAL SCIENCE (12 MARKS)",
+      "section_title": "PART 2: PHYSICAL SCIENCE (12 MARKS) — SECTION A: OBJECTIVE & ASSERTION-REASON",
+      "questions": [
+        {
+          "q_num": "Q.7",
+          "tag": "[SCI-P2-Q07]",
+          "subject": "Physical Science",
+          "text": "Pressure is defined as the force acting per unit area of a surface. Its standard S.I. unit is:",
+          "options": [
+            "(a) Newton (N)",
+            "(b) Joule (J)",
+            "(c) Pascal (Pa)",
+            "(d) Watt (W)"
+          ],
+          "marks": 1,
+          "competency_type": "SI Unit Identification"
+        },
+        {
+          "q_num": "Q.8",
+          "tag": "[SCI-P2-Q08]",
+          "subject": "Physical Science",
+          "text": "ASSERTION (A): The shoulder strap of a school bag is made broad.\nREASON (R): A broad strap increases the surface area of contact, thereby reducing the pressure exerted on the shoulder.",
+          "options": [
+            "(a) Both (A) and (R) are true and (R) is correct explanation.",
+            "(b) Both (A) and (R) are true but (R) is NOT correct explanation.",
+            "(c) (A) is true, (R) is false.",
+            "(d) (A) is false, (R) is true."
+          ],
+          "marks": 1,
+          "competency_type": "Pressure-Area Assertion Reasoning"
+        }
+      ]
+    },
+    {
+      "section_id": "PART 2 - SEC B",
+      "part": "PART 2: PHYSICAL SCIENCE (12 MARKS)",
+      "section_title": "PART 2: PHYSICAL SCIENCE — SECTION B: VERY SHORT CONCEPT DRILL",
+      "questions": [
+        {
+          "q_num": "Q.9",
+          "tag": "[SCI-P2-Q09]",
+          "subject": "Physical Science",
+          "text": "Why is rolling friction substantially less than sliding friction? Give one practical engineering application where sliding friction is replaced by rolling friction.",
+          "marks": 2,
+          "competency_type": "Frictional Dynamics"
+        }
+      ]
+    },
+    {
+      "section_id": "PART 2 - SEC C",
+      "part": "PART 2: PHYSICAL SCIENCE (12 MARKS)",
+      "section_title": "PART 2: PHYSICAL SCIENCE — SECTION C: SHORT ANSWER & APPLICATION",
+      "questions": [
+        {
+          "q_num": "Q.10",
+          "tag": "[SCI-P2-Q10]",
+          "subject": "Physical Science",
+          "text": "A wooden block of dimensions 20 cm x 10 cm x 5 cm of mass 4 kg is kept on a tabletop. Calculate the maximum pressure exerted by the block on the tabletop in Pascals. (Take g = 10 m/s²).",
+          "marks": 3,
+          "competency_type": "Hydrostatic & Contact Pressure"
+        }
+      ]
+    },
+    {
+      "section_id": "PART 2 - SEC D",
+      "part": "PART 2: PHYSICAL SCIENCE (12 MARKS)",
+      "section_title": "PART 2: PHYSICAL SCIENCE — SECTION D: LONG ANSWER & DIAGRAM TASK",
+      "questions": [
+        {
+          "q_num": "Q.11",
+          "tag": "[SCI-P2-Q11]",
+          "subject": "Physical Science",
+          "text": "(a) State the two Laws of Reflection of Light.\n(b) Draw a neat labeled ray diagram showing the incident ray, reflected ray, normal line, angle of incidence (i) and angle of reflection (r).",
+          "marks": 5,
+          "competency_type": "Optical Reflection & Labeled Ray Diagram"
+        }
+      ]
+    }
+  ]
+}

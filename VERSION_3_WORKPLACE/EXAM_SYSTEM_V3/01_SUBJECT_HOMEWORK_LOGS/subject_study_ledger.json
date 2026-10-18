@@ -3,8 +3,10 @@
     "student_name": "Tharun",
     "current_class": "Class 8 CBSE",
     "school": "Senthil Public School, Dharmapuri",
-    "last_updated": "2026-10-18T12:45:06.432669",
-    "total_entries": 67
+    "last_updated": "2026-10-18T20:43:26.370481",
+    "total_entries": 68,
+    "total_evaluations": 3,
+    "last_evaluation_sync": "2026-10-18T23:53:50.034689"
   },
   "entries": [
     {
@@ -1011,6 +1013,63 @@
       "study_duration_mins": 30,
       "source": "weekly_routine_logger",
       "logged_at": "2026-10-18T12:45:06.432649"
+    },
+    {
+      "entry_id": "HL-20261019-068",
+      "date": "2026-10-19",
+      "month": "October",
+      "day_of_week": "Monday",
+      "week_number": 3,
+      "mode": "balanced_daily",
+      "class_standard": "Class 8 CBSE",
+      "subject": "Mathematics",
+      "chapter_topic": "Homework practice",
+      "task_description": "Error Bank Mastery: Algebraic Negative Sign Distribution, SI Unit & Boxed Answer Omission",
+      "study_duration_mins": 35,
+      "intra_head": "Head 1: Core Concepts & Principles",
+      "source": "school_diary",
+      "logged_at": "2026-10-18T20:43:26.370467"
+    }
+  ],
+  "evaluations": [
+    {
+      "entry_id": "EVAL-EXAM-MAT-DAI-20261018-664F52",
+      "date": "2026-10-18",
+      "subject": "Mathematics",
+      "exam_id": "EXAM-MAT-DAI-20261018-664F52",
+      "score_obtained": 17,
+      "score_max": 17,
+      "percentage": 100.0,
+      "grade": "A1 • Exemplary CBSE Standard",
+      "mastery_status": "MASTERED • 100/100 BENCHMARK",
+      "source": "cbse_evaluator_v3",
+      "logged_at": "2026-10-18T23:40:28.485536"
+    },
+    {
+      "entry_id": "EVAL-EXAM-V3-VERIFY-001",
+      "date": "2026-10-18",
+      "subject": "Mathematics & Indic Languages (Tamil & Hindi)",
+      "exam_id": "EXAM-V3-VERIFY-001",
+      "score_obtained": 12,
+      "score_max": 12,
+      "percentage": 100.0,
+      "grade": "A1 • Exemplary CBSE Standard",
+      "mastery_status": "MASTERED • 100/100 BENCHMARK",
+      "source": "cbse_evaluator_v3",
+      "logged_at": "2026-10-18T23:53:19.336466"
+    },
+    {
+      "entry_id": "EVAL-EXAM-V3-VERIFY-001",
+      "date": "2026-10-18",
+      "subject": "Mathematics & Indic Languages (Tamil & Hindi)",
+      "exam_id": "EXAM-V3-VERIFY-001",
+      "score_obtained": 12,
+      "score_max": 12,
+      "percentage": 100.0,
+      "grade": "A1 • Exemplary CBSE Standard",
+      "mastery_status": "MASTERED • 100/100 BENCHMARK",
+      "source": "cbse_evaluator_v3",
+      "logged_at": "2026-10-18T23:53:50.034681"
     }
   ]
 }

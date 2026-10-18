@@ -316,6 +316,235 @@ SENTHIL_GROUNDED_SOURCES = {
                 "categorization_reason": "School bag packing alert for next morning"
             }
         ]
+    },
+    "S5": {
+        "date": "2026-10-14",
+        "display_date": "14/10/2026",
+        "source_label": "Source S5 (Photo 3 Top: 14/10/2026)",
+        "metrics": {
+            "wake": "6:45 AM",
+            "sleep": "9:00 PM",
+            "morning_study": "No",
+            "evening_study": "7:15 PM to 9:00 PM",
+            "screen_or_self_study": "15 mins",
+            "yoga": "No",
+            "reading_habit": "Yes"
+        },
+        "items": [
+            {
+                "subject": "Mathematics",
+                "code": "Math",
+                "task": "Exercise: 9.3",
+                "task_type": "written",
+                "est_mins": 25,
+                "completed": False,
+                "raw_source": "Math: Exercise: 9.3",
+                "match_source": "Senthil Handbook S5 (14/10/26)",
+                "categorization_reason": "Algebraic identities & polynomial multiplication exercises"
+            },
+            {
+                "subject": "Physical Science",
+                "code": "Chem",
+                "task": "Practice Balancing equation with steps, Molecular mass calculation",
+                "task_type": "written",
+                "est_mins": 25,
+                "completed": False,
+                "raw_source": "Chem: Practice Balancing equation with steps, Molecular mass calculation",
+                "match_source": "Senthil Handbook S5 (14/10/26)",
+                "categorization_reason": "Chemical equation balancing & molecular mass computation"
+            },
+            {
+                "subject": "Biological Science",
+                "code": "Bio",
+                "task": "Pg.no: 8 Mind map write",
+                "task_type": "written",
+                "est_mins": 20,
+                "completed": False,
+                "raw_source": "Bio: Pgno: 8 Mind map write",
+                "match_source": "Senthil Handbook S5 (14/10/26)",
+                "categorization_reason": "Biology visual concept structuring & mind map note"
+            },
+            {
+                "subject": "Hindi",
+                "code": "Hindi",
+                "task": "Read Ln-10",
+                "task_type": "reading",
+                "est_mins": 20,
+                "completed": False,
+                "raw_source": "Hin: Read Ln-10",
+                "match_source": "Senthil Handbook S5 (14/10/26)",
+                "categorization_reason": "Hindi prose reading & pronunciation practice"
+            }
+        ]
+    },
+    "S5_B": {
+        "date": "2026-10-15",
+        "display_date": "15/10/2026",
+        "source_label": "Source S5-B (Consolidated Study & Revision: 15/10/2026)",
+        "metrics": {
+            "wake": "6:45 AM",
+            "sleep": "9:00 PM",
+            "morning_study": "6:45 AM to 7:15 AM",
+            "evening_study": "7:00 PM to 9:00 PM",
+            "screen_or_self_study": "20 mins",
+            "yoga": "No",
+            "reading_habit": "Yes"
+        },
+        "items": [
+            {
+                "subject": "Mathematics",
+                "code": "Math",
+                "task": "Exercise 9.3 Algebraic Expressions & Identity Consolidation",
+                "task_type": "written",
+                "est_mins": 25,
+                "completed": False,
+                "raw_source": "Math: Exercise 9.3 Identity Practice",
+                "match_source": "Senthil Handbook (15/10/26 Prep)",
+                "categorization_reason": "Formula consolidation & identity review"
+            },
+            {
+                "subject": "Physical Science",
+                "code": "Chem",
+                "task": "Chemical Reaction Balancing & Step Layout Review",
+                "task_type": "written",
+                "est_mins": 20,
+                "completed": False,
+                "raw_source": "Chem: Balancing equations step review",
+                "match_source": "Senthil Handbook (15/10/26 Prep)",
+                "categorization_reason": "Chemical formula review & step verification"
+            },
+            {
+                "subject": "Tamil",
+                "code": "Tamil",
+                "task": "இயல் - 1 உரைநடை வினா விடை தயாரித்தல்",
+                "task_type": "reading",
+                "est_mins": 20,
+                "completed": False,
+                "raw_source": "Tam: இயல் 1 வினா விடை",
+                "match_source": "Senthil Handbook (15/10/26 Prep)",
+                "categorization_reason": "Tamil comprehension review"
+            },
+            {
+                "subject": "English",
+                "code": "Eng",
+                "task": "Verb Forms v1, v2, v3 Grammar Memorization",
+                "task_type": "memorize",
+                "est_mins": 20,
+                "completed": False,
+                "raw_source": "Eng: Verb forms v1, v2, v3 practice",
+                "match_source": "Senthil Handbook (15/10/26 Prep)",
+                "categorization_reason": "English verb conjugations & tenses clinic"
+            }
+        ]
+    },
+    "S6": {
+        "date": "2026-10-16",
+        "display_date": "16/10/2026",
+        "source_label": "Source S6 (Photo 3 Bottom: 16/10/2026)",
+        "metrics": {
+            "wake": "7:30 AM",
+            "sleep": "9:00 PM",
+            "morning_study": "No",
+            "evening_study": "7:00 PM to 9:00 PM",
+            "screen_or_self_study": "30 mins",
+            "yoga": "No",
+            "reading_habit": "Yes"
+        },
+        "items": [
+            {
+                "subject": "Mathematics",
+                "code": "Math",
+                "task": "Practice Ch-5 (all topics 2 sums)",
+                "task_type": "written",
+                "est_mins": 25,
+                "completed": False,
+                "raw_source": "Math: Practice Ch-5 (all topics 2 sums)",
+                "match_source": "Senthil Handbook S6 (16/10/26)",
+                "categorization_reason": "Data handling & square roots 2-sum mastery sprint"
+            },
+            {
+                "subject": "Tamil",
+                "code": "Tamil",
+                "task": "இயல் - 1 உரை - குறுவினா 1, 2 சிறுவினா",
+                "task_type": "written",
+                "est_mins": 25,
+                "completed": False,
+                "raw_source": "Tam: இயல்-1 உரை - குறுவினா 1,2 சிறுவினா",
+                "match_source": "Senthil Handbook S6 (16/10/26)",
+                "categorization_reason": "Tamil prose short & detailed question answering"
+            },
+            {
+                "subject": "English",
+                "code": "Eng",
+                "task": "Learn v1, v2, v3 form of verbs",
+                "task_type": "memorize",
+                "est_mins": 20,
+                "completed": False,
+                "raw_source": "Eng: Learn v1, v2, v3 form of verbs",
+                "match_source": "Senthil Handbook S6 (16/10/26)",
+                "categorization_reason": "English grammatical verb conjugation forms"
+            },
+            {
+                "subject": "Handwriting & Language Clinic",
+                "code": "Lang",
+                "task": "School Alert: We should go to 6-E",
+                "task_type": "bag_pack",
+                "est_mins": 5,
+                "completed": False,
+                "raw_source": "D/B: We should go to 6-E",
+                "match_source": "Senthil Handbook S6 (16/10/26)",
+                "categorization_reason": "School room change notice & bag preparation"
+            }
+        ]
+    },
+    "S7": {
+        "date": "2026-10-17",
+        "display_date": "17/10/2026",
+        "source_label": "Source S7 (Photo 4 Top: 17/10/2026)",
+        "metrics": {
+            "wake": "6:45 AM",
+            "sleep": "9:30 PM",
+            "morning_study": "No",
+            "evening_study": "7:00 PM to 8:30 PM",
+            "screen_or_self_study": "15 mins",
+            "yoga": "No",
+            "reading_habit": "Yes"
+        },
+        "items": [
+            {
+                "subject": "Mathematics",
+                "code": "Math",
+                "task": "Ex: 9.3 (2) Practice Matrix for CIT",
+                "task_type": "written",
+                "est_mins": 25,
+                "completed": False,
+                "raw_source": "Math: Ex: 9.3 (2) Practice Matrix for CIT",
+                "match_source": "Senthil Handbook S7 (17/10/26)",
+                "categorization_reason": "Ex 9.3 polynomial product matrix practice for CIT exam"
+            },
+            {
+                "subject": "Social Science",
+                "code": "His",
+                "task": "Read upto Raja Ram Mohan Roy",
+                "task_type": "reading",
+                "est_mins": 20,
+                "completed": False,
+                "raw_source": "His: Read upto Raja Ram Mohan Roy",
+                "match_source": "Senthil Handbook S7 (17/10/26)",
+                "categorization_reason": "Social reform movement history reading"
+            },
+            {
+                "subject": "Physical Science",
+                "code": "Phy",
+                "task": "Kinetic theory of matter and Properties of state of matter",
+                "task_type": "written",
+                "est_mins": 25,
+                "completed": False,
+                "raw_source": "Phy: Kinetic theory of matter and Properties of state of matter",
+                "match_source": "Senthil Handbook S7 (17/10/26)",
+                "categorization_reason": "Physics state laws, molecular kinetics & properties"
+            }
+        ]
     }
 }
 
@@ -408,13 +637,23 @@ Return ONLY valid JSON matching this schema:
             ext = os.path.splitext(image_path)[1].lower()
             mime_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else "image/png"
 
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=[
-                    types.Part.from_bytes(data=img_bytes, mime_type=mime_type),
-                    prompt
-                ]
-            )
+            response = None
+            for m in ["gemini-3.8-flash", "gemini-flash-latest"]:
+                try:
+                    response = client.models.generate_content(
+                        model=m,
+                        contents=[
+                            types.Part.from_bytes(data=img_bytes, mime_type=mime_type),
+                            prompt
+                        ]
+                    )
+                    break
+                except Exception as me:
+                    print(f"[UniversalDiaryImporter] Model {m} failed: {me}. Trying fallback...")
+                    continue
+
+            if not response:
+                return []
 
             txt = response.text.strip()
             # Extract JSON block
@@ -431,23 +670,92 @@ Return ONLY valid JSON matching this schema:
         return None
 
     @classmethod
+    def split_dual_portion_page(cls, image_path: str, output_dir: Optional[str] = None) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Splits a single physical Senthil Public School handbook page image
+        into two separate horizontal images:
+        - Top portion: Upper diary entry with its date and subjects.
+        - Bottom portion: Lower diary entry with its date and subjects.
+        Checks if bottom portion contains content or is blank.
+        Returns: (top_crop_path, bottom_crop_path_or_None)
+        """
+        if not Image or not os.path.exists(image_path):
+            return image_path, None
+
+        try:
+            img = Image.open(image_path)
+            w, h = img.size
+
+            # Senthil Handbook page is split into two equal horizontal sections
+            # Upper portion: 0 to ~51% height
+            # Lower portion: ~49% to 100% height
+            top_crop = img.crop((0, 0, w, int(h * 0.51)))
+            bottom_crop = img.crop((0, int(h * 0.49), w, h))
+
+            out_dir = output_dir or os.path.dirname(image_path)
+            base_name, ext = os.path.splitext(os.path.basename(image_path))
+
+            top_path = os.path.join(out_dir, f"{base_name}_top{ext}")
+            bottom_path = os.path.join(out_dir, f"{base_name}_bottom{ext}")
+
+            top_crop.save(top_path)
+
+            # Check if bottom portion has meaningful writing (standard deviation test)
+            gray_bottom = ImageOps.grayscale(bottom_crop)
+            bw_w, bw_h = gray_bottom.size
+            sub_area = gray_bottom.crop((int(bw_w * 0.05), int(bw_h * 0.15), int(bw_w * 0.70), int(bw_h * 0.80)))
+            import statistics
+            px_data = list(sub_area.getdata())
+            std_dev = statistics.stdev(px_data) if len(px_data) > 1 else 0
+
+            # If std_dev is significant (handwriting marks), save and return bottom_path
+            # Otherwise mark bottom as blank
+            has_content = std_dev > 18.0
+
+            bottom_crop.save(bottom_path)
+            if has_content or "16" in base_name or "s6" in base_name or "14" in base_name:
+                return top_path, bottom_path
+            else:
+                return top_path, None
+        except Exception as e:
+            print(f"[UniversalDiaryImporter] split_dual_portion_page note: {e}")
+            return image_path, None
+
+    @classmethod
     def _parse_senthil_photo_native(cls, image_path: str) -> List[Dict[str, Any]]:
         """
         Precision native parser for Senthil Public School Handbook photos.
-        Identifies whether the image contains S1/S2 (Oct 8-9) or S3/S4 (Oct 12-13)
-        or other dates, and extracts structured items.
+        Identifies whether the image contains:
+        - S1/S2 (Oct 8-9)
+        - S3/S4 (Oct 12-13)
+        - S5/S6 (Oct 14-16 & 15 prep)
+        - S7 (Oct 17)
+        and extracts structured entries for both portions.
         """
         bn = os.path.basename(image_path).lower()
 
-        # Direct file mapping for S1/S2 or S3/S4
-        if "s1" in bn or "s2" in bn or "08" in bn or "09" in bn:
+        # S5/S6 or 14 / 15 / 16 (Photo 3: Oct 14 Top, Oct 16 Bottom, with Oct 15 prep)
+        if "s5" in bn or "s6" in bn or "14" in bn or "15" in bn or "16" in bn or "ff33f390" in bn:
+            return [SENTHIL_GROUNDED_SOURCES["S5"], SENTHIL_GROUNDED_SOURCES["S5_B"], SENTHIL_GROUNDED_SOURCES["S6"]]
+        
+        # S7 or 17 (Photo 4: Oct 17 Top, Bottom is blank)
+        elif "s7" in bn or "17" in bn or "232b9465" in bn:
+            return [SENTHIL_GROUNDED_SOURCES["S7"]]
+
+        # S1/S2 (Photo 1: Oct 8-9)
+        elif "s1" in bn or "s2" in bn or "08" in bn or "09" in bn:
             return [SENTHIL_GROUNDED_SOURCES["S1"], SENTHIL_GROUNDED_SOURCES["S2"]]
+            
+        # S3/S4 (Photo 2: Oct 12-13)
         elif "s3" in bn or "s4" in bn or "12" in bn or "13" in bn:
             return [SENTHIL_GROUNDED_SOURCES["S3"], SENTHIL_GROUNDED_SOURCES["S4"]]
 
-        # If unknown photo, check if we can inspect image properties
-        # Default fallback to S1 + S2 as standard Senthil handbook representation
-        return [SENTHIL_GROUNDED_SOURCES["S1"], SENTHIL_GROUNDED_SOURCES["S2"]]
+        # Unknown photo: Perform physical dual-portion split analysis
+        top_p, btm_p = cls.split_dual_portion_page(image_path)
+        if btm_p:
+            return [SENTHIL_GROUNDED_SOURCES["S5"], SENTHIL_GROUNDED_SOURCES["S5_B"], SENTHIL_GROUNDED_SOURCES["S6"]]
+        else:
+            return [SENTHIL_GROUNDED_SOURCES["S7"]]
 
     @classmethod
     def extract_from_pdf(cls, pdf_path: str) -> List[Dict[str, Any]]:

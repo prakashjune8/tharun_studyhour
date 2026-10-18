@@ -1,0 +1,108 @@
+{
+  "exam_id": "EXAM-MAT-DAI-20261018-664F52",
+  "subject": "Mathematics",
+  "source_file": "EXAM-MAT-DAI-20261018-664F52_student_handwritten_sheet.txt",
+  "ingested_at": "2026-10-18 23:03:11",
+  "ocr_mode": "STUDENT_RESPONSE_TRANSCRIPT",
+  "total_questions": 7,
+  "aligned_count": 7,
+  "confidence_percentage": 100.0,
+  "alignment_status": "SUCCESS",
+  "aligned_questions": [
+    {
+      "question_number": "Q.1",
+      "question_text": "Evaluate using suitable identity: (103)^2 = (100 + 3)^2.",
+      "marks": 1,
+      "question_type": "MCQ",
+      "options": [
+        "(a) 10,609",
+        "(b) 10,906",
+        "(c) 10,009",
+        "(d) 10,309"
+      ],
+      "model_answer": "(a) 10,609",
+      "marking_scheme": "1 Mark for identity application",
+      "student_response": "(a) 10,609\nWorking: Using algebraic identity (a + b)^2 = a^2 + 2ab + b^2\n(100 + 3)^2 = 100^2 + 2(100)(3) + 3^2 = 10000 + 600 + 9 = 10,609.\nCorrect option is (a).",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    },
+    {
+      "question_number": "Q.2",
+      "question_text": "The product of monomials (-4p) and (7pq) is:",
+      "marks": 1,
+      "question_type": "MCQ",
+      "options": [
+        "(a) 28p^2q",
+        "(b) -28p^2q",
+        "(c) -28pq",
+        "(d) 11p^2q"
+      ],
+      "model_answer": "(b) -28p^2q",
+      "marking_scheme": "1 Mark for correct sign and powers",
+      "student_response": "(b) -28p^2q\nWorking: Product of monomials = (-4p) * (7pq) = (-4 * 7) * (p * p * q) = -28p^2q.\nCorrect option is (b).",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    },
+    {
+      "question_number": "Q.3",
+      "question_text": "Multiply the binomials: (2x + 5) and (4x - 3). Show all steps.",
+      "marks": 2,
+      "question_type": "VSA",
+      "options": [],
+      "model_answer": "8x^2 + 14x - 15",
+      "marking_scheme": "1 Mark for distributive law, 1 Mark for combining like terms",
+      "student_response": "Multiply binomials: (2x + 5) and (4x - 3)\nStep 1: Apply distributive property\n= 2x * (4x - 3) + 5 * (4x - 3)\n= (2x * 4x) - (2x * 3) + (5 * 4x) - (5 * 3)\n= 8x^2 - 6x + 20x - 15\nStep 2: Combine like terms (-6x + 20x = 14x)\n= 8x^2 + 14x - 15.\nFinal Answer Box: [8x^2 + 14x - 15]",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    },
+    {
+      "question_number": "Q.4",
+      "question_text": "Solve the linear equation: 5x + 9 = 5 + 3x.",
+      "marks": 2,
+      "question_type": "VSA",
+      "options": [],
+      "model_answer": "x = -2",
+      "marking_scheme": "1 Mark for transposition (5x - 3x = 5 - 9), 1 Mark for final value",
+      "student_response": "Solve linear equation: 5x + 9 = 5 + 3x\nStep 1: Transposing variables to LHS and constants to RHS\n5x - 3x = 5 - 9\n2x = -4\nStep 2: Dividing by 2\nx = -4 / 2\nx = -2.\nFinal Answer Box: [x = -2]",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    },
+    {
+      "question_number": "Q.5",
+      "question_text": "Find the area of a trapezium whose parallel sides are 12 cm and 20 cm, and the distance between them is 8 cm.",
+      "marks": 3,
+      "question_type": "SA",
+      "options": [],
+      "model_answer": "Area = 1/2 * (12 + 20) * 8 = 128 cm²",
+      "marking_scheme": "1 Mark for formula, 1 Mark for substitution, 1 Mark for answer with cm²",
+      "student_response": "Area of Trapezium\nGiven: Parallel sides a = 12 cm, b = 20 cm, height h = 8 cm.\nFormula: Area = 1/2 * (a + b) * h\nStep 1: Substitute values\nArea = 1/2 * (12 + 20) * 8\nArea = 1/2 * 32 * 8\nArea = 16 * 8 = 128 cm^2.\nFinal Answer Box: [128 cm²]",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    },
+    {
+      "question_number": "Q.6",
+      "question_text": "Simplify using algebraic identity: (2a - 7)^2.",
+      "marks": 3,
+      "question_type": "SA",
+      "options": [],
+      "model_answer": "4a^2 - 28a + 49",
+      "marking_scheme": "1 Mark for a^2, 1 Mark for -2ab, 1 Mark for +b^2",
+      "student_response": "Simplify using algebraic identity: (2a - 7)^2\nIdentity: (x - y)^2 = x^2 - 2xy + y^2\nHere x = 2a, y = 7.\nStep 1: (2a)^2 - 2(2a)(7) + (7)^2\nStep 2: 4a^2 - 28a + 49.\nFinal Answer Box: [4a^2 - 28a + 49]",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    },
+    {
+      "question_number": "Q.7",
+      "question_text": "A rectangular sheet of paper 44 cm x 20 cm is rolled along its length to form a cylinder. Find the volume of the cylinder. (Take pi = 22/7)",
+      "marks": 5,
+      "question_type": "LA",
+      "options": [],
+      "model_answer": "Radius r = 7 cm, Height h = 20 cm. Volume = pi * r^2 * h = 3080 cm³",
+      "marking_scheme": "2 Marks for radius, 2 Marks for volume formula, 1 Mark for unit",
+      "student_response": "Cylinder rolled from rectangular sheet 44 cm x 20 cm\nRolled along length => Length becomes circumference of base, width becomes height.\nCircumference C = 2 * pi * r = 44 cm\n2 * (22/7) * r = 44\n(44/7) * r = 44 => r = 7 cm.\nHeight h = 20 cm.\nFormula for Volume of Cylinder = pi * r^2 * h\nVolume = (22/7) * (7)^2 * 20\nVolume = (22/7) * 49 * 20\nVolume = 22 * 7 * 20 = 154 * 20 = 3080 cm^3.\nFinal Answer Box: [Volume = 3080 cm³]",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    }
+  ],
+  "raw_extracted_transcript": "Q.1. (a) 10,609\nWorking: Using algebraic identity (a + b)^2 = a^2 + 2ab + b^2\n(100 + 3)^2 = 100^2 + 2(100)(3) + 3^2 = 10000 + 600 + 9 = 10,609.\nCorrect option is (a).\n\nQ.2. (b) -28p^2q\nWorking: Product of monomials = (-4p) * (7pq) = (-4 * 7) * (p * p * q) = -28p^2q.\nCorrect option is (b).\n\nQ.3. Multiply binomials: (2x + 5) and (4x - 3)\nStep 1: Apply distributive property\n= 2x * (4x - 3) + 5 * (4x - 3)\n= (2x * 4x) - (2x * 3) + (5 * 4x) - (5 * 3)\n= 8x^2 - 6x + 20x - 15\nStep 2: Combine like terms (-6x + 20x = 14x)\n= 8x^2 + 14x - 15.\nFinal Answer Box: [8x^2 + 14x - 15]\n\nQ.4. Solve linear equation: 5x + 9 = 5 + 3x\nStep 1: Transposing variables to LHS and constants to RHS\n5x - 3x = 5 - 9\n2x = -4\nStep 2: Dividing by 2\nx = -4 / 2\nx = -2.\nFinal Answer Box: [x = -2]\n\nQ.5. Area of Trapezium\nGiven: Parallel sides a = 12 cm, b = 20 cm, height h = 8 cm.\nFormula: Area = 1/2 * (a + b) * h\nStep 1: Substitute values\nArea = 1/2 * (12 + 20) * 8\nArea = 1/2 * 32 * 8\nArea = 16 * 8 = 128 cm^2.\nFinal Answer Box: [128 cm²]\n\nQ.6. Simplify using algebraic identity: (2a - 7)^2\nIdentity: (x - y)^2 = x^2 - 2xy + y^2\nHere x = 2a, y = 7.\nStep 1: (2a)^2 - 2(2a)(7) + (7)^2\nStep 2: 4a^2 - 28a + 49.\nFinal Answer Box: [4a^2 - 28a + 49]\n\nQ.7. Cylinder rolled from rectangular sheet 44 cm x 20 cm\nRolled along length => Length becomes circumference of base, width becomes height.\nCircumference C = 2 * pi * r = 44 cm\n2 * (22/7) * r = 44\n(44/7) * r = 44 => r = 7 cm.\nHeight h = 20 cm.\nFormula for Volume of Cylinder = pi * r^2 * h\nVolume = (22/7) * (7)^2 * 20\nVolume = (22/7) * 49 * 20\nVolume = 22 * 7 * 20 = 154 * 20 = 3080 cm^3.\nFinal Answer Box: [Volume = 3080 cm³]\n"
+}

@@ -282,6 +282,126 @@ class SubjectRepresentationTracker:
         self.save()
 
 
+class DailyExamSubjectRotator:
+    """
+    Governs automated cyclical subject rotation for the 6:45 AM Host Exam slot.
+    Follows pedagogical rotation rules:
+    1. Priority 1 (Yesterday's Diary Homework):
+       If yesterday had homework in core subjects, rotate among those subjects
+       so Tharun's 6:45 AM exam directly verifies yesterday's retention.
+    2. Priority 2 (Weak Subject / Error Bank Elevate):
+       If student has uncorrected errors in student_error_bank.json for a subject,
+       that subject gets priority elevation.
+    3. Priority 3 (Default Weekly Day-of-Week Cycle):
+       - Monday: Mathematics
+       - Tuesday: Physical Science (Physics/Chemistry)
+       - Wednesday: Biological Science (Biology)
+       - Thursday: Social Science (History/Geography/Civics)
+       - Friday: Tamil
+       - Saturday: English / Hindi
+       - Sunday: Exempt from strict 6:45 AM alarm (Flexible On-Demand Master Exam)
+    """
+
+    WEEKDAY_ROTATION = {
+        0: "Mathematics",        # Monday
+        1: "Physical Science",   # Tuesday
+        2: "Biological Science", # Wednesday
+        3: "Social Science",     # Thursday
+        4: "Tamil",              # Friday
+        5: "English",            # Saturday
+        6: "Sunday Master Exam"  # Sunday
+    }
+
+    @classmethod
+    def pick_morning_exam_subject(cls, target_date=None, diary_items=None) -> Tuple[str, str, bool]:
+        """
+        Returns (subject_name, selection_reason, is_sunday).
+        """
+        if not target_date:
+            target_date = datetime.now().strftime("%Y-%m-%d")
+
+        try:
+            dt = datetime.strptime(target_date, "%Y-%m-%d")
+        except Exception:
+            dt = datetime.now()
+
+        weekday = dt.weekday()
+        is_sunday = (weekday == 6)
+
+        if is_sunday:
+            return ("Sunday Weekly Master Exam", "Sunday rule: Flexible on-demand timing (exempt from 6:45 AM alarm)", True)
+
+        # 1. Check yesterday's diary homework
+        yesterday_dt = dt - timedelta(days=1)
+        yesterday_str = yesterday_dt.strftime("%Y-%m-%d")
+
+        hw_subjects = []
+        diary_path = get_engine_data_path("tharun_diary_format.json")
+        if os.path.exists(diary_path):
+            try:
+                with open(diary_path, "r", encoding="utf-8") as f:
+                    d_data = json.load(f)
+                for ent in d_data.get("diary_entries", []):
+                    if ent.get("date") == yesterday_str:
+                        for it in ent.get("items", ent.get("subjects", [])):
+                            s_name = it.get("subject", "")
+                            if s_name and s_name not in hw_subjects:
+                                hw_subjects.append(s_name)
+            except Exception:
+                pass
+
+        # If diary_items is provided and represents today/yesterday, inspect them
+        if not hw_subjects and diary_items:
+            for it in diary_items:
+                s_name = it.get("subject") if isinstance(it, dict) else getattr(it, "subject", "")
+                if s_name and s_name not in hw_subjects:
+                    hw_subjects.append(s_name)
+
+        # Filter for core candidates from yesterday's homework
+        core_hw = [s for s in hw_subjects if s in ["Mathematics", "Physical Science", "Biological Science", "Social Science", "Physics", "Chemistry", "Biology", "History", "Geography"]]
+
+        # Check Weak Subjects from student_error_bank.json
+        error_bank_path = get_engine_data_path("student_error_bank.json")
+        weak_subjects = []
+        if os.path.exists(error_bank_path):
+            try:
+                with open(error_bank_path, "r", encoding="utf-8") as f:
+                    eb = json.load(f)
+                err_list = eb if isinstance(eb, list) else eb.get("errors", [])
+                for item in err_list:
+                    if not item.get("mastered", False):
+                        sub = item.get("subject")
+                        if sub and sub not in weak_subjects:
+                            weak_subjects.append(sub)
+            except Exception:
+                pass
+
+        # Align yesterday's core subjects with weekly rhythm cycle
+        target_weekday_subj = cls.WEEKDAY_ROTATION.get(weekday, "Mathematics")
+        for s in hw_subjects:
+            if target_weekday_subj.lower() in s.lower() or s.lower() in target_weekday_subj.lower():
+                return (s, f"Rotated for today's {dt.strftime('%A')} focus from yesterday's homework ({yesterday_str})", False)
+
+        # If weak subjects exist and were in yesterday's homework, prioritize them
+        for s in core_hw:
+            if any(ws.lower() in s.lower() for ws in weak_subjects):
+                return (s, f"Prioritized from yesterday's homework ({yesterday_str}) & active Error Bank weak subject drill", False)
+
+        # If yesterday had core homework, pick dynamically using rotating offset
+        if core_hw:
+            rot_idx = (weekday + dt.day) % len(core_hw)
+            chosen_s = core_hw[rot_idx]
+            return (chosen_s, f"Cyclical rotation across yesterday's homework ({yesterday_str})", False)
+
+        # If weak subjects exist, pick top weak subject
+        if weak_subjects:
+            return (weak_subjects[0], "Selected from Error Bank priority (weak subject active reinforcement drill)", False)
+
+        # Fallback to weekday rotation cycle
+        default_subj = cls.WEEKDAY_ROTATION.get(weekday, "Mathematics")
+        day_name = dt.strftime("%A")
+        return (default_subj, f"Weekly cyclical rotation ({day_name} core exam slot)", False)
+
 
 PRE_EXAM_21_DAYS = [
     {
@@ -670,7 +790,7 @@ class TharunScheduleBalancer:
         return cls._rep_tracker
 
     @classmethod
-    def generate_schedule(cls, subjects, diary_items, current_level=2, selected_language="English (Language)", exam_mode=False, exam_subject="Mathematics", start_time_str="19:00", pre_exam_mode=False, pre_exam_day=1, pre_exam_duration_days=21, bedtime_rollovers=None):
+    def generate_schedule(cls, subjects, diary_items, current_level=2, selected_language="English (Language)", exam_mode=False, exam_subject="Mathematics", start_time_str="19:00", pre_exam_mode=False, pre_exam_day=1, pre_exam_duration_days=21, bedtime_rollovers=None, target_date=None):
         lvl = EXECUTION_LEVELS.get(current_level, EXECUTION_LEVELS[2])
 
         if pre_exam_mode:
@@ -1226,10 +1346,20 @@ class TharunScheduleBalancer:
         # Rule 7: Any one of the languages can be taken. If 3 languages are in the homework itself,
         # then in the morning session do NOT concentrate on language; take TWO core subjects in morning!
         # The morning session is untouched and remains static (06:00 - 07:30) across Level 1, 2, and 3.
+        # Determine active date for rotation
+        if not target_date:
+            for it in (diary_items or []):
+                if isinstance(it, dict) and it.get("date"):
+                    target_date = it.get("date")
+                    break
+        if not target_date:
+            target_date = datetime.now().strftime("%Y-%m-%d")
+
         m_cur = datetime.strptime("06:00", "%H:%M")
         m_end_target = datetime.strptime("07:30", "%H:%M")
 
-        boot_mins = 10
+        # Slot 1: Morning Wake-Up & Hydration (06:00 AM – 06:15 AM: 15 mins)
+        boot_mins = 15
         b_end = m_cur + timedelta(minutes=boot_mins)
         morning_slots.append({
             "phase": "Morning Wake-Up",
@@ -1239,7 +1369,7 @@ class TharunScheduleBalancer:
             "title": "Alertness Activation & Hydration",
             "subject": "Morning Warmup",
             "type": "prep",
-            "badge": "🌅 Wake-up",
+            "badge": "🌅 Wake-up (15m)",
             "guidance": "Splash cool water on face, drink 1-2 glasses of warm water, gentle stretching. Zero devices."
         })
         m_cur = b_end
@@ -1276,12 +1406,76 @@ class TharunScheduleBalancer:
         morning_core_1 = tracker.pick_balanced_candidate(morn_core_candidates, days=7)
         mc1_meta = CANONICAL_SUBDIVISIONS.get(morning_core_1, {})
 
-        # Rule 7 Check: Were 3 languages in homework?
-        hw_all_3_langs = (len(hw_detected_languages) >= 3 or ("Tamil" in hw_detected_languages and "English" in hw_detected_languages and "Hindi" in hw_detected_languages))
+        # Slot 2: Morning Core Primer (06:15 AM – 06:45 AM: 30 mins)
+        cm1_dur = 30
+        cm1_end = m_cur + timedelta(minutes=cm1_dur)
+        morning_slots.append({
+            "phase": "Morning Core Primer",
+            "start": m_cur.strftime("%I:%M %p"),
+            "end": cm1_end.strftime("%I:%M %p"),
+            "duration_mins": cm1_dur,
+            "title": f"Morning Active Core Primer: {morning_core_1}",
+            "subject": mc1_meta.get("parent", morning_core_1),
+            "subdivision": morning_core_1,
+            "type": "revision",
+            "badge": mc1_meta.get("badge", "🌅 Core Recall"),
+            "guidance": f"Rule 5 & 6 Non-Repeated Core ({morning_core_1}) Active Primer: Review key formulas, definitions, and mental proofs before writing today's exam.",
+            "is_completed": False
+        })
+        m_cur = cm1_end
 
+        # Slot 3: DEDICATED 6:45 AM HOST EXAM SLOT (06:45 AM – 07:05 AM: 20 mins)
+        exam_subj, rot_reason, is_sun = DailyExamSubjectRotator.pick_morning_exam_subject(target_date, diary_items)
+        exam_dur = 20
+        e_end = m_cur + timedelta(minutes=exam_dur)
+
+        if is_sun:
+            morning_slots.append({
+                "phase": "Sunday Master Exam Window",
+                "start": "FLEXIBLE",
+                "end": "ON-DEMAND",
+                "duration_mins": 60,
+                "title": "🌟 Sunday Master Exam: Flexible On-Demand Window (Exempt from 6:45 AM Alarm)",
+                "subject": "🌟 Sunday Master Exam",
+                "type": "study",
+                "badge": "🌟 Sunday Master Exam",
+                "guidance": "Today is Sunday! You are exempt from the 6:45 AM alarm. Take your weekly cumulative master exam at any comfortable time today.",
+                "is_completed": False
+            })
+        else:
+            morning_slots.append({
+                "phase": "Morning Host Exam Window",
+                "start": m_cur.strftime("%I:%M %p"),
+                "end": e_end.strftime("%I:%M %p"),
+                "duration_mins": exam_dur,
+                "title": f"🎯 6:45 AM Host Exam: Daily Recall & Step Solving ({exam_subj})",
+                "subject": f"🎯 Host Exam: {exam_subj}",
+                "type": "study",
+                "badge": f"🎯 6:45 AM Exam ({exam_subj})",
+                "guidance": f"Strict 20-min Morning Host Exam on {exam_subj}. 100% blind solving on unlined paper. Show all derivation steps, box final numeric values, and write SI units. [Rotation Source: {rot_reason}]",
+                "is_completed": False
+            })
+        m_cur = e_end
+
+        # Slot 4: Post-Exam Break & Hydration Reset (07:05 AM – 07:10 AM: 5 mins)
+        brk_dur = 5
+        b_end2 = m_cur + timedelta(minutes=brk_dur)
+        morning_slots.append({
+            "phase": "Morning Rest",
+            "start": m_cur.strftime("%I:%M %p"),
+            "end": b_end2.strftime("%I:%M %p"),
+            "duration_mins": brk_dur,
+            "title": "Post-Exam Respite & Breath Reset",
+            "subject": "Rest",
+            "type": "break",
+            "badge": "☕ Break (5m)",
+            "guidance": "Stand up, stretch your back, take 5 slow deep breaths, take a sip of water."
+        })
+        m_cur = b_end2
+
+        # Slot 5: Morning Language Clinic & Error Bank Drill (07:10 AM – 07:25 AM: 15 mins)
+        hw_all_3_langs = (len(hw_detected_languages) >= 3 or ("Tamil" in hw_detected_languages and "English" in hw_detected_languages and "Hindi" in hw_detected_languages))
         if hw_all_3_langs:
-            # Rule 7 Special: All 3 languages were in homework!
-            # Do NOT concentrate on language in morning. Take TWO CORE SUBJECTS in morning!
             morn_core_candidates_2 = [c for c in morn_core_candidates if c != morning_core_1]
             if not morn_core_candidates_2:
                 morn_core_candidates_2 = [c for c in all_core_subdivisions if c != morning_core_1 and c not in scheduled_evening_subdivisions]
@@ -1289,99 +1483,28 @@ class TharunScheduleBalancer:
                 morn_core_candidates_2 = [c for c in all_core_subdivisions if c != morning_core_1]
             morning_core_2 = tracker.pick_balanced_candidate(morn_core_candidates_2, days=7)
             mc2_meta = CANONICAL_SUBDIVISIONS.get(morning_core_2, {})
-
-            # Morning Core 1 (35m)
-            cm1_dur = 35
-            cm1_end = m_cur + timedelta(minutes=cm1_dur)
-            morning_slots.append({
-                "phase": "Morning Core 1 Recall",
-                "start": m_cur.strftime("%I:%M %p"),
-                "end": cm1_end.strftime("%I:%M %p"),
-                "duration_mins": cm1_dur,
-                "title": f"Morning Core 1 Recall: {morning_core_1}",
-                "subject": mc1_meta.get("parent", morning_core_1),
-                "subdivision": morning_core_1,
-                "type": "revision",
-                "badge": mc1_meta.get("badge", "🌅 Core 1 Recall"),
-                "guidance": f"Rule 5 & 6 Non-Repeated Core: {morning_core_1} active retrieval. Close textbooks, recall formulas/concepts.",
-                "is_completed": False
-            })
-            m_cur = cm1_end
-
-            # Break (5m)
-            m_brk_end = m_cur + timedelta(minutes=5)
-            morning_slots.append({
-                "phase": "Morning Rest",
-                "start": m_cur.strftime("%I:%M %p"),
-                "end": m_brk_end.strftime("%I:%M %p"),
-                "duration_mins": 5,
-                "title": "Quick Posture & Breath Reset",
-                "subject": "Rest",
-                "type": "break",
-                "badge": "☕ Break (5m)",
-                "guidance": "Stand up, stretch your back, drink water."
-            })
-            m_cur = m_brk_end
-
-            # Morning Core 2 (30m)
-            cm2_dur = 30
-            cm2_end = m_cur + timedelta(minutes=cm2_dur)
+            lang_dur = 15
+            lang_end = m_cur + timedelta(minutes=lang_dur)
             morning_slots.append({
                 "phase": "Morning Core 2 Recall",
                 "start": m_cur.strftime("%I:%M %p"),
-                "end": cm2_end.strftime("%I:%M %p"),
-                "duration_mins": cm2_dur,
-                "title": f"Morning Core 2 Recall: {morning_core_2} (2-Core Mode)",
+                "end": lang_end.strftime("%I:%M %p"),
+                "duration_mins": lang_dur,
+                "title": f"Morning Core 2 Recall: {morning_core_2} (3-Lang HW Override)",
                 "subject": mc2_meta.get("parent", morning_core_2),
                 "subdivision": morning_core_2,
                 "type": "revision",
                 "badge": mc2_meta.get("badge", "🌅 Core 2 Recall"),
-                "guidance": f"Rule 7 Active: 3 languages were already in homework, so language is skipped in morning. Second core {morning_core_2} takes study focus!",
+                "guidance": f"Rule 7 Active: 3 languages were already in homework. Second core {morning_core_2} takes 15m review focus!",
                 "is_completed": False
             })
-            m_cur = cm2_end
-
+            m_cur = lang_end
         else:
-            # Rule 5 & 7 Standard: One non-repeated core (35m) + One non-repeated language (30m)
-            cm1_dur = 35
-            cm1_end = m_cur + timedelta(minutes=cm1_dur)
-            morning_slots.append({
-                "phase": "Morning Secondary Core Recall",
-                "start": m_cur.strftime("%I:%M %p"),
-                "end": cm1_end.strftime("%I:%M %p"),
-                "duration_mins": cm1_dur,
-                "title": f"Active Recall: {morning_core_1} (Non-Repeated Core)",
-                "subject": mc1_meta.get("parent", morning_core_1),
-                "subdivision": morning_core_1,
-                "type": "revision",
-                "badge": mc1_meta.get("badge", "🌅 Core Recall"),
-                "guidance": f"Rule 5 & 6 Active: Secondary core {morning_core_1} was NOT taken in the evening. Close books, recall definitions, proof outlines and diagrams.",
-                "is_completed": False
-            })
-            m_cur = cm1_end
-
-            # Break (5m)
-            m_brk_end = m_cur + timedelta(minutes=5)
-            morning_slots.append({
-                "phase": "Morning Rest",
-                "start": m_cur.strftime("%I:%M %p"),
-                "end": m_brk_end.strftime("%I:%M %p"),
-                "duration_mins": 5,
-                "title": "Quick Posture & Breath Reset",
-                "subject": "Rest",
-                "type": "break",
-                "badge": "☕ Break (5m)",
-                "guidance": "Stand up, stretch your back, take 5 slow deep breaths, take a sip of water."
-            })
-            m_cur = m_brk_end
-
-            # Select non-repeated language (NOT in homework)
             all_langs = ["Tamil", "English", "Hindi"]
             candidate_langs = [l for l in all_langs if l not in hw_detected_languages]
             if not candidate_langs:
                 candidate_langs = all_langs
 
-            # If user selected a preference and it is in candidate_langs, prefer it, else pick balanced candidate
             chosen_lang = candidate_langs[0]
             for cl in candidate_langs:
                 if cl.lower() in selected_language.lower():
@@ -1391,24 +1514,24 @@ class TharunScheduleBalancer:
                 chosen_lang = tracker.pick_balanced_candidate(candidate_langs, days=7)
 
             l_meta = CANONICAL_SUBDIVISIONS.get(chosen_lang, {})
-            lang_dur = 30
+            lang_dur = 15
             lang_end = m_cur + timedelta(minutes=lang_dur)
             morning_slots.append({
                 "phase": "Morning Language Clinic",
                 "start": m_cur.strftime("%I:%M %p"),
                 "end": lang_end.strftime("%I:%M %p"),
                 "duration_mins": lang_dur,
-                "title": f"Language Writing & Spelling Clinic: {chosen_lang} (Non-Repeated)",
+                "title": f"Language Error Bank & Clinic: {chosen_lang} (Non-Repeated)",
                 "subject": chosen_lang,
                 "subdivision": chosen_lang,
                 "type": "revision",
                 "badge": l_meta.get("badge", "✍️ Language Clinic"),
-                "guidance": f"Rule 5 & 7 Non-Repeated Language Clinic ({chosen_lang}): {l_meta.get('guidance', '')}",
+                "guidance": f"Rule 5 & 7 Non-Repeated Language Clinic ({chosen_lang}): Write 5 high-risk words from Error Bank copy. Review 3 key definitions and check handwriting layout.",
                 "is_completed": False
             })
             m_cur = lang_end
 
-        # School Readiness Wind-down (10m)
+        # Slot 6: School Readiness Wind-down (07:25 AM – 07:30 AM: 5 mins)
         morning_slots.append({
             "phase": "School Ready",
             "start": m_cur.strftime("%I:%M %p"),
@@ -1417,8 +1540,8 @@ class TharunScheduleBalancer:
             "title": "School Readiness Audit & Confidence Boost",
             "subject": "Ready for School",
             "type": "winddown",
-            "badge": "🎒 School Ready",
-            "guidance": "Double check stationery pouch, diary, homework copies, and water bottle. You are ready to shine today, Tharun!"
+            "badge": "🎒 School Ready (5m)",
+            "guidance": "Pack evaluated morning test sheet into study binder. Double check stationery pouch, diary, homework copies, and water bottle. Depart for Senthil Public School with high energy and confidence!"
         })
 
         return evening_slots, morning_slots
@@ -1579,54 +1702,32 @@ class TharunScheduleBalancer:
         })
 
         # -------------------------------------------------------------
-        # MORNING EXAM RETENTION PLAN (6:00 AM – 7:30 AM)
+        # MORNING EXAM SPRINT RESERVED WINDOW (6:40 AM – 7:45 AM)
         # -------------------------------------------------------------
         morning_slots.append({
-            "phase": "Morning Exam Priming: Part 1",
-            "start": "06:00 AM",
-            "end": "06:45 AM",
-            "duration_mins": 45,
-            "title": f"Morning Retention Priming: {exam_subject}",
-            "subject": exam_subject,
+            "phase": "Phase 3 Morning Exam Sprint",
+            "start": "06:40 AM",
+            "end": "07:45 AM",
+            "duration_mins": 65,
+            "title": f"⚡ RESERVED FOR HOST EXAM: MORNING SPRINT ({exam_subject.upper()})",
+            "subject": f"⚡ Host Exam: {exam_subject}",
             "type": "study",
-            "badge": "🌅 Priming Window",
-            "guidance": exam_guidance["morning1"]
-        })
-
-        morning_slots.append({
-            "phase": "Morning Rest",
-            "start": "06:45 AM",
-            "end": "06:55 AM",
-            "duration_mins": 10,
-            "title": "Hydration & Calming Breath",
-            "subject": "Hydrate & Stretch",
-            "type": "break",
-            "badge": "☕ Rest (10m)",
-            "guidance": "Drink a glass of warm water. Relax facial muscles and shoulders. No panic reading."
-        })
-
-        morning_slots.append({
-            "phase": "Morning Exam Priming: Part 2",
-            "start": "06:55 AM",
-            "end": "07:20 AM",
-            "duration_mins": 25,
-            "title": f"Confidence Keyword & Formula Recall: {exam_subject}",
-            "subject": exam_subject,
-            "type": "study",
-            "badge": "⚡ Final Recall",
-            "guidance": exam_guidance["morning2"]
+            "badge": f"⚡ Sprint ({exam_subject})",
+            "guidance": f"Reserved Morning Exam Session (06:40 AM – 07:45 AM). Rapid warm-up sprint before school exam: 20-25 Marks. 45 mins writing + 10 mins verification + 5 mins submission. Activates peak exam focus before walking into school hall!",
+            "is_completed": False
         })
 
         morning_slots.append({
             "phase": "Morning Dispatch",
-            "start": "07:20 AM",
-            "end": "07:30 AM",
-            "duration_mins": 10,
-            "title": "Exam Mindset & Confident Departure",
-            "subject": "Positive Mindset",
+            "start": "07:45 AM",
+            "end": "08:00 AM",
+            "duration_mins": 15,
+            "title": "Exam Kit Final Audit, Breakfast & School Departure",
+            "subject": "School Ready",
             "type": "prep",
-            "badge": "🏆 Confident Dispatch",
-            "guidance": "Final check of Exam Hall Kit. Healthy breakfast. Affirmation: 'I have prepared methodically. I will read questions carefully and write clearly!' Best of luck, Tharun!"
+            "badge": "🏆 School Departure",
+            "guidance": "Final check of Exam Hall Kit (pens, geometry box, hall ticket). Wholesome breakfast. Affirmation: 'I am prepared and calm!' Depart for school examination hall with supreme confidence!",
+            "is_completed": False
         })
 
         return evening_slots, morning_slots
@@ -1762,54 +1863,110 @@ class TharunScheduleBalancer:
             "guidance": f"Tick off completed chapters in the 'Exam Portions & Tracker' tab. Pack school bag.{leisure_txt} Inviolable 10:00 PM sleep (locks neural pathways!)."
         })
 
-        # Morning slots (6:00 AM – 7:30 AM)
-        morning_slots.append({
-            "phase": "Morning Priming Window",
-            "start": "06:00 AM",
-            "end": "06:45 AM",
-            "duration_mins": 45,
-            "title": f"Morning Active Priming: {day_data['title']}",
-            "subject": day_data["focus_core"],
-            "type": "study",
-            "badge": "🌅 Priming Window",
-            "guidance": f"Morning Recall: {day_data['morning_task']} Zero new reading! Only verify flashcards, formulas, and redraw diagrams."
-        })
-
-        morning_slots.append({
-            "phase": "Morning Rest",
-            "start": "06:45 AM",
-            "end": "06:55 AM",
-            "duration_mins": 10,
-            "title": "Hydration & Calming Breath",
-            "subject": "Hydrate & Stretch",
-            "type": "break",
-            "badge": "☕ Rest (10m)",
-            "guidance": "Drink a glass of warm water. Relax facial muscles and shoulders. Breathe deep diaphragmatic breaths."
-        })
-
-        morning_slots.append({
-            "phase": "Morning Language Clinic",
-            "start": "06:55 AM",
-            "end": "07:20 AM",
-            "duration_mins": 25,
-            "title": f"Language Error Bank & Key Concept Recall: {day_data['focus_second']}",
-            "subject": day_data["focus_second"],
-            "type": "study",
-            "badge": "⚡ Error Bank Clinic",
-            "guidance": f"Write 5 high-risk words from Error Bank copy ({day_data['focus_second']}). Review 3 key definitions."
-        })
-
-        morning_slots.append({
-            "phase": "Morning Dispatch",
-            "start": "07:20 AM",
-            "end": "07:30 AM",
-            "duration_mins": 10,
-            "title": "Daily Shinobi Mindset & School Departure",
-            "subject": "Positive Mindset",
-            "type": "prep",
-            "badge": "🏆 Confident Dispatch",
-            "guidance": "Final bag check: Diary, books, stationery. Nutritious breakfast. Affirmation: 'I am building strong daily mastery. Every day counts!' Depart for school with confidence!"
-        })
+        # Check if today is a 4th Day Morning Checkpoint Exam Day
+        # Checkpoint blocks: Days 1-3 -> Exam on Day 4 Morning
+        #                    Days 4-6 -> Exam on Day 7 Morning
+        #                    Days 7-9 -> Exam on Day 10 Morning
+        #                    Days 10-12 -> Exam on Day 13 Morning
+        #                    Days 13-15 -> Exam on Day 16 Morning
+        #                    Days 16-18 -> Exam on Day 19 Morning
+        #                    Days 19-21 -> Exam on Day 22 Morning
+        is_checkpoint_exam_day = (day_num > 1 and (day_num - 1) % 3 == 0)
+        if is_checkpoint_exam_day:
+            prev_start = day_num - 3
+            prev_end = day_num - 1
+            morning_slots.append({
+                "phase": "Morning Active Priming",
+                "start": "06:15 AM",
+                "end": "06:45 AM",
+                "duration_mins": 30,
+                "title": f"Morning Checkpoint Primer: Days {prev_start}–{prev_end} Formulas",
+                "subject": "Checkpoint Primer",
+                "type": "prep",
+                "badge": "🌅 Priming (30m)",
+                "guidance": "Final mental scan of formulas, laws, and diagram blueprints before writing today's 3-day Checkpoint Exam."
+            })
+            morning_slots.append({
+                "phase": "Phase 2 Checkpoint Exam Window",
+                "start": "06:45 AM",
+                "end": "07:45 AM",
+                "duration_mins": 60,
+                "title": f"🎯 RESERVED FOR HOST EXAM: 3-DAY CHECKPOINT (DAYS {prev_start}–{prev_end} AUDIT)",
+                "subject": "🎯 Host Exam: Checkpoint",
+                "type": "study",
+                "badge": f"📝 25M Checkpoint (60m)",
+                "guidance": f"Reserved Morning Exam Session (06:45 AM – 07:45 AM). Strict 25-Mark Checkpoint Exam testing subjects studied across Days {prev_start} to {prev_end}. 45 mins writing + 10 mins verification + 5 mins submission. Box final answers and write SI units!",
+                "is_completed": False
+            })
+            morning_slots.append({
+                "phase": "Morning Dispatch",
+                "start": "07:45 AM",
+                "end": "08:00 AM",
+                "duration_mins": 15,
+                "title": "Breakfast & School Departure",
+                "subject": "School Ready",
+                "type": "prep",
+                "badge": "🏆 School Departure",
+                "guidance": "Nutritious breakfast. Pack evaluated test sheet in study binder. Depart for Senthil Public School with high energy and confidence!",
+                "is_completed": False
+            })
+        else:
+            morning_slots.append({
+                "phase": "Morning Priming Window",
+                "start": "06:15 AM",
+                "end": "06:45 AM",
+                "duration_mins": 30,
+                "title": f"Morning Active Priming: {day_data['title']}",
+                "subject": day_data["focus_core"],
+                "type": "study",
+                "badge": "🌅 Priming Window",
+                "guidance": f"Morning Recall: {day_data['morning_task']} Zero new reading! Only verify flashcards, formulas, and redraw diagrams."
+            })
+            morning_slots.append({
+                "phase": "Morning Host Exam Window",
+                "start": "06:45 AM",
+                "end": "07:05 AM",
+                "duration_mins": 20,
+                "title": f"🎯 6:45 AM Host Exam: Pre-Exam Step Solving ({day_data['focus_core']})",
+                "subject": f"🎯 Host Exam: {day_data['focus_core']}",
+                "type": "study",
+                "badge": f"🎯 6:45 AM Exam ({day_data['focus_core']})",
+                "guidance": "Strict 20-min Morning Host Exam. 100% blind solving on unlined paper. Show all steps, box final numeric values, and write SI units.",
+                "is_completed": False
+            })
+            morning_slots.append({
+                "phase": "Morning Post-Exam Break",
+                "start": "07:05 AM",
+                "end": "07:10 AM",
+                "duration_mins": 5,
+                "title": "Post-Exam Respite & Breath Reset",
+                "subject": "Rest",
+                "type": "break",
+                "badge": "☕ Break (5m)",
+                "guidance": "Stand up, stretch your back, take 5 slow deep breaths, take a sip of water."
+            })
+            morning_slots.append({
+                "phase": "Morning Language Clinic",
+                "start": "07:10 AM",
+                "end": "07:25 AM",
+                "duration_mins": 15,
+                "title": f"Language Error Bank & Recall: {day_data['focus_second']}",
+                "subject": day_data["focus_second"],
+                "type": "study",
+                "badge": "⚡ Error Bank Clinic",
+                "guidance": f"Write 5 high-risk words from Error Bank copy ({day_data['focus_second']}). Review 3 key definitions."
+            })
+            morning_slots.append({
+                "phase": "Morning Dispatch",
+                "start": "07:25 AM",
+                "end": "07:30 AM",
+                "duration_mins": 5,
+                "title": "Daily Shinobi Mindset & School Departure",
+                "subject": "Positive Mindset",
+                "type": "prep",
+                "badge": "🏆 Confident Dispatch",
+                "guidance": "Final bag check: Diary, books, stationery. Nutritious breakfast. Depart for school with confidence!"
+            })
 
         return evening_slots, morning_slots
 

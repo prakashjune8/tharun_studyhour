@@ -121,7 +121,7 @@ class HostExamTabController:
         self.active_evaluation: Optional[Dict[str, Any]] = None
         self.active_exam_id: str = ""
         self.uploaded_answer_files: List[str] = []
-        self.active_model_var = tk.StringVar(value="gemini-2.5-flash")
+        self.active_model_var = tk.StringVar(value="gemini-3.8-flash")
 
         # Auto-sync ledger on init
         try:
@@ -340,14 +340,14 @@ class HostExamTabController:
 
     def _get_gemini_status_text(self) -> str:
         cfg = GeminiExamClient.load_config()
-        key = cfg.get("gemini_api_key") or os.environ.get("GEMINI_API_KEY", "")
+        key = cfg.get("api_key") or cfg.get("gemini_api_key") or os.environ.get("GEMINI_API_KEY", "")
         if key.strip():
             return "🟢 Gemini AI Active"
         return "⚪ Offline Local Mode"
 
     def _get_gemini_status_color(self) -> str:
         cfg = GeminiExamClient.load_config()
-        key = cfg.get("gemini_api_key") or os.environ.get("GEMINI_API_KEY", "")
+        key = cfg.get("api_key") or cfg.get("gemini_api_key") or os.environ.get("GEMINI_API_KEY", "")
         if key.strip():
             return "#34d399"  # Emerald
         return "#94a3b8"  # Slate
@@ -360,11 +360,11 @@ class HostExamTabController:
 
     def _open_api_key_modal(self):
         cfg = GeminiExamClient.load_config()
-        current_key = cfg.get("gemini_api_key") or os.environ.get("GEMINI_API_KEY", "")
+        current_key = cfg.get("api_key") or cfg.get("gemini_api_key") or os.environ.get("GEMINI_API_KEY", "")
         prompt_txt = (
             "Enter Google Gemini API Key:\n\n"
             "(If left blank, ScholasticPulse V3 uses the robust offline deterministic CBSE evaluator.\n"
-            "Entering an API key enables direct Gemini 2.5 AI grading and dynamic question paper creation)."
+            "Entering an API key enables direct Gemini AI multimodal grading and dynamic question paper creation)."
         )
         new_key = simpledialog.askstring("Gemini API Key Configuration", prompt_txt, initialvalue=current_key)
         if new_key is not None:
@@ -405,21 +405,23 @@ class HostExamTabController:
 
         self.subview_buttons = {}
         tabs = [
-            ("ledger", "📋 1. Study Ledger & 3-Phase Selector"),
-            ("face_a", "📝 2. Face A: Question Paper Architect"),
-            ("face_b", "🔍 3. Face B: Answer Sheet Evaluator"),
-            ("topper", "⭐ 4. CBSE Topper Model Answer Guide")
+            ("ledger", "📋 1. Study Ledger & Phases"),
+            ("vault", "📚 2. Textbook Vault"),
+            ("sample_q", "📑 3. Sample Questions & Papers"),
+            ("face_a", "📝 4. Face A: Question Architect"),
+            ("face_b", "🔍 5. Face B: Answer Evaluator"),
+            ("topper", "⭐ 6. CBSE Topper Guide")
         ]
 
         for key, label in tabs:
             btn = tk.Button(
                 bar,
                 text=label,
-                font=("Segoe UI", 9, "bold"),
+                font=("Segoe UI", 8, "bold"),
                 relief=tk.FLAT,
                 bd=0,
-                padx=14,
-                pady=6,
+                padx=10,
+                pady=5,
                 cursor="hand2",
                 command=lambda k=key: self.switch_subview(k)
             )
@@ -453,14 +455,41 @@ class HostExamTabController:
         for w in self.subview_container.winfo_children():
             w.destroy()
 
-        if subview_key == "ledger":
+        if subview_key in ("sample_q", "sample_questions"):
+            self.active_subview = "sample_q"
+            self._update_subview_tab_styles()
+            self._render_subview_sample_questions(self.subview_container)
+        elif subview_key == "ledger":
             self._render_subview_ledger(self.subview_container)
+        elif subview_key == "vault":
+            self._render_subview_vault(self.subview_container)
         elif subview_key == "face_a":
-            self._render_subview_face_a(self.subview_container)
+            self._render_clean_face_a(self.subview_container)
         elif subview_key == "face_b":
             self._render_subview_face_b(self.subview_container)
         elif subview_key == "topper":
             self._render_subview_topper(self.subview_container)
+
+    def _render_subview_vault(self, parent):
+        """Cleanly renders the dedicated Subject Vault & Upload Library (unmingled)."""
+        from exam_vault_library_view_v3 import ExamVaultLibraryView
+        vault_view = ExamVaultLibraryView(parent, self)
+        vault_view.build_ui()
+        self.vault_view = vault_view
+
+    def _render_subview_sample_questions(self, parent):
+        """Cleanly renders the dedicated Sample Questions & School Model Papers View."""
+        from exam_sample_questions_view_v3 import ExamSampleQuestionsView
+        sample_q_view = ExamSampleQuestionsView(parent, self)
+        sample_q_view.build_ui()
+        self.sample_q_view = sample_q_view
+
+    def _render_clean_face_a(self, parent):
+        """Cleanly renders Face A using our verified HostExamFaceAView module."""
+        from host_exam_face_a_ui_v3 import HostExamFaceAView
+        face_a_controller = HostExamFaceAView(parent, self)
+        face_a_controller.build_ui()
+        self.face_a_controller = face_a_controller
 
     # ==========================================
     # SUB-VIEW 1: STUDY LEDGER & 3-PHASE SELECTOR
@@ -470,8 +499,8 @@ class HostExamTabController:
         pane.pack(fill=tk.BOTH, expand=True)
 
         # Top section: 3-Phase Host Examination Selector Cards
-        phase_frame = tk.Frame(pane, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=12, pady=10)
-        pane.add(phase_frame, minsize=235)
+        phase_frame = tk.Frame(pane, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=10, pady=6)
+        pane.add(phase_frame, minsize=190)
 
         lbl_phase_title = tk.Label(
             phase_frame,
@@ -480,36 +509,59 @@ class HostExamTabController:
             fg=self.colors.get("primary", "#f59e0b"),
             bg="#0e172a"
         )
-        lbl_phase_title.pack(anchor="w", pady=(0, 8))
+        lbl_phase_title.pack(anchor="w", pady=(0, 6))
 
         cards_row = tk.Frame(phase_frame, bg="#0e172a")
         cards_row.pack(fill=tk.X)
 
         # Phase 1 Card
-        c1 = tk.Frame(cards_row, bg="#161f30", bd=1, relief=tk.SOLID, highlightbackground="#38bdf8", highlightthickness=1, padx=10, pady=8)
+        c1 = tk.Frame(cards_row, bg="#161f30", bd=1, relief=tk.SOLID, highlightbackground="#38bdf8", highlightthickness=1, padx=8, pady=6)
         c1.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 6))
         tk.Label(c1, text="PHASE 1: SUNDAY / MONTH-END", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#161f30").pack(anchor="w")
-        tk.Label(c1, text="35 Marks / 80 Marks • 1.5h / 3h\nExamines all weekly/monthly homework", font=("Segoe UI", 7), fg="#cbd5e1", bg="#161f30", justify=tk.LEFT).pack(anchor="w", pady=2)
+        tk.Label(c1, text="35 Marks / 80 Marks • 1.5h / 3h\nExamines all weekly/monthly homework", font=("Segoe UI", 7), fg="#cbd5e1", bg="#161f30", justify=tk.LEFT).pack(anchor="w", pady=1)
         p1_btn_row = tk.Frame(c1, bg="#161f30")
-        p1_btn_row.pack(anchor="w", pady=3)
-        btn_p1_w = tk.Button(p1_btn_row, text="⚡ Weekly Test (35M)", font=("Segoe UI", 7, "bold"), fg="#0f172a", bg="#38bdf8", activebackground="#0284c7", relief=tk.FLAT, bd=0, padx=8, pady=4, cursor="hand2", command=lambda: self._launch_phase(1, "weekly"))
+        p1_btn_row.pack(anchor="w", pady=2)
+        btn_p1_w = tk.Button(p1_btn_row, text="⚡ Weekly Test (35M)", font=("Segoe UI", 7, "bold"), fg="#0f172a", bg="#38bdf8", activebackground="#0284c7", relief=tk.FLAT, bd=0, padx=8, pady=3, cursor="hand2", command=lambda: self._launch_phase(1, "weekly"))
         btn_p1_w.pack(side=tk.LEFT, padx=(0, 6))
-        btn_p1_m = tk.Button(p1_btn_row, text="🏆 Month-End (80M)", font=("Segoe UI", 7, "bold"), fg="#ffffff", bg="#0369a1", activebackground="#0284c7", relief=tk.FLAT, bd=0, padx=8, pady=4, cursor="hand2", command=lambda: self._launch_phase(1, "monthend"))
+        btn_p1_m = tk.Button(p1_btn_row, text="🏆 Month-End (80M)", font=("Segoe UI", 7, "bold"), fg="#ffffff", bg="#0369a1", activebackground="#0284c7", relief=tk.FLAT, bd=0, padx=8, pady=3, cursor="hand2", command=lambda: self._launch_phase(1, "monthend"))
         btn_p1_m.pack(side=tk.LEFT)
 
         # Phase 2 Card
-        c2 = tk.Frame(cards_row, bg="#161f30", bd=1, relief=tk.SOLID, highlightbackground="#a855f7", highlightthickness=1, padx=10, pady=8)
+        c2 = tk.Frame(cards_row, bg="#161f30", bd=1, relief=tk.SOLID, highlightbackground="#a855f7", highlightthickness=1, padx=8, pady=6)
         c2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 6))
         tk.Label(c2, text="PHASE 2: 3-DAY CHECKPOINT", font=("Segoe UI", 8, "bold"), fg="#c084fc", bg="#161f30").pack(anchor="w")
-        tk.Label(c2, text="25 Marks • 1 Hour\nRetesting 3-day homework block retention", font=("Segoe UI", 7), fg="#cbd5e1", bg="#161f30", justify=tk.LEFT).pack(anchor="w", pady=2)
-        btn_p2 = tk.Button(c2, text="⚡ 3-Day Checkpoint (25M)", font=("Segoe UI", 7, "bold"), fg="#0f172a", bg="#c084fc", activebackground="#a855f7", relief=tk.FLAT, bd=0, padx=8, pady=4, cursor="hand2", command=lambda: self._launch_phase(2, "3day"))
-        btn_p2.pack(anchor="w", pady=3)
+        tk.Label(c2, text="25 Marks • 45 Mins • 06:40–07:45 AM\nMulti-subject 3-day block audit (Days 1–3, 4–6...)", font=("Segoe UI", 7), fg="#cbd5e1", bg="#161f30", justify=tk.LEFT).pack(anchor="w", pady=1)
+        p2_row = tk.Frame(c2, bg="#161f30")
+        p2_row.pack(anchor="w", pady=2)
+        self.p2_block_var = tk.StringVar(value="Block 1 (D1-3)")
+        self.p2_pill = ShinobiPillSelector(
+            p2_row,
+            title="BLOCK",
+            values=["Block 1 (D1-3)", "Block 2 (D4-6)", "Block 3 (D7-9)", "Block 4 (D10-12)", "Block 5 (D13-15)", "Block 6 (D16-18)", "Block 7 (D19-21)"],
+            initial_value="Block 1 (D1-3)",
+            textvariable=self.p2_block_var,
+            title_color="#c084fc",
+            width=135,
+            height=40
+        )
+        self.p2_pill.pack(side=tk.LEFT, padx=(0, 6))
+
+        def _on_click_p2():
+            val = self.p2_block_var.get()
+            try:
+                b_num = int(val.split()[1])
+            except Exception:
+                b_num = 1
+            self._launch_phase(2, str(b_num))
+
+        btn_p2 = tk.Button(p2_row, text="⚡ Audit (25M)", font=("Segoe UI", 8, "bold"), fg="#0f172a", bg="#c084fc", activebackground="#a855f7", relief=tk.FLAT, bd=0, padx=8, pady=4, cursor="hand2", command=_on_click_p2)
+        btn_p2.pack(side=tk.LEFT)
 
         # Phase 3 Card (With ShinobiPillSelector)
-        c3 = tk.Frame(cards_row, bg="#161f30", bd=1, relief=tk.SOLID, highlightbackground="#10b981", highlightthickness=1, padx=10, pady=8)
+        c3 = tk.Frame(cards_row, bg="#161f30", bd=1, relief=tk.SOLID, highlightbackground="#10b981", highlightthickness=1, padx=8, pady=6)
         c3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         tk.Label(c3, text="PHASE 3: MORNING SPRINT", font=("Segoe UI", 8, "bold"), fg="#34d399", bg="#161f30").pack(anchor="w")
-        tk.Label(c3, text="25 Marks • 45 Mins\nRapid recall on yesterday's homework & morning", font=("Segoe UI", 7), fg="#cbd5e1", bg="#161f30", justify=tk.LEFT).pack(anchor="w", pady=2)
+        tk.Label(c3, text="25 Marks • 45 Mins\nRapid recall on yesterday's homework & morning", font=("Segoe UI", 7), fg="#cbd5e1", bg="#161f30", justify=tk.LEFT).pack(anchor="w", pady=1)
         p3_row = tk.Frame(c3, bg="#161f30")
         p3_row.pack(anchor="w", pady=2)
         self.p3_sub_var = tk.StringVar(value="Mathematics")
@@ -521,15 +573,15 @@ class HostExamTabController:
             textvariable=self.p3_sub_var,
             title_color="#34d399",
             width=135,
-            height=44
+            height=40
         )
         self.p3_pill.pack(side=tk.LEFT, padx=(0, 6))
-        btn_p3 = tk.Button(p3_row, text="⚡ Sprint (25M)", font=("Segoe UI", 8, "bold"), fg="#0f172a", bg="#34d399", activebackground="#059669", relief=tk.FLAT, bd=0, padx=8, pady=5, cursor="hand2", command=lambda: self._launch_phase(3, self.p3_sub_var.get()))
+        btn_p3 = tk.Button(p3_row, text="⚡ Sprint (25M)", font=("Segoe UI", 8, "bold"), fg="#0f172a", bg="#34d399", activebackground="#059669", relief=tk.FLAT, bd=0, padx=8, pady=4, cursor="hand2", command=lambda: self._launch_phase(3, self.p3_sub_var.get()))
         btn_p3.pack(side=tk.LEFT)
 
         # Interactive 5-Card Phase 1 Selector Strip (Weeks 1–4 + Month-End Mega Exam)
         self.p1_strip_frame = tk.Frame(phase_frame, bg="#0e172a")
-        self.p1_strip_frame.pack(fill=tk.X, pady=(10, 0))
+        self.p1_strip_frame.pack(fill=tk.X, pady=(6, 0))
 
         lbl_p1_strip = tk.Label(
             self.p1_strip_frame,
@@ -538,7 +590,7 @@ class HostExamTabController:
             fg="#f59e0b",
             bg="#0e172a"
         )
-        lbl_p1_strip.pack(anchor="w", pady=(0, 4))
+        lbl_p1_strip.pack(anchor="w", pady=(0, 3))
 
         self.p1_cards_row = tk.Frame(self.p1_strip_frame, bg="#0e172a")
         self.p1_cards_row.pack(fill=tk.X)
@@ -550,12 +602,12 @@ class HostExamTabController:
         self._render_p1_week_cards()
 
         # Bottom section: Interactive Study Ledger Table with Custom 6px Dark Scrollbar
-        ledger_frame = tk.Frame(pane, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=12, pady=10)
-        pane.add(ledger_frame, minsize=200)
+        ledger_frame = tk.Frame(pane, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=10, pady=8)
+        pane.add(ledger_frame, minsize=180)
 
         # Toolbar above ledger
         tb = tk.Frame(ledger_frame, bg="#0e172a")
-        tb.pack(fill=tk.X, pady=(0, 8))
+        tb.pack(fill=tk.X, pady=(0, 6))
 
         tk.Label(tb, text="📖 SUBJECT STUDY LEDGER (HOMEWORK & EXAM PORTIONS LOG)", font=("Segoe UI", 9, "bold"), fg="#e2e8f0", bg="#0e172a").pack(side=tk.LEFT)
 
@@ -573,7 +625,7 @@ class HostExamTabController:
             on_select_callback=lambda v: self._render_ledger_table(),
             title_color="#fb923c",
             width=140,
-            height=44
+            height=40
         )
         self.ledger_filter_pill.pack(side=tk.RIGHT, padx=6)
 
@@ -581,19 +633,21 @@ class HostExamTabController:
         tbl_container = tk.Frame(ledger_frame, bg="#020617")
         tbl_container.pack(fill=tk.BOTH, expand=True)
 
-        cols = ("date", "subject", "chapter", "task", "status", "source")
-        self.ledger_tree = ttk.Treeview(tbl_container, columns=cols, show="headings", height=10)
+        cols = ("date", "subject", "chapter", "intra_head", "task", "status", "source")
+        self.ledger_tree = ttk.Treeview(tbl_container, columns=cols, show="headings", height=5)
         self.ledger_tree.heading("date", text="Date")
         self.ledger_tree.heading("subject", text="Subject")
         self.ledger_tree.heading("chapter", text="Chapter / Topic")
+        self.ledger_tree.heading("intra_head", text="Intra-Head Taxonomy")
         self.ledger_tree.heading("task", text="Task Description")
         self.ledger_tree.heading("status", text="Status")
         self.ledger_tree.heading("source", text="Source")
 
         self.ledger_tree.column("date", width=85, anchor="center")
         self.ledger_tree.column("subject", width=125, anchor="w")
-        self.ledger_tree.column("chapter", width=185, anchor="w")
-        self.ledger_tree.column("task", width=340, anchor="w")
+        self.ledger_tree.column("chapter", width=160, anchor="w")
+        self.ledger_tree.column("intra_head", width=190, anchor="w")
+        self.ledger_tree.column("task", width=280, anchor="w")
         self.ledger_tree.column("status", width=75, anchor="center")
         self.ledger_tree.column("source", width=110, anchor="center")
 
@@ -605,8 +659,8 @@ class HostExamTabController:
         self._render_ledger_table()
 
         # Bottom Section 2: Persistent Host Exam Score & Anti-Daydreaming Focus History Strip
-        self.score_history_box = tk.Frame(ledger_frame, bg="#0b1120", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=10, pady=8)
-        self.score_history_box.pack(fill=tk.X, pady=(8, 0))
+        self.score_history_box = tk.Frame(ledger_frame, bg="#0b1120", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=8, pady=4)
+        self.score_history_box.pack(fill=tk.X, pady=(4, 0))
         self._render_score_history_strip()
 
     def _render_score_history_strip(self):
@@ -726,9 +780,16 @@ class HostExamTabController:
             bg_col = "#261e12" if is_active else "#161f30"
             title_col = "#fbbf24" if is_active else "#e2e8f0"
 
-            st = stats.get(key, {"entries_count": 0, "subjects_count": 0})
-            ent_cnt = st.get("entries_count", 0)
-            sub_cnt = st.get("subjects_count", 0)
+            st = stats.get(key, {})
+            if isinstance(st, dict):
+                ent_cnt = st.get("entries_count", 0)
+                sub_cnt = st.get("subjects_count", 0)
+            elif isinstance(st, int):
+                ent_cnt = st
+                sub_cnt = 0
+            else:
+                ent_cnt = 0
+                sub_cnt = 0
 
             matching_score = None
             for rec in score_history:
@@ -847,10 +908,12 @@ class HostExamTabController:
                         continue
                 except Exception:
                     pass
+            intra_head = e.get("intra_head") or SubjectStudyLedger.categorize_into_intra_heads(sub, e.get("chapter_topic", ""), e.get("task_description", ""))
             self.ledger_tree.insert("", tk.END, values=(
                 e.get("date", ""),
                 e.get("subject", ""),
                 e.get("chapter_topic", ""),
+                intra_head,
                 e.get("task_description", ""),
                 e.get("study_status", "studied"),
                 e.get("source", "diary")
@@ -920,7 +983,11 @@ class HostExamTabController:
             else:
                 spec = ExamPhaseAssembler.assemble_phase1_monthend_mega_exam()
         elif phase_num == 2:
-            spec = ExamPhaseAssembler.assemble_phase2_3day_checkpoint()
+            try:
+                blk_num = int(str(sub_type).strip())
+            except Exception:
+                blk_num = 1
+            spec = ExamPhaseAssembler.assemble_phase2_3day_checkpoint(block_num=blk_num)
         elif phase_num == 3:
             spec = ExamPhaseAssembler.assemble_phase3_morning_sprint(sub_type)
 
@@ -929,752 +996,30 @@ class HostExamTabController:
             self.switch_subview("face_a")
             self._populate_face_a_with_spec(spec)
 
-    # ==========================================
-    # SUB-VIEW 2: FACE A - QUESTION PAPER ARCHITECT
-    # ==========================================
-    def _render_subview_face_a(self, parent):
-        pane = tk.PanedWindow(parent, orient=tk.HORIZONTAL, bg=self.colors.get("bg", "#0a0e17"), sashrelief=tk.FLAT)
-        pane.pack(fill=tk.BOTH, expand=True)
-
-        # Left Column: Configuration Controls with geometry lock
-        ctrl_frame = tk.Frame(pane, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=12, pady=6)
-        pane.add(ctrl_frame, minsize=320, width=340)
-
-        lbl_hdr = tk.Label(ctrl_frame, text="⚙️ QUESTION PAPER ARCHITECT", font=("Segoe UI", 10, "bold"), fg=self.colors.get("primary", "#f59e0b"), bg="#0e172a")
-        lbl_hdr.pack(anchor="w", pady=(0, 4))
-
-        # Source Selection Mode
-        lbl_src = tk.Label(ctrl_frame, text="Question Grounding Source:", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#0e172a")
-        lbl_src.pack(anchor="w", pady=(2, 1))
-
-        self.face_a_source_mode = tk.StringVar(value="textbook_pdf")
-        r1 = tk.Radiobutton(ctrl_frame, text="📘 Grounded in Specific Textbook PDF", variable=self.face_a_source_mode, value="textbook_pdf", font=("Segoe UI", 8), fg="#cbd5e1", bg="#0e172a", selectcolor="#161f30", activebackground="#0e172a", activeforeground="#f8fafc", command=self._on_source_mode_changed)
-        r1.pack(anchor="w")
-
-        # Textbook PDF Selection Box (Using ShinobiPillSelector)
-        self.pdf_select_frame = tk.Frame(ctrl_frame, bg="#0e172a", padx=6)
-        self.pdf_select_frame.pack(fill=tk.X, pady=(1, 4))
-
-        files = [f for f in os.listdir(TEXTBOOKS_PDF_DIR) if f.lower().endswith(".pdf")]
-        init_pdf = files[0] if files else "No PDFs Uploaded"
-        self.selected_textbook_pdf_var = tk.StringVar(value=init_pdf)
-        self.pdf_pill = ShinobiPillSelector(
-            self.pdf_select_frame,
-            title="CHAPTER PDF",
-            values=files if files else ["No PDFs Uploaded"],
-            initial_value=init_pdf,
-            textvariable=self.selected_textbook_pdf_var,
-            title_color="#38bdf8",
-            width=260,
-            height=38
-        )
-        self.pdf_pill.pack(fill=tk.X, pady=(0, 2))
-
-        btn_upload_pdf = tk.Button(self.pdf_select_frame, text="📁 Upload Chapter PDF...", font=("Segoe UI", 7, "bold"), fg="#38bdf8", bg="#1e293b", relief=tk.FLAT, bd=0, padx=8, pady=2, cursor="hand2", command=self._upload_textbook_pdf)
-        btn_upload_pdf.pack(anchor="w")
-
-        r2 = tk.Radiobutton(ctrl_frame, text="🏛️ Official CBSE Standard Curriculum Blueprint", variable=self.face_a_source_mode, value="cbse_curriculum", font=("Segoe UI", 8), fg="#cbd5e1", bg="#0e172a", selectcolor="#161f30", activebackground="#0e172a", activeforeground="#f8fafc", command=self._on_source_mode_changed)
-        r2.pack(anchor="w", pady=(1, 4))
-
-        # Divider
-        tk.Frame(ctrl_frame, bg="#334155", height=1).pack(fill=tk.X, pady=4)
-
-        # Subject Selector via ShinobiPillSelector
-        self.fa_subject_var = tk.StringVar(value="Mathematics")
-        self.fa_sub_pill = ShinobiPillSelector(
-            ctrl_frame,
-            title="CBSE SUBJECT",
-            values=["Mathematics", "Physical Science", "Biological Science", "Social Science", "English", "Tamil", "Hindi"],
-            initial_value="Mathematics",
-            textvariable=self.fa_subject_var,
-            title_color="#fb923c",
-            width=280,
-            height=38
-        )
-        self.fa_sub_pill.pack(fill=tk.X, pady=(1, 4))
-
-        tk.Label(ctrl_frame, text="Exam Title / Phase:", font=("Segoe UI", 8), fg="#cbd5e1", bg="#0e172a").pack(anchor="w")
-        self.fa_title_var = tk.StringVar(value="Phase 1: Weekly Sunday Examination - Week 3")
-        self.ent_fa_title = ttk.Entry(ctrl_frame, textvariable=self.fa_title_var, font=("Segoe UI", 8))
-        self.ent_fa_title.pack(fill=tk.X, pady=(1, 4))
-
-        # Marks and Time allowed row (with ShinobiPillSelectors)
-        row_params = tk.Frame(ctrl_frame, bg="#0e172a")
-        row_params.pack(fill=tk.X, pady=(1, 6))
-
-        self.fa_marks_var = tk.StringVar(value="35")
-        self.fa_marks_pill = ShinobiPillSelector(
-            row_params,
-            title="MAX MARKS",
-            values=["25", "35", "50", "80"],
-            initial_value="35",
-            textvariable=self.fa_marks_var,
-            title_color="#38bdf8",
-            width=120,
-            height=38
-        )
-        self.fa_marks_pill.pack(side=tk.LEFT, padx=(0, 6))
-
-        self.fa_time_var = tk.StringVar(value="1.5 Hours")
-        self.fa_time_pill = ShinobiPillSelector(
-            row_params,
-            title="TIME ALLOWED",
-            values=["45 Minutes", "1 Hour", "1.5 Hours", "2 Hours", "3 Hours"],
-            initial_value="1.5 Hours",
-            textvariable=self.fa_time_var,
-            title_color="#38bdf8",
-            width=135,
-            height=38
-        )
-        self.fa_time_pill.pack(side=tk.LEFT)
-
-        # Primary Action: Generate Question Paper
-        self.btn_generate_qp = tk.Button(
-            ctrl_frame,
-            text="⚡ GENERATE CBSE QUESTION PAPER",
-            font=("Segoe UI", 9, "bold"),
-            fg="#0f172a",
-            bg=self.colors.get("primary", "#f59e0b"),
-            activeforeground="#0f172a",
-            activebackground=self.colors.get("accent", "#d97706"),
-            relief=tk.FLAT,
-            bd=0,
-            padx=10,
-            pady=7,
-            cursor="hand2",
-            command=self._generate_question_paper_thread
-        )
-        self.btn_generate_qp.pack(fill=tk.X, pady=(3, 4))
-
-        # Status Label
-        self.lbl_fa_status = tk.Label(ctrl_frame, text="Ready to generate question paper.", font=("Segoe UI", 7), fg="#94a3b8", bg="#0e172a", wraplength=280)
-        self.lbl_fa_status.pack(fill=tk.X, pady=(0, 4))
-
-        # Right Column: Question Paper Preview & Print Studio
-        prev_frame = tk.Frame(pane, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=12, pady=8)
-        pane.add(prev_frame, minsize=420)
-
-        # Export & Print Toolbar
-        prev_tb = tk.Frame(prev_frame, bg="#0e172a")
-        prev_tb.pack(fill=tk.X, pady=(0, 6))
-
-        tk.Label(prev_tb, text="📄 QUESTION PAPER PREVIEW (PRINT STUDIO)", font=("Segoe UI", 9, "bold"), fg="#f8fafc", bg="#0e172a").pack(side=tk.LEFT)
-
-        btn_copy = tk.Button(prev_tb, text="📋 Copy", font=("Segoe UI", 7, "bold"), fg="#cbd5e1", bg="#1e293b", relief=tk.FLAT, bd=0, padx=6, pady=3, cursor="hand2", command=self._copy_question_paper_text)
-        btn_copy.pack(side=tk.RIGHT, padx=3)
-
-        btn_pdf = tk.Button(prev_tb, text="📄 Export PDF", font=("Segoe UI", 7, "bold"), fg="#ffffff", bg="#0284c7", activebackground="#0369a1", relief=tk.FLAT, bd=0, padx=6, pady=3, cursor="hand2", command=self._export_question_paper_pdf)
-        btn_pdf.pack(side=tk.RIGHT, padx=3)
-
-        btn_print = tk.Button(prev_tb, text="🖨️ Print / Web", font=("Segoe UI", 7, "bold"), fg="#0f172a", bg="#38bdf8", activebackground="#0284c7", relief=tk.FLAT, bd=0, padx=8, pady=3, cursor="hand2", command=self._print_question_paper_html)
-        btn_print.pack(side=tk.RIGHT, padx=3)
-
-        # Monospace Text Preview Area with Custom 6px Dark Scrollbar
-        text_container = tk.Frame(prev_frame, bg="#020617")
-        text_container.pack(fill=tk.BOTH, expand=True)
-
-        self.fa_text = tk.Text(
-            text_container,
-            wrap=tk.WORD,
-            bg="#020617",
-            fg="#f8fafc",
-            insertbackground="#f59e0b",
-            font=("Consolas", 9),
-            padx=12,
-            pady=12,
-            bd=0
-        )
-        self.fa_sb = CustomDarkScrollbar(text_container, target_widget=self.fa_text, width=6, bg="#0b1120", thumb_color="#334155")
-        self.fa_sb.pack(side=tk.RIGHT, fill=tk.Y)
-        self.fa_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        self._display_question_paper_placeholder()
-
-    def _on_source_mode_changed(self):
-        if self.face_a_source_mode.get() == "textbook_pdf":
-            self.pdf_select_frame.pack(fill=tk.X, pady=(2, 6))
-        else:
-            self.pdf_select_frame.pack_forget()
-
-    def _upload_textbook_pdf(self):
-        filepath = filedialog.askopenfilename(
-            title="Upload Textbook Chapter PDF",
-            filetypes=[("PDF Files", "*.pdf")]
-        )
-        if filepath:
-            fname = os.path.basename(filepath)
-            dest = os.path.join(TEXTBOOKS_PDF_DIR, fname)
-            try:
-                import shutil
-                shutil.copy2(filepath, dest)
-                files = [f for f in os.listdir(TEXTBOOKS_PDF_DIR) if f.lower().endswith(".pdf")]
-                if hasattr(self, "pdf_pill"):
-                    self.pdf_pill.values = files
-                    self.pdf_pill.set(fname)
-                self.selected_textbook_pdf_var.set(fname)
-                messagebox.showinfo("Uploaded", f"Uploaded textbook chapter PDF:\n{fname}")
-            except Exception as e:
-                messagebox.showerror("Upload Error", f"Failed to upload PDF: {e}")
 
     def _populate_face_a_with_spec(self, spec: Dict[str, Any]):
-        if hasattr(self, "fa_sub_pill"):
-            self.fa_sub_pill.set(spec.get("subject", "Mathematics"))
-            self.fa_subject_var.set(spec.get("subject", "Mathematics"))
-            self.fa_title_var.set(spec.get("exam_title", "CBSE Examination"))
-            self.fa_marks_pill.set(str(spec.get("max_marks", 35)))
-            self.fa_time_pill.set(spec.get("time_allowed", "1.5 Hours"))
-
-    def _display_question_paper_placeholder(self):
-        self.fa_text.delete("1.0", tk.END)
-        placeholder = (
-            "========================================================================================\n"
-            "                      SENTHIL PUBLIC SCHOOL, DHARMAPURI\n"
-            "                    HOST-CONDUCTED CBSE EVALUATION SYSTEM\n"
-            "========================================================================================\n\n"
-            "  [Question Paper Preview Area]\n\n"
-            "  1. Select Examination Phase in Tab 1, or configure parameters on the left.\n"
-            "  2. Choose whether to ground questions in a specific Textbook PDF or standard CBSE syllabus.\n"
-            "  3. Click '⚡ GENERATE CBSE QUESTION PAPER' to architect the paper.\n"
-            "  4. The generated paper adheres strictly to CBSE formatting:\n"
-            "     - Right-aligned mark indicators [1], [2], [3], [5]\n"
-            "     - Section A (MCQs / Competency), Section B (VSA), Section C (SA), Section D (LA), Section E\n"
-            "     - Step-wise marking rubrics embedded\n"
-            "     - Exportable to print-ready HTML and A4 PDF format.\n\n"
-            "========================================================================================\n"
-        )
-        self.fa_text.insert(tk.END, placeholder)
-
-    def _generate_question_paper_thread(self):
-        self.btn_generate_qp.configure(state=tk.DISABLED)
-        self.lbl_fa_status.configure(text="⏳ Generating CBSE Question Paper... Please wait.", fg="#f59e0b")
-
-        def run():
+        """Transfers assembled exam spec directly to clean HostExamFaceAView."""
+        if hasattr(self, "face_a_controller") and self.face_a_controller:
             try:
-                sub = self.fa_subject_var.get()
-                title = self.fa_title_var.get()
-                marks = int(self.fa_marks_var.get())
-                t_str = self.fa_time_var.get()
-                src_mode = self.face_a_source_mode.get()
-                pdf_name = self.selected_textbook_pdf_var.get() if src_mode == "textbook_pdf" and self.selected_textbook_pdf_var.get() != "No PDFs Uploaded" else None
-
-                spec = {
-                    "phase": "custom",
-                    "exam_title": title,
-                    "subject": sub,
-                    "class_standard": GeminiExamClient.load_config().get("class_level", "Class 8 CBSE"),
-                    "time_allowed": t_str,
-                    "max_marks": marks,
-                    "topics": [f"{sub} Core Concepts and Step Procedures"],
-                    "blueprint": {
-                        "sec_A": f"{max(2, marks // 8)} MCQs [1M each]",
-                        "sec_B": f"{max(2, marks // 10)} VSA [2M each]",
-                        "sec_C": f"{max(2, marks // 12)} SA [3M each]",
-                        "sec_D": f"{max(1, marks // 20)} LA [5M each]"
-                    }
-                }
-
-                qp = GeminiExamClient.generate_question_paper(spec, textbook_pdf_name=pdf_name)
-                self.active_question_paper = qp
-                self.active_exam_id = qp.get("exam_id", "")
-
-                self.parent.after(0, lambda: self._on_question_paper_generated(qp))
+                self.face_a_controller.load_assembled_spec(spec)
             except Exception as e:
-                self.parent.after(0, lambda: self._on_question_paper_error(str(e)))
-
-        threading.Thread(target=run, daemon=True).start()
-
-    def _on_question_paper_generated(self, qp: Dict[str, Any]):
-        self.btn_generate_qp.configure(state=tk.NORMAL)
-        self.lbl_fa_status.configure(text=f"✓ Generated: {qp.get('exam_id')} ({qp.get('source_grounding')})", fg="#34d399")
-
-        self.fa_text.delete("1.0", tk.END)
-        lines = []
-        hdr = qp.get("header_block", {})
-        lines.append(f"{hdr.get('institution', 'SENTHIL PUBLIC SCHOOL')}".center(88))
-        lines.append(f"{hdr.get('exam_title', 'CBSE EXAMINATION')}".center(88))
-        lines.append(f"{hdr.get('subject', 'SUBJECT')} • {hdr.get('class_standard', 'CLASS 8')} | Time: {hdr.get('time_allowed', '1.5 Hours')} | Max Marks: {hdr.get('max_marks', 35)}".center(88))
-        lines.append("-" * 88)
-        lines.append("GENERAL INSTRUCTIONS:")
-        for gi in qp.get("general_instructions", []):
-            lines.append(f"  • {gi}")
-        lines.append("-" * 88 + "\n")
-
-        for sec in qp.get("sections", []):
-            lines.append(f"{sec.get('section_name')}: {sec.get('title')}".center(88))
-            lines.append("=" * 88)
-            for q in sec.get("questions", []):
-                q_num = q.get("q_num", "Q")
-                marks = q.get("marks", 1)
-                m_str = f"[{marks}]"
-                q_text = q.get("question_text", "")
-                
-                prefix = f"{q_num:>4}.  "
-                lines.append(f"{prefix}{q_text:<68} {m_str:>8}")
-
-                if "options" in q and q["options"]:
-                    for opt in q["options"]:
-                        lines.append(f"       {opt}")
-
-                lines.append("")
-
-        self.fa_text.insert(tk.END, "\n".join(lines))
-
-    def _on_question_paper_error(self, err_msg: str):
-        self.btn_generate_qp.configure(state=tk.NORMAL)
-        self.lbl_fa_status.configure(text=f"Error: {err_msg}", fg="#f87171")
-        messagebox.showerror("Question Paper Generation Error", err_msg)
-
-    def _print_question_paper_html(self):
-        if not self.active_question_paper:
-            messagebox.showwarning("No Paper", "Please generate a question paper first.")
-            return
-        html_content = GeminiExamClient.render_question_paper_html(self.active_question_paper)
-        out_html_path = os.path.join(QUESTION_PAPERS_DIR, f"{self.active_exam_id}_print_preview.html")
-        with open(out_html_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
-        webbrowser.open(f"file:///{os.path.abspath(out_html_path).replace(os.sep, '/')}")
-
-    def _export_question_paper_pdf(self):
-        if not self.active_question_paper:
-            messagebox.showwarning("No Paper", "Please generate a question paper first.")
-            return
-        out_pdf = os.path.join(QUESTION_PAPERS_DIR, f"{self.active_exam_id}_QUESTION_PAPER.pdf")
-        try:
-            GeminiExamClient.render_question_paper_pdf(self.active_question_paper, out_pdf)
-            if os.path.exists(out_pdf):
-                messagebox.showinfo("PDF Exported", f"Question paper PDF successfully generated:\n{out_pdf}")
-                if sys.platform == "win32":
-                    os.startfile(out_pdf)
-        except Exception as e:
-            messagebox.showerror("PDF Export Error", f"Failed to generate PDF: {e}")
-
-    def _copy_question_paper_text(self):
-        txt = self.fa_text.get("1.0", tk.END).strip()
-        if txt:
-            self.parent.clipboard_clear()
-            self.parent.clipboard_append(txt)
-            messagebox.showinfo("Copied", "Question paper text copied to clipboard!")
+                print(f"[HostExamTabController] Warning passing spec to Face A: {e}")
 
     # ==========================================
-    # SUB-VIEW 3: FACE B - ANSWER SHEET EVALUATOR
+    # SUB-VIEW 5: FACE B - ANSWER SHEET EVALUATOR
     # ==========================================
     def _render_subview_face_b(self, parent):
-        pane = tk.PanedWindow(parent, orient=tk.HORIZONTAL, bg=self.colors.get("bg", "#0a0e17"), sashrelief=tk.FLAT)
-        pane.pack(fill=tk.BOTH, expand=True)
-
-        # Left Column: Upload & Input with geometry lock
-        in_frame = tk.Frame(pane, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=12, pady=6)
-        pane.add(in_frame, minsize=320, width=350)
-
-        lbl_hdr = tk.Label(in_frame, text="🔍 ANSWER SHEET EVALUATOR (FACE B)", font=("Segoe UI", 10, "bold"), fg=self.colors.get("primary", "#f59e0b"), bg="#0e172a")
-        lbl_hdr.pack(anchor="w", pady=(0, 4))
-
-        # Select Question Paper to Evaluate via ShinobiPillSelector
-        files = [f for f in os.listdir(QUESTION_PAPERS_DIR) if f.endswith(".json")]
-        ids = [f.replace(".json", "") for f in files]
-        init_id = self.active_exam_id if (self.active_exam_id and self.active_exam_id in ids) else (ids[0] if ids else "Select Question Paper")
-        self.fb_exam_id_var = tk.StringVar(value=init_id)
-        self.fb_exam_pill = ShinobiPillSelector(
-            in_frame,
-            title="EXAM BLUEPRINT TO GRADE",
-            values=ids if ids else ["No Papers Generated Yet"],
-            initial_value=init_id,
-            textvariable=self.fb_exam_id_var,
-            title_color="#38bdf8",
-            width=290,
-            height=38
-        )
-        self.fb_exam_pill.pack(fill=tk.X, pady=(1, 4))
-
-        # AI Engine / Model Selector via ShinobiPillSelector
-        self.model_pill = ShinobiPillSelector(
-            in_frame,
-            title="EVALUATION AI MODEL",
-            values=["gemini-2.5-flash", "gemini-2.5-pro", "cbse-offline-deterministic"],
-            initial_value="gemini-2.5-flash",
-            textvariable=self.active_model_var,
-            title_color="#34d399",
-            width=290,
-            height=38
-        )
-        self.model_pill.pack(fill=tk.X, pady=(1, 5))
-
-        # Upload Answer Sheet scans / photos
-        tk.Label(in_frame, text="Upload Handwritten Answer Sheet Photos / PDF:", font=("Segoe UI", 8), fg="#cbd5e1", bg="#0e172a").pack(anchor="w")
-        btn_upload_as = tk.Button(in_frame, text="📁 Browse Answer Sheet Images / PDF...", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#1e293b", relief=tk.FLAT, bd=0, padx=8, pady=3, cursor="hand2", command=self._upload_answer_sheets)
-        btn_upload_as.pack(fill=tk.X, pady=(1, 4))
-
-        self.lbl_as_uploaded_status = tk.Label(in_frame, text="No scan uploaded yet.", font=("Segoe UI", 7), fg="#94a3b8", bg="#0e172a", wraplength=300)
-        self.lbl_as_uploaded_status.pack(fill=tk.X, pady=(0, 4))
-
-        # Alternative Text / Quick Input Area with Custom Dark Scrollbar
-        tk.Label(in_frame, text="Or Paste Answer Transcription / Test Text:", font=("Segoe UI", 8), fg="#cbd5e1", bg="#0e172a").pack(anchor="w")
-        fb_txt_wrap = tk.Frame(in_frame, bg="#020617", height=65)
-        fb_txt_wrap.pack(fill=tk.X, expand=False, pady=(1, 5))
-        fb_txt_wrap.pack_propagate(False)
-
-        self.fb_input_text = tk.Text(fb_txt_wrap, height=3, bg="#020617", fg="#f8fafc", font=("Consolas", 8), insertbackground="#f59e0b", padx=6, pady=4, bd=0)
-        self.fb_in_sb = CustomDarkScrollbar(fb_txt_wrap, target_widget=self.fb_input_text, width=6, bg="#0b1120", thumb_color="#334155")
-        self.fb_in_sb.pack(side=tk.RIGHT, fill=tk.Y)
-        self.fb_input_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        self.fb_input_text.insert(tk.END, "Sample Student Answers:\n1. (b) 25\n2. (a) Photosynthesis\n3. Area of trapezium = 1/2 * (a + b) * h\n   Area = 1/2 * (10 + 20) * 8 = 120 cm^2")
-
-        # Evaluate Button
-        self.btn_evaluate = tk.Button(
-            in_frame,
-            text="🔴 EVALUATE WITH CBSE STEP-MARKING",
-            font=("Segoe UI", 9, "bold"),
-            fg="#ffffff",
-            bg="#b91c1c",
-            activeforeground="#ffffff",
-            activebackground="#991b1b",
-            relief=tk.FLAT,
-            bd=0,
-            padx=10,
-            pady=7,
-            cursor="hand2",
-            command=self._evaluate_answer_sheet_thread
-        )
-        self.btn_evaluate.pack(fill=tk.X, pady=(3, 3))
-
-        self.lbl_eval_status = tk.Label(in_frame, text="Ready to evaluate answer sheet.", font=("Segoe UI", 7), fg="#94a3b8", bg="#0e172a")
-        self.lbl_eval_status.pack(fill=tk.X)
-
-        # Right Column: Corrected Soft Copy Viewer
-        eval_view_frame = tk.Frame(pane, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=12, pady=8)
-        pane.add(eval_view_frame, minsize=420)
-
-        # Toolbar above evaluation
-        eval_tb = tk.Frame(eval_view_frame, bg="#0e172a")
-        eval_tb.pack(fill=tk.X, pady=(0, 6))
-
-        tk.Label(eval_tb, text="📝 CORRECTED SOFT COPY & RED-INK ANNOTATIONS", font=("Segoe UI", 9, "bold"), fg="#f8fafc", bg="#0e172a").pack(side=tk.LEFT)
-
-        btn_eval_pdf = tk.Button(eval_tb, text="📄 Export Graded PDF", font=("Segoe UI", 7, "bold"), fg="#ffffff", bg="#0284c7", activebackground="#0369a1", relief=tk.FLAT, bd=0, padx=6, pady=3, cursor="hand2", command=self._export_corrected_copy_pdf)
-        btn_eval_pdf.pack(side=tk.RIGHT, padx=3)
-
-        btn_eval_print = tk.Button(eval_tb, text="🖨️ View Soft Copy (HTML)", font=("Segoe UI", 7, "bold"), fg="#0f172a", bg="#38bdf8", activebackground="#0284c7", relief=tk.FLAT, bd=0, padx=8, pady=3, cursor="hand2", command=self._print_corrected_copy_html)
-        btn_eval_print.pack(side=tk.RIGHT, padx=3)
-
-        # Scorecard Banner Frame (rounded dark-glass style)
-        self.scorecard_frame = tk.Frame(eval_view_frame, bg="#161f30", bd=1, relief=tk.SOLID, highlightbackground="#38bdf8", highlightthickness=1, padx=10, pady=8)
-        self.scorecard_frame.pack(fill=tk.X, pady=(0, 8))
-
-        self.lbl_score_summary = tk.Label(
-            self.scorecard_frame,
-            text="SCORE: -- / -- (0%) • GRADE: -- • AUDIT: Awaiting Answer Sheet Evaluation",
-            font=("Segoe UI", 9, "bold"),
-            fg="#f59e0b",
-            bg="#161f30"
-        )
-        self.lbl_score_summary.pack(anchor="w")
-
-        self.lbl_daydreaming_verdict = tk.Label(
-            self.scorecard_frame,
-            text="Anti-Daydreaming Verdict: Upload answer sheet to verify genuine retention vs superficial study.",
-            font=("Segoe UI", 8),
-            fg="#cbd5e1",
-            bg="#161f30"
-        )
-        self.lbl_daydreaming_verdict.pack(anchor="w", pady=(2, 0))
-
-        # Text View for Evaluation Breakdown with custom 6px dark scrollbar
-        text_container = tk.Frame(eval_view_frame, bg="#020617")
-        text_container.pack(fill=tk.BOTH, expand=True)
-
-        self.fb_eval_text = tk.Text(
-            text_container,
-            wrap=tk.WORD,
-            bg="#020617",
-            fg="#f8fafc",
-            font=("Consolas", 9),
-            padx=12,
-            pady=12,
-            bd=0
-        )
-        self.fb_eval_sb = CustomDarkScrollbar(text_container, target_widget=self.fb_eval_text, width=6, bg="#0b1120", thumb_color="#334155")
-        self.fb_eval_sb.pack(side=tk.RIGHT, fill=tk.Y)
-        self.fb_eval_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        self.fb_eval_text.insert(tk.END, "Evaluation results, step-wise marks deductions, and red-ink teacher notes will appear here.")
-
-    def _upload_answer_sheets(self):
-        files = filedialog.askopenfilenames(
-            title="Select Tharun's Handwritten Answer Sheet Scans / Images / PDF",
-            filetypes=[("Image & PDF Files", "*.jpg;*.jpeg;*.png;*.pdf"), ("All Files", "*.*")]
-        )
-        if files:
-            saved_paths = []
-            import shutil
-            for f in files:
-                fname = os.path.basename(f)
-                dest = os.path.join(ANSWER_SHEETS_DIR, fname)
-                shutil.copy2(f, dest)
-                saved_paths.append(dest)
-            self.uploaded_answer_files = saved_paths
-            self.lbl_as_uploaded_status.configure(text=f"✓ Uploaded {len(saved_paths)} answer sheet file(s).", fg="#34d399")
-            messagebox.showinfo("Uploaded", f"Uploaded {len(saved_paths)} answer sheet files to Answer Sheets vault.")
-
-    def _evaluate_answer_sheet_thread(self):
-        exam_id = self.fb_exam_id_var.get()
-        if not exam_id or exam_id == "Select Question Paper" or exam_id == "No Papers Generated Yet":
-            messagebox.showwarning("Select Exam", "Please select a generated question paper to evaluate against.")
-            return
-
-        self.btn_evaluate.configure(state=tk.DISABLED)
-        self.lbl_eval_status.configure(text="⏳ Evaluating answer sheet with CBSE step-marking rubrics...", fg="#f59e0b")
-
-        def run():
-            try:
-                files_to_eval = list(self.uploaded_answer_files)
-                if not files_to_eval:
-                    txt = self.fb_input_text.get("1.0", tk.END).strip()
-                    temp_f = os.path.join(ANSWER_SHEETS_DIR, f"{exam_id}_student_answers_transcript.txt")
-                    with open(temp_f, "w", encoding="utf-8") as f:
-                        f.write(txt)
-                    files_to_eval = [temp_f]
-
-                res = GeminiExamClient.evaluate_answer_sheet(exam_id, files_to_eval)
-                self.active_evaluation = res
-
-                self.parent.after(0, lambda: self._on_evaluation_complete(res))
-            except Exception as e:
-                self.parent.after(0, lambda: self._on_evaluation_error(str(e)))
-
-        threading.Thread(target=run, daemon=True).start()
-
-    def _on_evaluation_complete(self, eval_data: Dict[str, Any]):
-        self.btn_evaluate.configure(state=tk.NORMAL)
-        self.lbl_eval_status.configure(text="✓ Answer sheet evaluated successfully!", fg="#34d399")
-
-        scored = eval_data.get("marks_scored", 0)
-        total = eval_data.get("max_marks", 35)
-        pct = eval_data.get("percentage", 0)
-        grade = eval_data.get("cbse_grade", "B1")
-        audit = eval_data.get("daydreaming_audit", {})
-        verdict = audit.get("verdict", "VERIFIED")
-
-        self.lbl_score_summary.configure(
-            text=f"SCORE: {scored} / {total} ({pct:.1f}%) • GRADE: {grade} • AUDIT: {verdict}",
-            fg="#10b981" if pct >= 60 else "#f87171"
-        )
-        self.lbl_daydreaming_verdict.configure(
-            text=f"Audit Summary: {audit.get('summary', '')}"
-        )
-
-        lines = []
-        lines.append("=" * 88)
-        lines.append("                       CBSE TEACHER STEP-WISE MARKING REPORT")
-        lines.append(f" Student: {eval_data.get('student_name', 'Tharun')} | Class: {eval_data.get('class_standard', 'Class 8 CBSE')} | Exam ID: {eval_data.get('exam_id')}")
-        lines.append("=" * 88 + "\n")
-
-        for q in eval_data.get("question_evaluations", []):
-            lines.append(f"QUESTION {q.get('q_num')}: {q.get('question_text')}")
-            lines.append(f"Marks Awarded: {q.get('marks_awarded')} / {q.get('max_marks')}")
-            lines.append(f"Student Answer: {q.get('student_transcription')}")
-            lines.append(f"Expected Answer: {q.get('expected_solution')}")
-            lines.append("Step-Wise Breakdown:")
-            for sb in q.get("step_breakdown", []):
-                lines.append(f"  • {sb}")
-            lines.append(f"Red-Ink Teacher Notes: {q.get('red_ink_annotations')}")
-            lines.append("-" * 88 + "\n")
-
-        self.fb_eval_text.delete("1.0", tk.END)
-        self.fb_eval_text.insert(tk.END, "\n".join(lines))
-
-        self._render_score_history_strip()
-        self._render_p1_week_cards()
-
-    def _on_evaluation_error(self, err_msg: str):
-        self.btn_evaluate.configure(state=tk.NORMAL)
-        self.lbl_eval_status.configure(text=f"Error: {err_msg}", fg="#f87171")
-        messagebox.showerror("Evaluation Error", err_msg)
-
-    def _print_corrected_copy_html(self):
-        if not self.active_evaluation:
-            messagebox.showwarning("No Evaluation", "Please evaluate an answer sheet first.")
-            return
-        html_content = GeminiExamClient.render_corrected_copy_html(self.active_evaluation)
-        exam_id = self.active_evaluation.get("exam_id", "EXAM")
-        out_html = os.path.join(CORRECTED_COPIES_DIR, f"{exam_id}_CORRECTED_COPY.html")
-        with open(out_html, "w", encoding="utf-8") as f:
-            f.write(html_content)
-        webbrowser.open(f"file:///{os.path.abspath(out_html).replace(os.sep, '/')}")
-
-    def _export_corrected_copy_pdf(self):
-        if not self.active_evaluation:
-            messagebox.showwarning("No Evaluation", "Please evaluate an answer sheet first.")
-            return
-        exam_id = self.active_evaluation.get("exam_id", "EXAM")
-        out_pdf = os.path.join(CORRECTED_COPIES_DIR, f"{exam_id}_GRADED_CORRECTED_COPY.pdf")
-        try:
-            GeminiExamClient.render_corrected_copy_pdf(self.active_evaluation, out_pdf)
-            if os.path.exists(out_pdf):
-                messagebox.showinfo("PDF Exported", f"Corrected copy PDF generated:\n{out_pdf}")
-                if sys.platform == "win32":
-                    os.startfile(out_pdf)
-        except Exception as e:
-            messagebox.showerror("PDF Error", f"Failed to generate corrected PDF: {e}")
+        """Cleanly renders Face B using our verified HostExamFaceBView module."""
+        from host_exam_face_b_ui_v3 import HostExamFaceBView
+        face_b_controller = HostExamFaceBView(parent, self)
+        face_b_controller.build_ui()
+        self.face_b_controller = face_b_controller
 
     # ==========================================
-    # SUB-VIEW 4: CBSE TOPPER MODEL ANSWER GUIDE
+    # SUB-VIEW 6: CBSE TOPPER MODEL ANSWER GUIDE
     # ==========================================
     def _render_subview_topper(self, parent):
-        top_bar = tk.Frame(parent, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=12, pady=10)
-        top_bar.pack(fill=tk.X, pady=(0, 6))
-
-        tk.Label(
-            top_bar,
-            text="⭐ HOW THARUN ANSWERED VS. HOW TO ANSWER FOR MAXIMUM MARKS",
-            font=("Segoe UI", 10, "bold"),
-            fg=self.colors.get("primary", "#f59e0b"),
-            bg="#0e172a"
-        ).pack(side=tk.LEFT)
-
-        btn_binder_pdf = tk.Button(
-            top_bar,
-            text="🖨️ Export Complete Exam & Topper Binder PDF",
-            font=("Segoe UI", 8, "bold"),
-            fg="#1c1104",
-            bg="#f59e0b",
-            activebackground="#fbbf24",
-            activeforeground="#1c1104",
-            relief=tk.FLAT,
-            bd=0,
-            padx=10,
-            pady=4,
-            cursor="hand2",
-            command=self._export_unified_binder_pdf
-        )
-        btn_binder_pdf.pack(side=tk.RIGHT, padx=5)
-
-        btn_top_pdf = tk.Button(top_bar, text="📄 Export Topper Guide (PDF)", font=("Segoe UI", 8, "bold"), fg="#ffffff", bg="#0284c7", activebackground="#0369a1", relief=tk.FLAT, bd=0, padx=8, pady=3, cursor="hand2", command=self._export_topper_guide_pdf)
-        btn_top_pdf.pack(side=tk.RIGHT, padx=3)
-
-        btn_top_html = tk.Button(top_bar, text="🖨️ View Guide (HTML Print)", font=("Segoe UI", 8, "bold"), fg="#0f172a", bg="#38bdf8", activebackground="#0284c7", relief=tk.FLAT, bd=0, padx=8, pady=3, cursor="hand2", command=self._print_topper_guide_html)
-        btn_top_html.pack(side=tk.RIGHT, padx=3)
-
-        # Instructions Banner: 3D Parchment Scroll Banner via ShinobiGraphicsEngine
-        self._create_scroll_banner(
-            parent,
-            title="CBSE TOPPER P-E-E-D PROTOCOL: POINT • EXPLAIN • EVIDENCE/FORMULA • DIAGRAM/STEP",
-            subtitle="Underline required keywords in blue/pencil for 100% full marks.",
-            height=42
-        )
-
-        # Scrollable comparison container with custom 6px dark scrollbar
-        container = tk.Frame(parent, bg="#020617")
-        container.pack(fill=tk.BOTH, expand=True)
-
-        self.topper_text = tk.Text(
-            container,
-            wrap=tk.WORD,
-            bg="#020617",
-            fg="#f8fafc",
-            font=("Consolas", 9),
-            padx=14,
-            pady=14,
-            bd=0
-        )
-        self.topper_sb = CustomDarkScrollbar(container, target_widget=self.topper_text, width=6, bg="#0b1120", thumb_color="#334155")
-        self.topper_sb.pack(side=tk.RIGHT, fill=tk.Y)
-        self.topper_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        self._render_topper_comparison_text()
-
-    def _render_topper_comparison_text(self):
-        self.topper_text.delete("1.0", tk.END)
-
-        if not self.active_evaluation:
-            placeholder = (
-                "========================================================================================\n"
-                "           CBSE TOPPER ANSWER STRUCTURING & MAXIMUM MARKS REFERENCE GUIDE\n"
-                "========================================================================================\n\n"
-                "  This view compares Tharun's exact written answer against a 100/100 CBSE Topper model.\n\n"
-                "  To populate this guide:\n"
-                "  1. Generate a question paper in Face A.\n"
-                "  2. Evaluate Tharun's answer sheet in Face B.\n"
-                "  3. Switch back here to inspect side-by-side answering improvements, including:\n"
-                "     - Keywords that must be underlined in blue/pencil\n"
-                "     - Correct formula box presentation\n"
-                "     - P-E-E-D (Point, Explain, Evidence/Formula, Diagram) protocol\n"
-                "     - Specific conceptual slips where marks were dropped\n\n"
-                "========================================================================================\n"
-            )
-            self.topper_text.insert(tk.END, placeholder)
-            return
-
-        lines = []
-        eval_data = self.active_evaluation
-        lines.append("=" * 88)
-        lines.append(f" HOW THARUN ANSWERED VS. CBSE TOPPER MODEL ANSWER - {eval_data.get('student_name', 'Tharun')}")
-        lines.append(f" Class: {eval_data.get('class_standard', 'Class 8 CBSE')} | Subject: {eval_data.get('subject', 'Mathematics')}")
-        lines.append("=" * 88 + "\n")
-
-        for q in eval_data.get("question_evaluations", []):
-            comp = q.get("topper_comparison", {})
-            kws = ", ".join(comp.get("keywords_to_underline", []))
-
-            lines.append(f"QUESTION {q.get('q_num')}: {q.get('question_text')}")
-            lines.append("-" * 88)
-            lines.append(f"[THARUN'S WRITTEN ANSWER]")
-            lines.append(f"  \"{q.get('student_transcription')}\"")
-            lines.append(f"  Daydreaming/Omission Slip: {comp.get('tharun_weakness')}\n")
-
-            lines.append(f"[CBSE TOPPER MODEL ANSWER (100% MARKS)]")
-            lines.append(f"  {comp.get('topper_model_answer')}")
-            lines.append(f"  Keywords to Underline: [{kws}]")
-            lines.append(f"  Presentation Tip: Box final numerical answer with SI unit. Write distinct numbered points.")
-            lines.append("=" * 88 + "\n")
-
-        self.topper_text.insert(tk.END, "\n".join(lines))
-
-    def _print_topper_guide_html(self):
-        if not self.active_evaluation:
-            messagebox.showwarning("No Data", "Please evaluate an answer sheet first to generate model answer comparisons.")
-            return
-        html_content = GeminiExamClient.render_model_answer_guide_html(self.active_evaluation)
-        exam_id = self.active_evaluation.get("exam_id", "EXAM")
-        out_html = os.path.join(MODEL_ANSWERS_DIR, f"{exam_id}_TOPPER_MODEL_GUIDE.html")
-        with open(out_html, "w", encoding="utf-8") as f:
-            f.write(html_content)
-        webbrowser.open(f"file:///{os.path.abspath(out_html).replace(os.sep, '/')}")
-
-    def _export_topper_guide_pdf(self):
-        if not self.active_evaluation:
-            messagebox.showwarning("No Data", "Please evaluate an answer sheet first to generate model answer comparisons.")
-            return
-        exam_id = self.active_evaluation.get("exam_id", "EXAM")
-        out_pdf = os.path.join(MODEL_ANSWERS_DIR, f"{exam_id}_TOPPER_MODEL_GUIDE.pdf")
-        try:
-            GeminiExamClient.render_model_answer_guide_pdf(self.active_evaluation, out_pdf)
-            if os.path.exists(out_pdf):
-                messagebox.showinfo("PDF Exported", f"Topper model answer guide PDF generated:\n{out_pdf}")
-                if sys.platform == "win32":
-                    os.startfile(out_pdf)
-        except Exception as e:
-            messagebox.showerror("PDF Error", f"Failed to generate Topper guide PDF: {e}")
-
-    def _export_unified_binder_pdf(self):
-        if not self.active_evaluation:
-            messagebox.showwarning("No Data", "Please evaluate an answer sheet first in Face B to generate the complete binder PDF.")
-            return
-        exam_id = self.active_evaluation.get("exam_id", "EXAM")
-        out_pdf = os.path.join(MODEL_ANSWERS_DIR, f"{exam_id}_COMPLETE_PHYSICAL_BINDER.pdf")
-        try:
-            GeminiExamClient.render_unified_binder_pdf(self.active_evaluation, out_pdf)
-            if os.path.exists(out_pdf):
-                messagebox.showinfo(
-                    "Physical Binder Generated",
-                    f"✓ 1-Click Complete Exam & Topper Binder PDF exported successfully!\n\n"
-                    f"Contains:\n"
-                    f"• Part 1: Evaluated Scorecard & Red-Ink Corrected Answer Script\n"
-                    f"• Part 2: Side-by-Side Comparison vs. CBSE 100/100 Topper\n"
-                    f"• Part 3: P-E-E-D Structure Protocol & Mandatory Keywords Checklist\n\n"
-                    f"File: {out_pdf}"
-                )
-                if sys.platform == "win32":
-                    os.startfile(out_pdf)
-        except Exception as e:
-            messagebox.showerror("Binder PDF Error", f"Failed to generate Complete Binder PDF: {e}")
+        from host_exam_topper_ui_v3 import HostExamTopperView
+        topper_controller = HostExamTopperView(parent, self)
+        topper_controller.build_ui()
+        self.topper_controller = topper_controller

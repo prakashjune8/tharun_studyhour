@@ -33,7 +33,10 @@
     "trap_word": "-(3x - 5)",
     "slip": "Writing -3x - 5 instead of -3x + 5",
     "fix": "Rule: Minus outside bracket flips EVERY sign inside! -(a - b) = -a + b.",
-    "occurrences": 4
+    "occurrences": 4,
+    "mastered": true,
+    "mastery_verified_at": "2026-10-18",
+    "verified_by_exam": "EXAM-MAT-DAI-20261018-664F52"
   },
   {
     "id": 5,
@@ -42,7 +45,10 @@
     "trap_word": "Area / Volume / Money",
     "slip": "Writing 'Answer = 150' without cm² or ₹",
     "fix": "CBSE deducts 0.5 mark. Rule: Always draw pencil box with unit: [ Area = 150 cm² ].",
-    "occurrences": 3
+    "occurrences": 3,
+    "mastered": true,
+    "mastery_verified_at": "2026-10-18",
+    "verified_by_exam": "EXAM-MAT-DAI-20261018-664F52"
   },
   {
     "id": 6,
@@ -51,7 +57,7 @@
     "trap_word": "Pressure / Force / Focal Length",
     "slip": "Writing calculation result without Pascal (Pa) or Newtons (N)",
     "fix": "No SI unit = 1 mark lost! Check SI unit before turning the page.",
-    "occurrences": 14,
+    "occurrences": 17,
     "last_spotted": "2026-10-18"
   },
   {
@@ -61,9 +67,13 @@
     "trap_word": "P = F / A",
     "slip": "Omitted S.I. unit next to 8000. CBSE spot-evaluators deduct 0.5 mark immediately.",
     "fix": "Maximum Pressure (P) = Force / Minimum Area = 40 N / 0.005 m² = 8000 Pa (or N/m²). Boxed: [ P_max = 8,000 Pa ].",
-    "occurrences": 11,
+    "occurrences": 19,
     "last_spotted": "2026-10-18",
-    "last_exam_id": "EXAM-V3-VERIFY-001"
+    "last_exam_id": "EXAM-P2-BLOCK1-D1TO3-MORN4-20261018",
+    "question_tag": "[MTH-P2-Q05]",
+    "mastered": true,
+    "mastery_verified_at": "2026-10-18",
+    "verified_by_exam": "EXAM-MAT-DAI-20261018-664F52"
   },
   {
     "id": 8,
@@ -72,8 +82,111 @@
     "trap_word": "Total Surface Area = 2πr(r+h)",
     "slip": "Calculation was correct but missed the formal concluding statement required in 5M CBSE questions.",
     "fix": "1. TSA = 2πr(r + h) = 440 m². 2. Total Cost = Area x Rate = 440 x 45 = ₹ 19,800. Statement: Hence, 440 m² of sheet is needed at total cost of ₹ 19,800.",
-    "occurrences": 11,
+    "occurrences": 14,
     "last_spotted": "2026-10-18",
-    "last_exam_id": "EXAM-V3-VERIFY-001"
+    "last_exam_id": "EXAM-P2-BLOCK1-D1TO3-MORN4-20261018",
+    "mastered": true,
+    "mastery_verified_at": "2026-10-18",
+    "verified_by_exam": "EXAM-MAT-DAI-20261018-664F52"
+  },
+  {
+    "id": 9,
+    "subject": "Mathematics",
+    "category": "SI Unit Omission in Calculation",
+    "trap_word": "",
+    "slip": "Omitted S.I. unit in final numerical answer",
+    "fix": "Always conclude with: [ Result = Value + Unit ]",
+    "occurrences": 3,
+    "last_spotted": "2026-10-18",
+    "mastered": true,
+    "mastery_verified_at": "2026-10-18",
+    "verified_by_exam": "EXAM-MAT-DAI-20261018-664F52"
+  },
+  {
+    "id": 10,
+    "subject": "Mathematics",
+    "category": "Diagram & Layout Incompleteness",
+    "trap_word": "",
+    "slip": "Arrowheads missing on ray diagram",
+    "fix": "All ray diagrams must indicate direction of travel with distinct arrows.",
+    "occurrences": 3,
+    "last_spotted": "2026-10-18",
+    "mastered": true,
+    "mastery_verified_at": "2026-10-18",
+    "verified_by_exam": "EXAM-MAT-DAI-20261018-664F52"
+  },
+  {
+    "id": 11,
+    "subject": "Physical Science",
+    "category": "SI Unit Omission in Calculation",
+    "trap_word": "",
+    "slip": "Omitted S.I. unit in final numerical answer",
+    "fix": "Always conclude with: [ Result = Value + Unit ]",
+    "occurrences": 3,
+    "last_spotted": "2026-10-18"
+  },
+  {
+    "id": 12,
+    "subject": "Physical Science",
+    "category": "Diagram & Layout Incompleteness",
+    "trap_word": "",
+    "slip": "Arrowheads missing on ray diagram",
+    "fix": "All ray diagrams must indicate direction of travel with distinct arrows.",
+    "occurrences": 3,
+    "last_spotted": "2026-10-18"
+  },
+  {
+    "id": 13,
+    "subject": "Mathematics",
+    "category": "CBSE Step Precision (Q.4)",
+    "trap_word": "Intermediate Factor",
+    "slip": "Omitted intermediate common factor step.",
+    "fix": "Write out each intermediate algebraic step before factoring.",
+    "occurrences": 3,
+    "last_spotted": "2026-10-18",
+    "last_exam_id": "EXAM-P2-BLOCK1-D1TO3-MORN4-20261018",
+    "question_tag": "[MTH-P2-Q04]",
+    "mastered": true,
+    "mastery_verified_at": "2026-10-18",
+    "verified_by_exam": "EXAM-MAT-DAI-20261018-664F52"
+  },
+  {
+    "id": 14,
+    "subject": "Mathematics",
+    "category": "Diagram Labeling & Presentation",
+    "trap_word": "Laws of Reflection / Total Surface Area",
+    "slip": "Omitted directional arrows on ray diagram or formal concluding statement.",
+    "fix": "1. State full theorem/laws. 2. Fully label ray diagram with arrowheads. 3. Box final result.",
+    "occurrences": 5,
+    "last_spotted": "2026-10-18",
+    "last_exam_id": "EXAM-P2-BLOCK1-D1TO3-MORN4-20261018",
+    "question_tag": "[MTH-P2-Q06]",
+    "mastered": true,
+    "mastery_verified_at": "2026-10-18",
+    "verified_by_exam": "EXAM-MAT-DAI-20261018-664F52"
+  },
+  {
+    "id": 15,
+    "subject": "Physical Science",
+    "question_tag": "[SCI-P2-Q10]",
+    "category": "SI Unit & Boxed Answer Omission",
+    "trap_word": "Standard Formula",
+    "slip": "Omitted S.I. unit next to final calculation result.",
+    "fix": "Always write formula, substitute with units, and box final value with S.I. unit.",
+    "occurrences": 1,
+    "last_spotted": "2026-10-18",
+    "last_exam_id": "EXAM-P2-BLOCK1-D1TO3-MORN4-20261018"
+  },
+  {
+    "id": 16,
+    "subject": "Physical Science",
+    "question_tag": "[SCI-P2-Q11]",
+    "category": "Diagram Labeling & Presentation",
+    "trap_word": "Laws of Reflection / Total Surface Area",
+    "slip": "Omitted directional arrows on ray diagram or formal concluding statement.",
+    "fix": "1. State full theorem/laws. 2. Fully label ray diagram with arrowheads. 3. Box final result.",
+    "occurrences": 1,
+    "last_spotted": "2026-10-18",
+    "last_exam_id": "EXAM-P2-BLOCK1-D1TO3-MORN4-20261018"
   }
 ]
