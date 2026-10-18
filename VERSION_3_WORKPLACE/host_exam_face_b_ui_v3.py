@@ -14,6 +14,7 @@ Features:
 import os
 import sys
 import json
+import queue
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
@@ -23,6 +24,47 @@ from typing import Dict, Any, List, Optional
 sys.stdout.reconfigure(encoding="utf-8")
 
 from exam_vision_ocr_engine_v3 import VisionOCREngineV3, QUESTION_PAPERS_DIR, ANSWER_SHEETS_DIR
+
+_MAIN_THREAD_ID = threading.get_ident()
+_UI_CALLBACK_QUEUE = queue.Queue()
+
+
+def _enable_thread_safe_after(root):
+    """Ensures root.after can be called safely from background threads in Python 3.12+ / 3.14+."""
+    if getattr(root, "_thread_safe_after_enabled", False):
+        return
+    root._thread_safe_after_enabled = True
+    orig_after = root.after
+
+    def safe_after(ms, func=None, *args):
+        if threading.get_ident() == _MAIN_THREAD_ID:
+            return orig_after(ms, func, *args)
+        else:
+            if func is not None:
+                _UI_CALLBACK_QUEUE.put(lambda: func(*args))
+            return None
+
+    root.after = safe_after
+
+    def _drain_queue():
+        try:
+            while True:
+                cb = _UI_CALLBACK_QUEUE.get_nowait()
+                try:
+                    cb()
+                except Exception as ex:
+                    print(f"[UI Queue Dispatcher] Callback notice: {ex}")
+        except queue.Empty:
+            pass
+        try:
+            orig_after(30, _drain_queue)
+        except Exception:
+            pass
+
+    try:
+        orig_after(30, _drain_queue)
+    except Exception:
+        pass
 
 
 class CustomDarkScrollbar(tk.Canvas):
@@ -105,6 +147,20 @@ class HostExamFaceBView:
         self.ocr_mode_var = tk.StringVar(value="gemini_vision")
         self.active_extraction: Optional[Dict[str, Any]] = None
         self.suppress_modal = False
+        self.root = self.parent.winfo_toplevel()
+        _enable_thread_safe_after(self.root)
+
+        class ExamEngineAdapter:
+            @staticmethod
+            def evaluate_answer_sheet(exam_id: str, *args, **kwargs):
+                from exam_evaluator_v3 import CBSEEvaluatorV3
+                return CBSEEvaluatorV3.evaluate_exam(exam_id)
+
+        self.exam_engine = ExamEngineAdapter()
+
+    def switch_subview(self, target_alias: str, **kwargs):
+        if hasattr(self.controller, "switch_subview"):
+            return self.controller.switch_subview(target_alias, **kwargs)
 
     def build_ui(self):
         """Constructs the responsive two-column Face B workspace."""
@@ -315,9 +371,9 @@ class HostExamFaceBView:
         studio_bar = tk.Frame(right_col, bg="#161f30", padx=12, pady=6)
         studio_bar.pack(fill=tk.X)
 
-        tk.Button(
+        self.btn_run_eval = tk.Button(
             studio_bar,
-            text="Proceed to Step 7: CBSE AI Grading ➔",
+            text="✅ RUN GEMINI CBSE EVALUATION",
             font=("Segoe UI", 8, "bold"),
             fg="#ffffff",
             bg="#0284c7",
@@ -326,8 +382,9 @@ class HostExamFaceBView:
             padx=10,
             pady=3,
             cursor="hand2",
-            command=self._on_proceed_to_step7
-        ).pack(side=tk.RIGHT)
+            command=self.trigger_face_b_eval
+        )
+        self.btn_run_eval.pack(side=tk.RIGHT)
 
         tk.Label(
             studio_bar,
@@ -664,21 +721,26 @@ class HostExamFaceBView:
                 justify=tk.LEFT
             ).pack(anchor="w")
 
-    def _on_proceed_to_step7(self):
-        """Switches subview to Step 7 (CBSE Topper Guide / Evaluation) with active exam evaluation."""
+    def trigger_face_b_eval(self):
+        """Triggers asynchronous Gemini CBSE evaluation in a background worker thread."""
+        self.btn_run_eval.config(text="⏳ AI Evaluator Running...", state="disabled")
         exam_id = self.selected_exam_var.get()
-        if exam_id:
-            if hasattr(self.controller, "active_exam_id"):
-                self.controller.active_exam_id = exam_id
-            eval_file = os.path.join(CORRECTED_COPIES_DIR, f"{exam_id}_evaluation.json")
-            if not os.path.exists(eval_file):
-                try:
-                    from cbse_evaluator_v3 import CBSEEvaluatorV3
-                    CBSEEvaluatorV3.evaluate_exam(exam_id)
-                except Exception as e:
-                    print(f"[Face B] Auto-evaluation notice: {e}")
-            if hasattr(self.controller, "switch_subview"):
-                self.controller.switch_subview("topper", exam_id=exam_id)
-        else:
-            if hasattr(self.controller, "switch_subview"):
-                self.controller.switch_subview("topper")
+        if hasattr(self.controller, "active_exam_id") and exam_id:
+            self.controller.active_exam_id = exam_id
+
+        def background_task():
+            # Run the heavy Gemini call
+            try:
+                if exam_id:
+                    self.exam_engine.evaluate_answer_sheet(exam_id)
+            except Exception as e:
+                print(f"[Face B] Evaluator background task notice: {e}")
+            # Safely restore UI on the main thread
+            self.root.after(0, lambda: self.btn_run_eval.config(text="✅ RUN GEMINI CBSE EVALUATION", state="normal"))
+            self.root.after(0, lambda: self.switch_subview('topper_guide'))
+
+        threading.Thread(target=background_task, daemon=True).start()
+
+    def _on_proceed_to_step7(self):
+        """Backward compatible forwarder to non-blocking trigger_face_b_eval."""
+        self.trigger_face_b_eval()

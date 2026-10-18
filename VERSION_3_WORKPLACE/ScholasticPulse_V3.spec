@@ -47,6 +47,7 @@ a = Analysis(
         'exam_vision_ocr_engine_v3',
         'host_exam_face_b_ui_v3',
         'exam_evaluator_v3',
+        'cbse_evaluator_v3',
         'host_exam_topper_ui_v3',
         'diary_importer',
         'host_exam_ui',
