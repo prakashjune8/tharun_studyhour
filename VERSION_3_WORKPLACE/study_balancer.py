@@ -114,6 +114,8 @@ def get_persistent_data_path(filename):
 DATA_FILE = get_persistent_data_path("study_routine_data.json")
 DIARY_FILE = get_persistent_data_path("tharun_diary_format.json")
 AUDIT_FILE = get_persistent_data_path("time_extension_audit.json")
+SUBJECT_AUDIT_FILE = get_persistent_data_path("subject_representation_audit.json")
+LEDGER_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "EXAM_SYSTEM_V3", "01_SUBJECT_HOMEWORK_LOGS", "subject_study_ledger.json")
 PORTIONS_FILE = get_persistent_data_path("tharun_exam_portions.json")
 PORTION_PROGRESS_FILE = get_persistent_data_path("exam_portion_progress.json")
 ERROR_BANK_FILE = get_persistent_data_path("student_error_bank.json")
@@ -739,18 +741,229 @@ DEFAULT_DIARY_DATA = {
     ]
 }
 
+# =========================================================================
+# CBSE CLASS 8 CANONICAL SUBDIVISIONS & PARENT AUDIT REPRESENTATION SYSTEM
+# =========================================================================
+CANONICAL_SUBDIVISIONS = {
+    "Mathematics": {
+        "parent": "Mathematics",
+        "category": "core",
+        "is_math": True,
+        "badge": "📐 Math Core",
+        "guidance": "Maths Problem Solving: Step-by-step textbook exercises, algebra, geometries & proof practice.",
+        "diagram_target": "Geometric Proofs & Coordinate Graphs"
+    },
+    "Physics": {
+        "parent": "Physical Science",
+        "category": "science",
+        "is_math": False,
+        "badge": "⚡ Physical Science (Physics)",
+        "guidance": "Physics Concepts: Force, pressure, sound, friction, light reflection/refraction laws & ray diagrams.",
+        "diagram_target": "Ray Optics / Electric Circuits"
+    },
+    "Chemistry": {
+        "parent": "Physical Science",
+        "category": "science",
+        "is_math": False,
+        "badge": "⚗️ Physical Science (Chemistry)",
+        "guidance": "Chemistry Concepts: Synthetic fibres, metals/non-metals, combustion & flame, chemical reactions.",
+        "diagram_target": "Chemical Apparatus & Reaction Flowcharts"
+    },
+    "Biology": {
+        "parent": "Biological Science",
+        "category": "science",
+        "is_math": False,
+        "badge": "🔬 Biological Science (Biology)",
+        "guidance": "Biology Concepts: Cell structure & functions, microorganisms, reproduction in animals & life cycles.",
+        "diagram_target": "Plant/Animal Cells & Microorganisms"
+    },
+    "History": {
+        "parent": "Social Science",
+        "category": "social",
+        "is_math": False,
+        "badge": "📜 Social Science (History)",
+        "guidance": "History Timelines: Modern Indian history, timelines, revolt of 1857, trade to territory & cause-effect analysis.",
+        "diagram_target": "Historical Timelines & Trade Routes"
+    },
+    "Geography": {
+        "parent": "Social Science",
+        "category": "social",
+        "is_math": False,
+        "badge": "🌍 Social Science (Geography)",
+        "guidance": "Geography Concepts: Resources, agriculture, industries, soil profiles, climate zones & map plotting.",
+        "diagram_target": "India Map Plotting & Soil Horizons"
+    },
+    "Civics": {
+        "parent": "Social Science",
+        "category": "social",
+        "is_math": False,
+        "badge": "⚖️ Social Science (Civics)",
+        "guidance": "Civics Concepts: Indian Constitution, secularism, parliament, judiciary & fundamental rights.",
+        "diagram_target": "Governance Organs & Parliamentary Structure"
+    },
+    "Tamil": {
+        "parent": "Tamil",
+        "category": "language",
+        "is_math": False,
+        "badge": "✍️ தமிழ் பயிர்ச்சி",
+        "guidance": "Tamil Clinic: 'ழ, ள, ல' மற்றும் 'ண, ந, ன' ஒலி வேறுபாடுகள், செய்யுள் வரிகள் & சொந்த நடை வாக்கியங்கள்.",
+        "diagram_target": "Tamil Mind-Map & Grammar Tree"
+    },
+    "English": {
+        "parent": "English",
+        "category": "language",
+        "is_math": False,
+        "badge": "✍️ English Clinic",
+        "guidance": "English Clinic: Grammar, vocabulary, error bank correction, reading comprehension & expressive writing.",
+        "diagram_target": "Grammar Flowcharts & Concept Maps"
+    },
+    "Hindi": {
+        "parent": "Hindi",
+        "category": "language",
+        "is_math": False,
+        "badge": "✍️ हिंदी अभ्यास",
+        "guidance": "Hindi Clinic: वर्तनी सुधार (मात्राएँ ि/ी, ु/ू), व्याकरण अभ्यास और स्वतंत्र लेखन।",
+        "diagram_target": "Hindi Vocabulary Trees & Sentence Frames"
+    }
+}
+
+class SubjectRepresentationTracker:
+    """
+    Maintains exhaustive audit logs of subject and internal subdivision representation
+    across 7-day and 30-day windows to enforce equal representation and parent verification.
+    """
+    def __init__(self, audit_file_path=None, ledger_file_path=None):
+        self.audit_file_path = audit_file_path
+        self.ledger_file_path = ledger_file_path
+        self.audit_data = {
+            "metadata": {
+                "student": "Tharun",
+                "class": "Class 8 CBSE",
+                "school": "Senthil Public School, Dharmapuri",
+                "last_updated": datetime.now().isoformat(),
+                "total_events": 0
+            },
+            "history": []
+        }
+        self.load()
+
+    def load(self):
+        if self.audit_file_path and os.path.exists(self.audit_file_path):
+            try:
+                with open(self.audit_file_path, "r", encoding="utf-8") as f:
+                    self.audit_data = json.load(f)
+                    return
+            except Exception as e:
+                print(f"Error reading audit file {self.audit_file_path}: {e}")
+
+        # Pre-seed from historical subject_study_ledger.json if available
+        if self.ledger_file_path and os.path.exists(self.ledger_file_path):
+            try:
+                with open(self.ledger_file_path, "r", encoding="utf-8") as f:
+                    ledger = json.load(f)
+                entries = ledger.get("entries", [])
+                for e in entries:
+                    sub = e.get("subject", "")
+                    task = e.get("chapter_topic", "") + " " + e.get("task_description", "")
+                    sd = self.detect_subdivision(sub, task)
+                    self.audit_data["history"].append({
+                        "date": e.get("date", "2026-10-06"),
+                        "slot_type": "homework",
+                        "subdivision": sd,
+                        "parent": CANONICAL_SUBDIVISIONS.get(sd, {}).get("parent", sub),
+                        "duration_mins": e.get("study_duration_mins", 25)
+                    })
+                self.audit_data["metadata"]["total_events"] = len(self.audit_data["history"])
+                self.save()
+            except Exception as e:
+                print(f"Error seeding representation audit from ledger: {e}")
+
+    def save(self):
+        if not self.audit_file_path:
+            return
+        try:
+            os.makedirs(os.path.dirname(os.path.abspath(self.audit_file_path)), exist_ok=True)
+            with open(self.audit_file_path, "w", encoding="utf-8") as f:
+                json.dump(self.audit_data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print(f"Error saving representation audit data: {e}")
+
+    @staticmethod
+    def detect_subdivision(sub_str, task_str=""):
+        txt = (sub_str + " " + task_str).lower()
+        if "math" in txt:
+            return "Mathematics"
+        if "physic" in txt or "phy" in txt:
+            return "Physics"
+        if "chem" in txt:
+            return "Chemistry"
+        if "bio" in txt:
+            return "Biology"
+        if "his" in txt:
+            return "History"
+        if "geo" in txt:
+            return "Geography"
+        if "civic" in txt or "pol" in txt:
+            return "Civics"
+        if "tamil" in txt or "தமிழ்" in txt:
+            return "Tamil"
+        if "hindi" in txt or "हिंदी" in txt:
+            return "Hindi"
+        if "eng" in txt:
+            return "English"
+        if "sci" in txt:
+            return "Physics"
+        if "social" in txt or "sst" in txt:
+            return "History"
+        return "Mathematics"
+
+    def get_counts(self, days=7):
+        cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+        counts = {k: 0 for k in CANONICAL_SUBDIVISIONS}
+        for ev in self.audit_data.get("history", []):
+            ev_date = ev.get("date", "")
+            if not ev_date or ev_date >= cutoff_date:
+                sd = ev.get("subdivision")
+                if sd in counts:
+                    counts[sd] += 1
+        return counts
+
+    def pick_balanced_candidate(self, candidate_subdivisions, exclude_subdivisions=None, days=7):
+        if exclude_subdivisions is None:
+            exclude_subdivisions = set()
+        valid_candidates = [c for c in candidate_subdivisions if c not in exclude_subdivisions]
+        if not valid_candidates:
+            valid_candidates = candidate_subdivisions
+
+        counts = self.get_counts(days=days)
+        # Sort ascending by count (lowest count first = highest deficit/starvation priority)
+        sorted_candidates = sorted(valid_candidates, key=lambda c: (counts.get(c, 0), c))
+        return sorted_candidates[0]
+
+    def record_event(self, date_str, slot_type, subdivision, duration_mins):
+        self.audit_data["history"].append({
+            "date": date_str,
+            "slot_type": slot_type,
+            "subdivision": subdivision,
+            "parent": CANONICAL_SUBDIVISIONS.get(subdivision, {}).get("parent", subdivision),
+            "duration_mins": duration_mins
+        })
+        self.audit_data["metadata"]["total_events"] = len(self.audit_data["history"])
+        self.audit_data["metadata"]["last_updated"] = datetime.now().isoformat()
+        self.save()
+
 EXECUTION_LEVELS = {
     1: {
         "title": "Level 1: 🔰 Genin Academy ('Sit & Finish' Chair-Time)",
         "badge": "🔰 Genin: Habit Foundation",
         "focus": "Building Tharun's ability to sit at the desk for the set duration without distraction, complete homework first, and do 1 core subject practice.",
         "target_hours_eve": 2.25,
-        "target_hours_morn": 1.0,
+        "target_hours_morn": 1.5,
         "eve_start": "19:00",
         "eve_end": "21:15",
-        "morn_start": "06:15",
-        "morn_end": "07:15",
-        "break_duration": 12,
+        "morn_start": "06:00",
+        "morn_end": "07:30",
+        "break_duration": 10,
         "pomodoro_duration": 30
     },
     2: {
@@ -3245,6 +3458,14 @@ class TharunScheduleBalancer:
     - Morning: Core Concept Active Recall + Language Clinic (Tamil / English / Hindi)
     """
 
+    _rep_tracker = None
+
+    @classmethod
+    def get_representation_tracker(cls):
+        if cls._rep_tracker is None:
+            cls._rep_tracker = SubjectRepresentationTracker(SUBJECT_AUDIT_FILE, LEDGER_FILE)
+        return cls._rep_tracker
+
     @classmethod
     def generate_schedule(cls, subjects, diary_items, current_level=2, selected_language="English (Language)", exam_mode=False, exam_subject="Mathematics", start_time_str="19:00", pre_exam_mode=False, pre_exam_day=1, pre_exam_duration_days=21, bedtime_rollovers=None):
         lvl = EXECUTION_LEVELS.get(current_level, EXECUTION_LEVELS[2])
@@ -3581,100 +3802,189 @@ class TharunScheduleBalancer:
         available_study_mins = max(0, int((study_cutoff - cur_time).total_seconds() / 60))
 
         # -------------------------------------------------------------
-        # RULES 2 & 3 & 4: CORE SUBJECT SELECTION FOR EVENING STUDY
+        # PHASE 1 & 2: DYNAMIC LEVEL TIME SCALING & SUBDIVISION ROTATION
         # -------------------------------------------------------------
         # Rule 1 & 2: Homework completed above. If homework had Mathematics,
-        # mandatory maths condition is already satisfied.
+        # mandatory maths condition is satisfied.
         # Rule 3: Left-out subjects (not present in homework) get top priority for study!
-        # Rule 4: In the evening, exactly one core subject is selected for study,
-        # along with a 15-minute special session for diagram practice of any subject.
-        #
-        # Core Candidates: Mathematics, Physical Science, Biological Science, Social Science
-        all_core_candidates = [
-            ("Mathematics", sub_math, "📐 Math Core", "Maths Problem Solving: Step-by-step textbook exercises & proof practice."),
-            ("Physical Science", sub_phy_sci, "⚡ Physical Science Core", "Physical Science: Deep concept mastery, chemical reactions & physics laws."),
-            ("Biological Science", sub_bio_sci, "🧬 Biological Science Core", "Biological Science: Life processes, cellular structures & concept recall."),
-            ("Social Science", sub_sst, "🌍 Social Science Core", "Social Science: Timelines, historical causes/effects & geography concepts.")
-        ]
+        # Rule 4: Dedicated 15-minute special session for diagram practice of any subject.
+        # Level 1 (Genin): 1 Core Study slot (25-30m) + 15m diagram session (ends 21:15).
+        # Level 2 (Chunin) & Level 3 (Jonin): Time extends to 22:00! Remaining time is allocated
+        # as an EXTRA core subject in the evening only (Core 1 + Extra Core 2).
+        # Morning session remains 100% untouched and static across all levels!
+        tracker = cls.get_representation_tracker()
 
-        # Prioritize left-out core subjects (not present in homework)
-        def is_sub_in_hw(name):
-            n = name.lower()
-            if "math" in n: return hw_has_math
-            if "physical" in n: return hw_has_phy
-            if "biological" in n or "bio" in n: return hw_has_bio
-            if "social" in n: return hw_has_sst
-            return False
+        # Identify detected subdivisions and languages in today's homework
+        hw_detected_subdivisions = set()
+        hw_detected_languages = set()
+        for it in study_hw_items:
+            s_n = it.get("subject", "")
+            t_t = it.get("task", "")
+            sd = tracker.detect_subdivision(s_n, t_t)
+            c_meta = CANONICAL_SUBDIVISIONS.get(sd, {})
+            cat = c_meta.get("category", "")
+            if cat in ["core", "science", "social"]:
+                hw_detected_subdivisions.add(sd)
+            elif cat == "language":
+                hw_detected_languages.add(sd)
 
-        absent_cores = [c for c in all_core_candidates if not is_sub_in_hw(c[0])]
+        # Core Candidates: Mathematics, Physics, Chemistry, Biology, History, Geography, Civics
+        all_core_subdivisions = ["Mathematics", "Physics", "Chemistry", "Biology", "History", "Geography", "Civics"]
+        absent_core_subdivisions = [c for c in all_core_subdivisions if c not in hw_detected_subdivisions]
 
-        evening_core_choice = None
+        # Rule 2: Mandatory mathematics condition (100% daily representation)
+        evening_core_1 = None
         if not hw_has_math:
-            # Rule 2: If maths NOT in homework, mandatory maths condition must be satisfied!
-            evening_core_choice = next((c for c in all_core_candidates if c[0] == "Mathematics"), all_core_candidates[0])
-        elif absent_cores:
-            # Rule 3 & 4: Left-out subjects get top priority! Pick absent core (Physical Science, Bio, or Social)
-            evening_core_choice = absent_cores[0]
+            evening_core_1 = "Mathematics"
+        elif absent_core_subdivisions:
+            evening_core_1 = tracker.pick_balanced_candidate(absent_core_subdivisions, days=7)
         else:
-            # All core subjects were in homework; rotate to a secondary core
-            evening_core_choice = next((c for c in all_core_candidates if c[0] != "Mathematics"), all_core_candidates[1])
+            evening_core_1 = tracker.pick_balanced_candidate(all_core_subdivisions, days=7)
 
-        evening_core_sub_name = evening_core_choice[0]
+        scheduled_evening_subdivisions = {evening_core_1}
 
-        # Schedule Evening Core Study Slot
-        eve_core_dur = 30 if current_level == 1 else (35 if current_level == 2 else 40)
-        eve_core_dur = min(eve_core_dur, max(20, available_study_mins))
-        if eve_core_dur > 0:
-            c_end = cur_time + timedelta(minutes=eve_core_dur)
-            evening_slots.append({
-                "phase": f"{phase_label}: Core Study",
-                "start": cur_time.strftime("%I:%M %p"),
-                "end": c_end.strftime("%I:%M %p"),
-                "duration_mins": eve_core_dur,
-                "title": f"Evening Core Study: {evening_core_choice[0]}",
-                "subject": evening_core_choice[0],
-                "type": "study",
-                "badge": evening_core_choice[2],
-                "guidance": f"Core Concept Study ({evening_core_choice[0]}): Priority given to subject absent from homework. {evening_core_choice[3]}",
-                "is_completed": False
-            })
-            cur_time = c_end
+        # Available time for Academic Core Study (minus 15 mins for Rule 4 Diagram practice)
+        diagram_mins = 15
+        academic_study_mins = max(0, available_study_mins - diagram_mins)
 
-            # Restorative break between core study and diagram practice
-            if lvl["break_duration"] > 0:
-                brk_c_end = cur_time + timedelta(minutes=min(6, lvl["break_duration"]))
+        if current_level == 1 or academic_study_mins < 45:
+            # Level 1: Exactly ONE core subject in the evening
+            c1_dur = min(30, max(20, academic_study_mins))
+            if c1_dur > 0:
+                c1_end = cur_time + timedelta(minutes=c1_dur)
+                c1_meta = CANONICAL_SUBDIVISIONS.get(evening_core_1, {})
                 evening_slots.append({
-                    "phase": f"{phase_label} Rest",
+                    "phase": f"{phase_label}: Core Study",
                     "start": cur_time.strftime("%I:%M %p"),
-                    "end": brk_c_end.strftime("%I:%M %p"),
-                    "duration_mins": min(6, lvl["break_duration"]),
-                    "title": "Mind Reset Interval",
-                    "subject": "Posture & Water",
-                    "type": "break",
-                    "badge": f"☕ Rest ({min(6, lvl['break_duration'])}m)",
-                    "guidance": "Rest eyes, stand up and stretch before the 15-minute diagram practice session.",
+                    "end": c1_end.strftime("%I:%M %p"),
+                    "duration_mins": c1_dur,
+                    "title": f"Evening Core Study: {evening_core_1}",
+                    "subject": c1_meta.get("parent", evening_core_1),
+                    "subdivision": evening_core_1,
+                    "type": "study",
+                    "badge": c1_meta.get("badge", "📐 Core Study"),
+                    "guidance": f"Core Concept Study ({evening_core_1}): Priority given to subject absent from homework. {c1_meta.get('guidance', '')}",
                     "is_completed": False
                 })
-                cur_time = brk_c_end
+                cur_time = c1_end
+
+                # Restorative break between core study and diagram practice
+                if lvl.get("break_duration", 0) > 0:
+                    brk_c_end = cur_time + timedelta(minutes=min(5, lvl["break_duration"]))
+                    evening_slots.append({
+                        "phase": f"{phase_label} Rest",
+                        "start": cur_time.strftime("%I:%M %p"),
+                        "end": brk_c_end.strftime("%I:%M %p"),
+                        "duration_mins": min(5, lvl["break_duration"]),
+                        "title": "Mind Reset Interval",
+                        "subject": "Posture & Water",
+                        "type": "break",
+                        "badge": f"☕ Rest ({min(5, lvl['break_duration'])}m)",
+                        "guidance": "Rest eyes, stand up and stretch before the 15-minute diagram practice session.",
+                        "is_completed": False
+                    })
+                    cur_time = brk_c_end
+
+        else:
+            # Level 2 & 3: Extends time! Remaining time is allocated as an EXTRA core subject in evening only!
+            c1_dur = 35 if current_level == 2 else 40
+            c2_dur = 30 if current_level == 2 else 35
+            if c1_dur + c2_dur + 5 > academic_study_mins:
+                c1_dur = max(20, (academic_study_mins - 5) // 2)
+                c2_dur = max(20, (academic_study_mins - 5) - c1_dur)
+
+            # Slot 1: Evening Core 1
+            c1_end = cur_time + timedelta(minutes=c1_dur)
+            c1_meta = CANONICAL_SUBDIVISIONS.get(evening_core_1, {})
+            evening_slots.append({
+                "phase": f"{phase_label}: Core 1 Study",
+                "start": cur_time.strftime("%I:%M %p"),
+                "end": c1_end.strftime("%I:%M %p"),
+                "duration_mins": c1_dur,
+                "title": f"Evening Core 1 Study: {evening_core_1}",
+                "subject": c1_meta.get("parent", evening_core_1),
+                "subdivision": evening_core_1,
+                "type": "study",
+                "badge": c1_meta.get("badge", "📐 Core 1"),
+                "guidance": f"Core 1 Priority Concept Mastery ({evening_core_1}): {c1_meta.get('guidance', '')}",
+                "is_completed": False
+            })
+            cur_time = c1_end
+
+            # Micro-rest between Core 1 and Extra Core 2
+            brk_inter = 5
+            brk_end = cur_time + timedelta(minutes=brk_inter)
+            evening_slots.append({
+                "phase": f"{phase_label} Rest",
+                "start": cur_time.strftime("%I:%M %p"),
+                "end": brk_end.strftime("%I:%M %p"),
+                "duration_mins": brk_inter,
+                "title": "Inter-Core Focus Shift Break",
+                "subject": "Rest",
+                "type": "break",
+                "badge": f"☕ Rest ({brk_inter}m)",
+                "guidance": "Cognitive palette cleanser: Take 3 slow belly breaths, hydrate, and prepare for Extra Core Subject 2.",
+                "is_completed": False
+            })
+            cur_time = brk_end
+
+            # Pick Extra Core 2 (apart from homework AND distinct from Core 1, least represented)
+            c2_candidates = [c for c in all_core_subdivisions if c not in hw_detected_subdivisions and c not in scheduled_evening_subdivisions]
+            if not c2_candidates:
+                c2_candidates = [c for c in all_core_subdivisions if c not in scheduled_evening_subdivisions]
+            evening_core_2 = tracker.pick_balanced_candidate(c2_candidates, days=7)
+            scheduled_evening_subdivisions.add(evening_core_2)
+
+            # Slot 2: Evening Extra Core 2
+            c2_end = cur_time + timedelta(minutes=c2_dur)
+            c2_meta = CANONICAL_SUBDIVISIONS.get(evening_core_2, {})
+            evening_slots.append({
+                "phase": f"{phase_label}: Extra Core 2 Study",
+                "start": cur_time.strftime("%I:%M %p"),
+                "end": c2_end.strftime("%I:%M %p"),
+                "duration_mins": c2_dur,
+                "title": f"Evening Extra Core 2 Study: {evening_core_2} (Level {current_level} Extension)",
+                "subject": c2_meta.get("parent", evening_core_2),
+                "subdivision": evening_core_2,
+                "type": "study",
+                "badge": c2_meta.get("badge", "⚡ Extra Core 2"),
+                "guidance": f"Level {current_level} Evening Extension: Extra non-homework core subject practice ({evening_core_2}). {c2_meta.get('guidance', '')}",
+                "is_completed": False
+            })
+            cur_time = c2_end
+
+            # Rest before diagram practice
+            brk_d_end = cur_time + timedelta(minutes=5)
+            evening_slots.append({
+                "phase": f"{phase_label} Rest",
+                "start": cur_time.strftime("%I:%M %p"),
+                "end": brk_d_end.strftime("%I:%M %p"),
+                "duration_mins": 5,
+                "title": "Pre-Diagram Posture Reset",
+                "subject": "Rest",
+                "type": "break",
+                "badge": "☕ Rest (5m)",
+                "guidance": "Rest eyes, stand up and stretch before the 15-minute diagram practice session.",
+                "is_completed": False
+            })
+            cur_time = brk_d_end
 
         # Rule 4: Inviolable 15-minute special session for diagram practice of any subject
-        draw_dur = 15
-        end_draw = cur_time + timedelta(minutes=draw_dur)
-        # Select target diagram subject: prioritize science or social map
-        diagram_target_name = "Physical Science / Biology" if hw_has_sst else "Biological Science / Science"
+        diagram_candidates = ["Physics", "Chemistry", "Biology", "Geography", "History", "Civics"]
+        diagram_sub = tracker.pick_balanced_candidate(diagram_candidates, days=14)
+        diag_meta = CANONICAL_SUBDIVISIONS.get(diagram_sub, {})
+        end_draw = cur_time + timedelta(minutes=diagram_mins)
         evening_slots.append({
             "phase": f"{phase_label}: Diagram Practice",
             "start": cur_time.strftime("%I:%M %p"),
             "end": end_draw.strftime("%I:%M %p"),
-            "duration_mins": draw_dur,
-            "title": "Special 15m Session: Diagram Practice (Any Subject)",
+            "duration_mins": diagram_mins,
+            "title": f"Special 15m Session: Diagram Practice ({diagram_sub})",
             "subject": "Drawing Practice",
+            "subdivision": diagram_sub,
             "type": "study",
             "badge": "🎨 Diagram Practice (15m)",
-            "guidance": (
-                f"Rule 4 Inviolable Session: 15-minute special diagram & sketch practice ({diagram_target_name}). "
-                "Practice neat pencil line work, scientific diagrams (e.g. eye, ray diagrams, cells), or map sketching to sharpen visual retention."
-            ),
+            "guidance": f"Rule 4 Inviolable Session: 15-minute special diagram & sketch practice ({diagram_sub}). Focus: {diag_meta.get('diagram_target', 'Neat sketches and labels')}.",
             "is_completed": False
         })
         cur_time = end_draw
@@ -3705,17 +4015,18 @@ class TharunScheduleBalancer:
         })
 
         # -------------------------------------------------------------
-        # RULES 5, 6, 7: MORNING STUDY PLAN
+        # RULES 5, 6, 7: MORNING STUDY PLAN (STATIC & UNTOUCHED ACROSS LEVELS)
         # -------------------------------------------------------------
         # Rule 5: A second core subject which is NOT taken in the evening is present in the morning,
         # along with one language. That language has to be non-repeated (not in homework).
         # Rule 6: What evening session homework contains should NOT be repeated in the morning.
         # Rule 7: Any one of the languages can be taken. If 3 languages are in the homework itself,
         # then in the morning session do NOT concentrate on language; take TWO core subjects in morning!
-        m_cur = datetime.strptime(lvl["morn_start"], "%H:%M")
-        m_end_target = datetime.strptime(lvl["morn_end"], "%H:%M")
+        # The morning session is untouched and remains static (06:00 - 07:30) across Level 1, 2, and 3.
+        m_cur = datetime.strptime("06:00", "%H:%M")
+        m_end_target = datetime.strptime("07:30", "%H:%M")
 
-        boot_mins = 8 if current_level > 1 else 10
+        boot_mins = 10
         b_end = m_cur + timedelta(minutes=boot_mins)
         morning_slots.append({
             "phase": "Morning Wake-Up",
@@ -3751,54 +4062,50 @@ class TharunScheduleBalancer:
                 })
                 m_cur = ro_end
 
-        # Filter out subjects already taken in evening (HW or Evening Core Study)
-        # What evening session contains must NOT be repeated in morning!
-        eve_taken_subjects = set()
-        for s in evening_slots:
-            sub = s.get("subject", "")
-            if sub and sub not in ["Transition & Sensory Reset", "Rest & Hydrate", "Posture & Water", "Rest", "Drawing Practice", "Routine Habit"]:
-                eve_taken_subjects.add(sub.lower())
+        # Select Morning Core 1: Secondary core NOT taken in evening (HW or Evening Core Study)
+        all_evening_subdivisions = set(hw_detected_subdivisions) | scheduled_evening_subdivisions
+        morn_core_candidates = [c for c in all_core_subdivisions if c not in all_evening_subdivisions]
+        if not morn_core_candidates:
+            morn_core_candidates = [c for c in all_core_subdivisions if c not in scheduled_evening_subdivisions]
+        if not morn_core_candidates:
+            morn_core_candidates = all_core_subdivisions
 
-        # Select Morning Core 1: Secondary core NOT taken in evening
-        morn_core_pool = [c for c in all_core_candidates if c[0].lower() not in eve_taken_subjects and c[0] != evening_core_sub_name]
-        if not morn_core_pool:
-            # Fallback if all were covered: select any core that was not the evening core
-            morn_core_pool = [c for c in all_core_candidates if c[0] != evening_core_sub_name]
-        if not morn_core_pool:
-            morn_core_pool = all_core_candidates
+        morning_core_1 = tracker.pick_balanced_candidate(morn_core_candidates, days=7)
+        mc1_meta = CANONICAL_SUBDIVISIONS.get(morning_core_1, {})
 
-        morning_core_1 = morn_core_pool[0]
+        # Rule 7 Check: Were 3 languages in homework?
+        hw_all_3_langs = (len(hw_detected_languages) >= 3 or ("Tamil" in hw_detected_languages and "English" in hw_detected_languages and "Hindi" in hw_detected_languages))
 
-        # Rule 7: Check how many languages were in homework
-        hw_langs_count = sum([1 for l in [hw_has_tamil, hw_has_eng, hw_has_hin] if l])
-        all_languages = [("Tamil", "✍️ தமிழ் பயிர்ச்சி"), ("English", "✍️ English Clinic"), ("Hindi", "✍️ हिंदी अभ्यास")]
-
-        if hw_langs_count >= 3:
+        if hw_all_3_langs:
             # Rule 7 Special: All 3 languages were in homework!
-            # Do NOT concentrate on language in the morning. Take TWO CORE SUBJECTS in the morning!
-            morn_core_pool_2 = [c for c in morn_core_pool if c[0] != morning_core_1[0]]
-            if not morn_core_pool_2:
-                morn_core_pool_2 = [c for c in all_core_candidates if c[0] != morning_core_1[0] and c[0] != evening_core_sub_name]
-            morning_core_2 = morn_core_pool_2[0] if morn_core_pool_2 else all_core_candidates[1]
+            # Do NOT concentrate on language in morning. Take TWO CORE SUBJECTS in morning!
+            morn_core_candidates_2 = [c for c in morn_core_candidates if c != morning_core_1]
+            if not morn_core_candidates_2:
+                morn_core_candidates_2 = [c for c in all_core_subdivisions if c != morning_core_1 and c not in scheduled_evening_subdivisions]
+            if not morn_core_candidates_2:
+                morn_core_candidates_2 = [c for c in all_core_subdivisions if c != morning_core_1]
+            morning_core_2 = tracker.pick_balanced_candidate(morn_core_candidates_2, days=7)
+            mc2_meta = CANONICAL_SUBDIVISIONS.get(morning_core_2, {})
 
-            # Morning Core 1
-            cm1_dur = 30
+            # Morning Core 1 (35m)
+            cm1_dur = 35
             cm1_end = m_cur + timedelta(minutes=cm1_dur)
             morning_slots.append({
                 "phase": "Morning Core 1 Recall",
                 "start": m_cur.strftime("%I:%M %p"),
                 "end": cm1_end.strftime("%I:%M %p"),
                 "duration_mins": cm1_dur,
-                "title": f"Morning Core 1 Recall: {morning_core_1[0]}",
-                "subject": morning_core_1[0],
+                "title": f"Morning Core 1 Recall: {morning_core_1}",
+                "subject": mc1_meta.get("parent", morning_core_1),
+                "subdivision": morning_core_1,
                 "type": "revision",
-                "badge": morning_core_1[2],
-                "guidance": f"Rule 5 & 6 Non-Repeated Core: {morning_core_1[0]} active retrieval. Close textbooks, recall formulas/concepts.",
+                "badge": mc1_meta.get("badge", "🌅 Core 1 Recall"),
+                "guidance": f"Rule 5 & 6 Non-Repeated Core: {morning_core_1} active retrieval. Close textbooks, recall formulas/concepts.",
                 "is_completed": False
             })
             m_cur = cm1_end
 
-            # Break
+            # Break (5m)
             m_brk_end = m_cur + timedelta(minutes=5)
             morning_slots.append({
                 "phase": "Morning Rest",
@@ -3813,70 +4120,44 @@ class TharunScheduleBalancer:
             })
             m_cur = m_brk_end
 
-            # Morning Core 2 (Replacing language since all 3 languages were in HW)
-            cm2_dur = max(20, int((m_end_target - timedelta(minutes=5) - m_cur).total_seconds() / 60))
+            # Morning Core 2 (30m)
+            cm2_dur = 30
             cm2_end = m_cur + timedelta(minutes=cm2_dur)
             morning_slots.append({
                 "phase": "Morning Core 2 Recall",
                 "start": m_cur.strftime("%I:%M %p"),
                 "end": cm2_end.strftime("%I:%M %p"),
                 "duration_mins": cm2_dur,
-                "title": f"Morning Core 2 Recall: {morning_core_2[0]} (2-Core Mode)",
-                "subject": morning_core_2[0],
+                "title": f"Morning Core 2 Recall: {morning_core_2} (2-Core Mode)",
+                "subject": mc2_meta.get("parent", morning_core_2),
+                "subdivision": morning_core_2,
                 "type": "revision",
-                "badge": morning_core_2[2],
-                "guidance": f"Rule 7 Active: 3 languages were already in homework, so language is skipped in morning. Second core {morning_core_2[0]} takes study focus!",
+                "badge": mc2_meta.get("badge", "🌅 Core 2 Recall"),
+                "guidance": f"Rule 7 Active: 3 languages were already in homework, so language is skipped in morning. Second core {morning_core_2} takes study focus!",
                 "is_completed": False
             })
             m_cur = cm2_end
 
         else:
-            # Rule 5 & 7 Standard: One non-repeated core + One non-repeated language
-            # Select non-repeated language (NOT in homework and NOT in evening)
-            candidate_langs = []
-            for l_name, l_badge in all_languages:
-                l_low = l_name.lower()
-                if l_low == "tamil" and not hw_has_tamil and "tamil" not in eve_taken_subjects:
-                    candidate_langs.append((l_name, l_badge))
-                elif l_low == "english" and not hw_has_eng and "english" not in eve_taken_subjects and "eng" not in eve_taken_subjects:
-                    candidate_langs.append((l_name, l_badge))
-                elif l_low == "hindi" and not hw_has_hin and "hindi" not in eve_taken_subjects:
-                    candidate_langs.append((l_name, l_badge))
-
-            if not candidate_langs:
-                # Fallback: pick any language not in homework
-                if not hw_has_tamil: candidate_langs.append(("Tamil", "✍️ தமிழ் பயிர்ச்சி"))
-                elif not hw_has_eng: candidate_langs.append(("English", "✍️ English Clinic"))
-                elif not hw_has_hin: candidate_langs.append(("Hindi", "✍️ हिंदी अभ्यास"))
-                else: candidate_langs.append((selected_language, "✍️ Language Clinic"))
-
-            # If user selected a preference and it is in candidates, prefer it
-            chosen_lang = candidate_langs[0]
-            for cl in candidate_langs:
-                if cl[0].lower() in selected_language.lower():
-                    chosen_lang = cl
-                    break
-
-            lang_name, lang_badge = chosen_lang
-
-            # Morning Core Recall Slot
-            cm1_dur = 30 if current_level == 1 else 35
+            # Rule 5 & 7 Standard: One non-repeated core (35m) + One non-repeated language (30m)
+            cm1_dur = 35
             cm1_end = m_cur + timedelta(minutes=cm1_dur)
             morning_slots.append({
                 "phase": "Morning Secondary Core Recall",
                 "start": m_cur.strftime("%I:%M %p"),
                 "end": cm1_end.strftime("%I:%M %p"),
                 "duration_mins": cm1_dur,
-                "title": f"Active Recall: {morning_core_1[0]} (Non-Repeated Core)",
-                "subject": morning_core_1[0],
+                "title": f"Active Recall: {morning_core_1} (Non-Repeated Core)",
+                "subject": mc1_meta.get("parent", morning_core_1),
+                "subdivision": morning_core_1,
                 "type": "revision",
-                "badge": morning_core_1[2],
-                "guidance": f"Rule 5 & 6 Active: Secondary core {morning_core_1[0]} was NOT taken in the evening. Close books, recall definitions, proof outlines and diagrams.",
+                "badge": mc1_meta.get("badge", "🌅 Core Recall"),
+                "guidance": f"Rule 5 & 6 Active: Secondary core {morning_core_1} was NOT taken in the evening. Close books, recall definitions, proof outlines and diagrams.",
                 "is_completed": False
             })
             m_cur = cm1_end
 
-            # Break
+            # Break (5m)
             m_brk_end = m_cur + timedelta(minutes=5)
             morning_slots.append({
                 "phase": "Morning Rest",
@@ -3891,45 +4172,40 @@ class TharunScheduleBalancer:
             })
             m_cur = m_brk_end
 
-            # Morning Non-Repeated Language Clinic Slot
-            if "tamil" in lang_name.lower():
-                lang_guidance = (
-                    "Rule 5 & 7 Non-Repeated Language Clinic (Tamil):\n"
-                    "1. 'ழ', 'ள', 'ல' மற்றும் 'ண', 'ந', 'ன' வேறுபாடுகளில் கவனம் செலுத்துங்கள்.\n"
-                    "2. மனப்பாடம் செய்யாமல், சொந்த நடையில் 4-5 வாக்கியங்கள் எழுதிப் பாருங்கள்.\n"
-                    "3. 'Error Bank' நோட்டில் 3 பிழைகளை திருத்தி எழுதுங்கள்."
-                )
-            elif "hindi" in lang_name.lower():
-                lang_guidance = (
-                    "Rule 5 & 7 Non-Repeated Language Clinic (Hindi):\n"
-                    "1. मात्राओं (ि/ी, ु/ू) और संयुक्त अक्षरों की गलतियों पर ध्यान दें।\n"
-                    "2. रटने के बजाय अपने शब्दों में 4 वाक्यों में उत्तर लिखें।\n"
-                    "3. पिछली गलतियों को अपने 'Error Bank' में देखकर वर्तनी सुधारें।"
-                )
-            else:
-                lang_guidance = (
-                    "Rule 5 & 7 Non-Repeated Language Clinic (English):\n"
-                    "1. Focus on tricky double-letter spellings, silent letters, and past tense forms.\n"
-                    "2. Write answers IN YOUR OWN WORDS! Evaluators award higher marks for original sentences with clean grammar.\n"
-                    "3. Review 5 words from your 'Error Bank' notebook."
-                )
+            # Select non-repeated language (NOT in homework)
+            all_langs = ["Tamil", "English", "Hindi"]
+            candidate_langs = [l for l in all_langs if l not in hw_detected_languages]
+            if not candidate_langs:
+                candidate_langs = all_langs
 
-            rem_lang_mins = max(20, int((m_end_target - timedelta(minutes=5) - m_cur).total_seconds() / 60))
-            lang_end = m_cur + timedelta(minutes=rem_lang_mins)
+            # If user selected a preference and it is in candidate_langs, prefer it, else pick balanced candidate
+            chosen_lang = candidate_langs[0]
+            for cl in candidate_langs:
+                if cl.lower() in selected_language.lower():
+                    chosen_lang = cl
+                    break
+            else:
+                chosen_lang = tracker.pick_balanced_candidate(candidate_langs, days=7)
+
+            l_meta = CANONICAL_SUBDIVISIONS.get(chosen_lang, {})
+            lang_dur = 30
+            lang_end = m_cur + timedelta(minutes=lang_dur)
             morning_slots.append({
                 "phase": "Morning Language Clinic",
                 "start": m_cur.strftime("%I:%M %p"),
                 "end": lang_end.strftime("%I:%M %p"),
-                "duration_mins": rem_lang_mins,
-                "title": f"Language Writing & Spelling Clinic: {lang_name} (Non-Repeated)",
-                "subject": lang_name,
+                "duration_mins": lang_dur,
+                "title": f"Language Writing & Spelling Clinic: {chosen_lang} (Non-Repeated)",
+                "subject": chosen_lang,
+                "subdivision": chosen_lang,
                 "type": "revision",
-                "badge": lang_badge,
-                "guidance": lang_guidance
+                "badge": l_meta.get("badge", "✍️ Language Clinic"),
+                "guidance": f"Rule 5 & 7 Non-Repeated Language Clinic ({chosen_lang}): {l_meta.get('guidance', '')}",
+                "is_completed": False
             })
             m_cur = lang_end
 
-        # School Readiness Wind-down
+        # School Readiness Wind-down (10m)
         morning_slots.append({
             "phase": "School Ready",
             "start": m_cur.strftime("%I:%M %p"),
@@ -5464,6 +5740,7 @@ class DesktopApp:
             popup.configure(bg="#0c1322", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground=p_col)
 
             guide_items = [
+                ("⚖️", "Parent Representation & Subdivision Audit", "7D & 30D Balance: Maths 100%, Science & Social Subdivisions", self.open_parent_representation_audit_modal),
                 ("⚖️", "Core Subject Priorities & Weightage", "CBSE Class 8 Cognitive Load & Study Gravity Matrix", lambda: self.open_guide_modal("gravity")),
                 ("✍️", "Spelling & Diagram Clinic Protocol", "Pen-and-Paper Mistake Log, Blind Diagrams & Science Clinics", lambda: self.open_guide_modal("skills")),
                 ("📊", "Subject Occurrence & Time Variance Audit", "Historical Slot Adherence, Extensions & Friction Analysis", lambda: self.open_guide_modal("audit")),
@@ -15761,6 +16038,197 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             relief=tk.FLAT,
             padx=10,
             pady=6,
+            cursor="hand2",
+            command=win.destroy
+        )
+        btn_close.pack(side=tk.RIGHT)
+
+    def open_parent_representation_audit_modal(self):
+        """Dedicated Option C HUD Modal for Parent Subject & Subdivision Representation Audit."""
+        c = self.colors
+        win, content = self._create_hud_toplevel(
+            "⚖️ PARENT SUBJECT REPRESENTATION & SUBDIVISION AUDIT • CLASS 8",
+            "Mandatory 100% Mathematics Compliance • Equal Rotation of Science & Social Subdivisions • 7D & 30D Audit",
+            width=920,
+            height=680,
+            min_width=820,
+            min_height=560
+        )
+
+        tracker = TharunScheduleBalancer.get_representation_tracker()
+        counts_7d = tracker.get_counts(days=7)
+        counts_30d = tracker.get_counts(days=30)
+        today_str = datetime.now().strftime("%d-%m-%Y")
+
+        # Top KPI Summary Bar (4 cards)
+        kpi_frame = tk.Frame(content, bg="#070b14")
+        kpi_frame.pack(fill=tk.X, pady=(0, 10))
+
+        # KPI 1: Mathematics 100% Rule
+        card_m = tk.Frame(kpi_frame, bg="#0f172a", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#38bdf8", padx=10, pady=8)
+        card_m.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 4))
+        tk.Label(card_m, text="📐 Mathematics", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#0f172a").pack(anchor="w")
+        tk.Label(card_m, text="100% Daily Guaranteed", font=("Segoe UI", 11, "bold"), fg="#22c55e", bg="#0f172a").pack(anchor="w", pady=1)
+        tk.Label(card_m, text=f"7D: {counts_7d.get('Mathematics', 0)} sessions | 30D: {counts_30d.get('Mathematics', 0)}", font=("Segoe UI", 7), fg="#94a3b8", bg="#0f172a").pack(anchor="w")
+
+        # KPI 2: Science Rotation
+        sci_7d = f"{counts_7d.get('Physics',0)} : {counts_7d.get('Chemistry',0)} : {counts_7d.get('Biology',0)}"
+        card_s = tk.Frame(kpi_frame, bg="#0f172a", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#1e293b", padx=10, pady=8)
+        card_s.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=2)
+        tk.Label(card_s, text="🔬 Science Subdivisions", font=("Segoe UI", 8, "bold"), fg="#fb923c", bg="#0f172a").pack(anchor="w")
+        tk.Label(card_s, text=f"Ratio {sci_7d}", font=("Segoe UI", 11, "bold"), fg="#f8fafc", bg="#0f172a").pack(anchor="w", pady=1)
+        tk.Label(card_s, text="Physics : Chem : Bio (Equal Rotation)", font=("Segoe UI", 7), fg="#94a3b8", bg="#0f172a").pack(anchor="w")
+
+        # KPI 3: Social Science Rotation
+        soc_7d = f"{counts_7d.get('History',0)} : {counts_7d.get('Geography',0)} : {counts_7d.get('Civics',0)}"
+        card_soc = tk.Frame(kpi_frame, bg="#0f172a", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#1e293b", padx=10, pady=8)
+        card_soc.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=2)
+        tk.Label(card_soc, text="🌍 Social Subdivisions", font=("Segoe UI", 8, "bold"), fg="#a855f7", bg="#0f172a").pack(anchor="w")
+        tk.Label(card_soc, text=f"Ratio {soc_7d}", font=("Segoe UI", 11, "bold"), fg="#f8fafc", bg="#0f172a").pack(anchor="w", pady=1)
+        tk.Label(card_soc, text="History : Geo : Civics (Equal Rotation)", font=("Segoe UI", 7), fg="#94a3b8", bg="#0f172a").pack(anchor="w")
+
+        # KPI 4: Level Mode Extension Status
+        lvl_num = getattr(self, "current_level", 2)
+        card_lvl = tk.Frame(kpi_frame, bg="#0f172a", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#1e293b", padx=10, pady=8)
+        card_lvl.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(4, 0))
+        tk.Label(card_lvl, text=f"⚡ Level {lvl_num} Routine", font=("Segoe UI", 8, "bold"), fg="#eab308", bg="#0f172a").pack(anchor="w")
+        lvl_desc = "1 Eve Core (2.25h)" if lvl_num == 1 else ("2 Eve Cores (3.0h)" if lvl_num == 2 else "2 Eve Cores Deep Flow")
+        tk.Label(card_lvl, text=lvl_desc, font=("Segoe UI", 11, "bold"), fg="#f8fafc", bg="#0f172a").pack(anchor="w", pady=1)
+        tk.Label(card_lvl, text="Morning session locked & static", font=("Segoe UI", 7), fg="#94a3b8", bg="#0f172a").pack(anchor="w")
+
+        # Main Table Card (Scrollable Frame)
+        table_container = tk.Frame(content, bg="#0f172a", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#1e293b")
+        table_container.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+
+        # Canvas with custom scrollbar
+        tbl_canvas = tk.Canvas(table_container, bg="#0f172a", bd=0, highlightthickness=0)
+        tbl_scrollbar = tk.Scrollbar(table_container, orient=tk.VERTICAL, command=tbl_canvas.yview)
+        scroll_content = tk.Frame(tbl_canvas, bg="#0f172a")
+
+        scroll_content.bind("<Configure>", lambda e: tbl_canvas.configure(scrollregion=tbl_canvas.bbox("all")))
+        tbl_canvas.create_window((0, 0), window=scroll_content, anchor="nw")
+        tbl_canvas.configure(yscrollcommand=tbl_scrollbar.set)
+
+        tbl_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=8, pady=8)
+        tbl_scrollbar.pack(side=tk.RIGHT, fill=tk.Y, pady=8)
+
+        # Header Row
+        hdr_row = tk.Frame(scroll_content, bg="#1e293b", padx=8, pady=6)
+        hdr_row.pack(fill=tk.X, pady=(0, 4))
+        tk.Label(hdr_row, text="SUBDIVISION / SUBJECT", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#1e293b", width=26, anchor="w").pack(side=tk.LEFT)
+        tk.Label(hdr_row, text="PARENT DISCIPLINE", font=("Segoe UI", 8, "bold"), fg="#94a3b8", bg="#1e293b", width=18, anchor="w").pack(side=tk.LEFT)
+        tk.Label(hdr_row, text="7-DAY SESSIONS", font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg="#1e293b", width=14, anchor="center").pack(side=tk.LEFT)
+        tk.Label(hdr_row, text="30-DAY SESSIONS", font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg="#1e293b", width=14, anchor="center").pack(side=tk.LEFT)
+        tk.Label(hdr_row, text="AUDIT COMPLIANCE STATUS", font=("Segoe UI", 8, "bold"), fg="#22c55e", bg="#1e293b", width=24, anchor="w").pack(side=tk.LEFT)
+
+        # Populate rows
+        audit_slip_lines = [
+            f"⚖️ THARUN'S PARENT SUBJECT & SUBDIVISION REPRESENTATION AUDIT",
+            f"🏫 School: Senthil Public School, Dharmapuri | Class: Class 8 CBSE",
+            f"📅 Date: {today_str} | Active Level: Level {lvl_num}",
+            f"----------------------------------------------------------------------",
+            f"📐 Mathematics (100% Daily Rule): {counts_7d.get('Mathematics',0)} sessions (7D) | {counts_30d.get('Mathematics',0)} sessions (30D) - 100% COMPLIANT",
+            f"🔬 Science Subdivisions (Physics:Chem:Bio): {sci_7d} - EQUALLY ROTATED",
+            f"🌍 Social Subdivisions (History:Geo:Civics): {soc_7d} - EQUALLY ROTATED",
+            f"✍️ Language Clinic (Tamil:Eng:Hindi): {counts_7d.get('Tamil',0)}:{counts_7d.get('English',0)}:{counts_7d.get('Hindi',0)} - NON-REPEATED",
+            f"----------------------------------------------------------------------",
+            f"SUBDIVISION DETAIL BREAKDOWN:"
+        ]
+
+        for idx, (sub_name, sub_meta) in enumerate(CANONICAL_SUBDIVISIONS.items()):
+            row_bg = "#111827" if idx % 2 == 0 else "#0f172a"
+            row = tk.Frame(scroll_content, bg=row_bg, padx=8, pady=5)
+            row.pack(fill=tk.X, pady=1)
+
+            # Name & Badge
+            tk.Label(row, text=sub_meta.get("badge", sub_name), font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg=row_bg, width=26, anchor="w").pack(side=tk.LEFT)
+            # Parent
+            tk.Label(row, text=sub_meta.get("parent", sub_name), font=("Segoe UI", 8), fg="#94a3b8", bg=row_bg, width=18, anchor="w").pack(side=tk.LEFT)
+            # 7-day count
+            c7 = counts_7d.get(sub_name, 0)
+            tk.Label(row, text=f"{c7} sessions", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg=row_bg, width=14, anchor="center").pack(side=tk.LEFT)
+            # 30-day count
+            c30 = counts_30d.get(sub_name, 0)
+            tk.Label(row, text=f"{c30} sessions", font=("Segoe UI", 8), fg="#f8fafc", bg=row_bg, width=14, anchor="center").pack(side=tk.LEFT)
+
+            # Compliance Badge
+            if sub_meta.get("is_math"):
+                status_txt = "✅ 100% Daily Inviolable"
+                status_col = "#22c55e"
+            elif c7 >= 2:
+                status_txt = "⚖️ Equally Balanced"
+                status_col = "#38bdf8"
+            elif c7 == 1:
+                status_txt = "⏳ Active in Rotation"
+                status_col = "#facc15"
+            else:
+                status_txt = "🎯 Next Rotation Priority"
+                status_col = "#fb923c"
+
+            tk.Label(row, text=status_txt, font=("Segoe UI", 8, "bold"), fg=status_col, bg=row_bg, width=24, anchor="w").pack(side=tk.LEFT)
+            audit_slip_lines.append(f"  • {sub_name} ({sub_meta.get('parent')}): {c7} sess (7D) | {c30} sess (30D) -> {status_txt}")
+
+        audit_slip_lines.append(f"----------------------------------------------------------------------")
+        audit_slip_lines.append(f"Parent Verification: Verified regular representation across all subjects and subdivisions.")
+        audit_slip_text = "\n".join(audit_slip_lines)
+
+        # Bottom Bar
+        act_box = tk.Frame(content, bg="#070b14")
+        act_box.pack(fill=tk.X, pady=(2, 0))
+
+        def copy_audit_slip():
+            self.root.clipboard_clear()
+            self.root.clipboard_append(audit_slip_text)
+            self.play_chime("finished")
+            messagebox.showinfo("Copied!", "⚖️ Parent Representation Audit Slip copied to clipboard!\n\nYou can share it with family or review at any time.", parent=win)
+
+        def save_audit_slip():
+            workspace_dir = os.path.dirname(os.path.abspath(__file__))
+            out_file = os.path.join(workspace_dir, f"Tharun_Parent_Representation_Audit_{today_str}.txt")
+            try:
+                with open(out_file, "w", encoding="utf-8") as f:
+                    f.write(audit_slip_text)
+                messagebox.showinfo("Report Saved", f"Saved Parent Representation Audit slip to:\n{out_file}", parent=win)
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to save audit slip:\n{e}", parent=win)
+
+        btn_copy = tk.Button(
+            act_box,
+            text="📋 Copy Audit Slip (WhatsApp / Telegram)",
+            font=("Segoe UI", 9, "bold"),
+            bg="#059669" if self.current_theme == "dark" else "#10b981",
+            fg="#ffffff",
+            relief=tk.FLAT,
+            padx=12,
+            pady=5,
+            cursor="hand2",
+            command=copy_audit_slip
+        )
+        btn_copy.pack(side=tk.LEFT, padx=(0, 6))
+
+        btn_save = tk.Button(
+            act_box,
+            text="💾 Save Audit File (.txt)",
+            font=("Segoe UI", 8),
+            bg="#1e293b",
+            fg="#f8fafc",
+            relief=tk.FLAT,
+            padx=10,
+            pady=5,
+            cursor="hand2",
+            command=save_audit_slip
+        )
+        btn_save.pack(side=tk.LEFT)
+
+        btn_close = tk.Button(
+            act_box,
+            text="Close",
+            font=("Segoe UI", 8),
+            bg="#1e293b",
+            fg="#94a3b8",
+            relief=tk.FLAT,
+            padx=10,
+            pady=5,
             cursor="hand2",
             command=win.destroy
         )

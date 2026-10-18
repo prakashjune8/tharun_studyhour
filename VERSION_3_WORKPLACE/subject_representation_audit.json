@@ -1,0 +1,312 @@
+{
+  "metadata": {
+    "student": "Tharun",
+    "class": "Class 8 CBSE",
+    "school": "Senthil Public School, Dharmapuri",
+    "last_updated": "2026-10-18T10:07:03.277369",
+    "total_events": 43
+  },
+  "history": [
+    {
+      "date": "2026-10-06",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-06",
+      "slot_type": "homework",
+      "subdivision": "Physics",
+      "parent": "Physical Science",
+      "duration_mins": 15
+    },
+    {
+      "date": "2026-10-06",
+      "slot_type": "homework",
+      "subdivision": "Physics",
+      "parent": "Physical Science",
+      "duration_mins": 15
+    },
+    {
+      "date": "2026-10-06",
+      "slot_type": "homework",
+      "subdivision": "History",
+      "parent": "Social Science",
+      "duration_mins": 15
+    },
+    {
+      "date": "2026-10-06",
+      "slot_type": "homework",
+      "subdivision": "Biology",
+      "parent": "Biological Science",
+      "duration_mins": 5
+    },
+    {
+      "date": "2026-10-07",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 30
+    },
+    {
+      "date": "2026-10-07",
+      "slot_type": "homework",
+      "subdivision": "Tamil",
+      "parent": "Tamil",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-07",
+      "slot_type": "homework",
+      "subdivision": "Biology",
+      "parent": "Biological Science",
+      "duration_mins": 15
+    },
+    {
+      "date": "2026-10-07",
+      "slot_type": "homework",
+      "subdivision": "Chemistry",
+      "parent": "Physical Science",
+      "duration_mins": 15
+    },
+    {
+      "date": "2026-10-08",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 30
+    },
+    {
+      "date": "2026-10-08",
+      "slot_type": "homework",
+      "subdivision": "Physics",
+      "parent": "Physical Science",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-08",
+      "slot_type": "homework",
+      "subdivision": "English",
+      "parent": "English",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-08",
+      "slot_type": "homework",
+      "subdivision": "Hindi",
+      "parent": "Hindi",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-08",
+      "slot_type": "homework",
+      "subdivision": "English",
+      "parent": "English",
+      "duration_mins": 15
+    },
+    {
+      "date": "2026-10-12",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 30
+    },
+    {
+      "date": "2026-10-12",
+      "slot_type": "homework",
+      "subdivision": "Physics",
+      "parent": "Physical Science",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-13",
+      "slot_type": "homework",
+      "subdivision": "Physics",
+      "parent": "Physical Science",
+      "duration_mins": 30
+    },
+    {
+      "date": "2026-10-13",
+      "slot_type": "homework",
+      "subdivision": "Tamil",
+      "parent": "Tamil",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-14",
+      "slot_type": "homework",
+      "subdivision": "Biology",
+      "parent": "Biological Science",
+      "duration_mins": 30
+    },
+    {
+      "date": "2026-10-14",
+      "slot_type": "homework",
+      "subdivision": "English",
+      "parent": "English",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-15",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 30
+    },
+    {
+      "date": "2026-10-15",
+      "slot_type": "homework",
+      "subdivision": "Hindi",
+      "parent": "Hindi",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-16",
+      "slot_type": "homework",
+      "subdivision": "Physics",
+      "parent": "Physical Science",
+      "duration_mins": 30
+    },
+    {
+      "date": "2026-10-16",
+      "slot_type": "homework",
+      "subdivision": "Physics",
+      "parent": "Physical Science",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-17",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 35
+    },
+    {
+      "date": "2026-10-17",
+      "slot_type": "homework",
+      "subdivision": "Chemistry",
+      "parent": "Physical Science",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-08",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-08",
+      "slot_type": "homework",
+      "subdivision": "Physics",
+      "parent": "Physical Science",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-08",
+      "slot_type": "homework",
+      "subdivision": "Hindi",
+      "parent": "Hindi",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-08",
+      "slot_type": "homework",
+      "subdivision": "English",
+      "parent": "English",
+      "duration_mins": 15
+    },
+    {
+      "date": "2026-10-09",
+      "slot_type": "homework",
+      "subdivision": "Tamil",
+      "parent": "Tamil",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-09",
+      "slot_type": "homework",
+      "subdivision": "English",
+      "parent": "English",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-09",
+      "slot_type": "homework",
+      "subdivision": "Biology",
+      "parent": "Biological Science",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-09",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-18",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-12",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-12",
+      "slot_type": "homework",
+      "subdivision": "Physics",
+      "parent": "Physical Science",
+      "duration_mins": 15
+    },
+    {
+      "date": "2026-10-12",
+      "slot_type": "homework",
+      "subdivision": "Tamil",
+      "parent": "Tamil",
+      "duration_mins": 15
+    },
+    {
+      "date": "2026-10-12",
+      "slot_type": "homework",
+      "subdivision": "English",
+      "parent": "English",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-13",
+      "slot_type": "homework",
+      "subdivision": "Mathematics",
+      "parent": "Mathematics",
+      "duration_mins": 25
+    },
+    {
+      "date": "2026-10-13",
+      "slot_type": "homework",
+      "subdivision": "Physics",
+      "parent": "Physical Science",
+      "duration_mins": 20
+    },
+    {
+      "date": "2026-10-13",
+      "slot_type": "homework",
+      "subdivision": "History",
+      "parent": "Social Science",
+      "duration_mins": 15
+    },
+    {
+      "date": "2026-10-13",
+      "slot_type": "homework",
+      "subdivision": "Tamil",
+      "parent": "Tamil",
+      "duration_mins": 5
+    }
+  ]
+}

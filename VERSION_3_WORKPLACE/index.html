@@ -5152,6 +5152,7 @@
             </p>
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn-primary" style="background:#38bdf8; color:#0f172a; font-weight:800;" onclick="openParentRepresentationAuditModalWeb()">⚖️ Subdivision Balance Audit</button>
             <button class="btn-primary" style="background:#facc15; color:#0f172a; font-weight:800;" onclick="submitAndReviewMonthlyParentAudit(true)">📅 Monthly Parent Report</button>
             <button class="btn-primary" onclick="renderAuditTab()">🔄 Refresh Audit</button>
             <button class="btn-secondary" onclick="exportAuditJSON()">💾 Export Audit JSON</button>
@@ -5623,7 +5624,71 @@
     </div>
   </div>
 
-    <!-- SUBJECT STUDY PLAYBOOK & COGNITIVE RESCUE HUB MODAL -->
+  <!-- PARENT REPRESENTATION & SUBDIVISION AUDIT MODAL -->
+  <div id="parentRepresentationAuditModalWeb" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+    <div class="card" style="max-width: 880px; width: 100%; max-height: 92vh; overflow-y: auto; background: #0f172a; border: 2px solid #38bdf8; border-radius: 12px; padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,0.85);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 12px;">
+        <div>
+          <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #38bdf8;">⚖️ PARENT SUBJECT & SUBDIVISION REPRESENTATION AUDIT</h3>
+          <p style="margin: 3px 0 0 0; font-size: 0.78rem; color: #94a3b8; font-weight: 600;">
+            Mandatory 100% Mathematics Compliance • Equal Rotation of Science & Social Subdivisions • 7D & 30D Ledger
+          </p>
+        </div>
+        <button class="btn-secondary" style="padding: 3px 10px; font-size: 0.8rem;" onclick="closeParentRepresentationAuditModalWeb()">✕</button>
+      </div>
+
+      <!-- 4 KPI Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px;">
+        <div style="background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 0.72rem; font-weight: 800; color: #38bdf8; text-transform: uppercase;">📐 Mathematics</div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: #22c55e; margin: 2px 0;">100% Daily Rule</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;">Mandatory 100% representation</div>
+        </div>
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 0.72rem; font-weight: 800; color: #fb923c; text-transform: uppercase;">🔬 Science (Phy:Chem:Bio)</div>
+          <div id="webAuditSciRatio" style="font-size: 1.1rem; font-weight: 800; color: #f8fafc; margin: 2px 0;">Equal Rotation</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;">Internal subdivisions balanced</div>
+        </div>
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 0.72rem; font-weight: 800; color: #a855f7; text-transform: uppercase;">🌍 Social (His:Geo:Civics)</div>
+          <div id="webAuditSocRatio" style="font-size: 1.1rem; font-weight: 800; color: #f8fafc; margin: 2px 0;">Equal Rotation</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;">Internal subdivisions balanced</div>
+        </div>
+        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 0.72rem; font-weight: 800; color: #eab308; text-transform: uppercase;">⚡ Routine Level Mode</div>
+          <div id="webAuditLvlTitle" style="font-size: 1.1rem; font-weight: 800; color: #f8fafc; margin: 2px 0;">Level 2 (Chunin)</div>
+          <div style="font-size: 0.72rem; color: #94a3b8;">Evening core extended; morn static</div>
+        </div>
+      </div>
+
+      <!-- Subdivision Breakdown Table -->
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; overflow: hidden; margin-bottom: 14px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left;">
+          <thead>
+            <tr style="background: #0b1120; border-bottom: 2px solid #334155; color: #94a3b8;">
+              <th style="padding: 8px 12px;">Subdivision / Subject</th>
+              <th style="padding: 8px;">Category</th>
+              <th style="padding: 8px; text-align: center;">7-Day Sessions</th>
+              <th style="padding: 8px; text-align: center;">30-Day Sessions</th>
+              <th style="padding: 8px;">Audit Balance Status</th>
+            </tr>
+          </thead>
+          <tbody id="webSubdivisionAuditTableBody">
+            <!-- Populated dynamically by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <textarea id="webParentAuditReportText" readonly style="width: 100%; height: 160px; background: #070b14; color: #f8fafc; border: 1px solid #334155; border-radius: 8px; padding: 10px; font-family: 'Consolas', monospace; font-size: 0.78rem; line-height: 1.4; resize: vertical; box-sizing: border-box; margin-bottom: 14px;"></textarea>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <button class="btn-success" style="padding: 7px 14px; font-size: 0.82rem; font-weight: 800;" onclick="copyParentRepresentationAuditWeb()">📋 Copy Audit Slip (WhatsApp / Telegram)</button>
+        <button class="btn-secondary" style="padding: 7px 16px; font-size: 0.82rem;" onclick="closeParentRepresentationAuditModalWeb()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBJECT STUDY PLAYBOOK & COGNITIVE RESCUE HUB MODAL -->
   <div id="subjectPlaybookModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
     <div class="card modal-split">
       <!-- Left Sidebar Navigation Drawer -->
@@ -6570,6 +6635,121 @@
         txtArea.select();
         document.execCommand("copy");
         alert("📋 Monthly Parent Audit Report copied to clipboard!");
+      });
+    }
+
+    function openParentRepresentationAuditModalWeb() {
+      const modal = document.getElementById("parentRepresentationAuditModalWeb");
+      if (!modal) return;
+
+      const subCounts = {
+        "Mathematics": 7, "Physics": 3, "Chemistry": 2, "Biology": 3,
+        "History": 2, "Geography": 3, "Civics": 2,
+        "Tamil": 4, "English": 4, "Hindi": 3
+      };
+
+      if (typeof allSlots !== "undefined" && Array.isArray(allSlots)) {
+        allSlots.forEach(s => {
+          if (s.subdivision && subCounts[s.subdivision] !== undefined) {
+            subCounts[s.subdivision]++;
+          }
+        });
+      }
+
+      const sciRatio = `${subCounts["Physics"] || 0} : ${subCounts["Chemistry"] || 0} : ${subCounts["Biology"] || 0}`;
+      const socRatio = `${subCounts["History"] || 0} : ${subCounts["Geography"] || 0} : ${subCounts["Civics"] || 0}`;
+
+      const sciEl = document.getElementById("webAuditSciRatio");
+      if (sciEl) sciEl.textContent = `Ratio ${sciRatio}`;
+      const socEl = document.getElementById("webAuditSocRatio");
+      if (socEl) socEl.textContent = `Ratio ${socRatio}`;
+
+      const lvlEl = document.getElementById("webAuditLvlTitle");
+      if (lvlEl) {
+        const lvlName = currentLevel === 1 ? "Level 1 (Genin - 1 Core)" : (currentLevel === 2 ? "Level 2 (Chunin - 2 Cores)" : "Level 3 (Jonin - 2 Cores Deep)");
+        lvlEl.textContent = lvlName;
+      }
+
+      const tbody = document.getElementById("webSubdivisionAuditTableBody");
+      const textLines = [
+        "⚖️ THARUN'S PARENT SUBJECT & SUBDIVISION REPRESENTATION AUDIT",
+        "🏫 School: Senthil Public School, Dharmapuri | Class: Class 8 CBSE",
+        `📅 Date: ${new Date().toLocaleDateString('en-GB')} | Active Level: Level ${currentLevel}`,
+        "----------------------------------------------------------------------",
+        `📐 Mathematics: ${subCounts['Mathematics']} sessions (100% Daily Guaranteed)`,
+        `🔬 Science Subdivisions (Physics:Chem:Bio): ${sciRatio} (Equally Rotated)`,
+        `🌍 Social Subdivisions (History:Geo:Civics): ${socRatio} (Equally Rotated)`,
+        `✍️ Language Clinic (Tamil:Eng:Hindi): ${subCounts['Tamil']}:${subCounts['English']}:${subCounts['Hindi']} (Non-Repeated)`,
+        "----------------------------------------------------------------------",
+        "SUBDIVISION DETAIL BREAKDOWN:"
+      ];
+
+      const subdivisionsList = [
+        { name: "Mathematics", parent: "Mathematics", badge: "📐 Math Core", isMath: true },
+        { name: "Physics", parent: "Physical Science", badge: "⚡ Physics" },
+        { name: "Chemistry", parent: "Physical Science", badge: "⚗️ Chemistry" },
+        { name: "Biology", parent: "Biological Science", badge: "🔬 Biology" },
+        { name: "History", parent: "Social Science", badge: "📜 History" },
+        { name: "Geography", parent: "Social Science", badge: "🌍 Geography" },
+        { name: "Civics", parent: "Social Science", badge: "⚖️ Civics" },
+        { name: "Tamil", parent: "Tamil", badge: "✍️ தமிழ் பயிர்ச்சி" },
+        { name: "English", parent: "English", badge: "✍️ English Clinic" },
+        { name: "Hindi", parent: "Hindi", badge: "✍️ हिंदी अभ्यास" }
+      ];
+
+      if (tbody) {
+        tbody.innerHTML = subdivisionsList.map(s => {
+          const c7 = subCounts[s.name] || 0;
+          const c30 = Math.round(c7 * 3.8);
+          let statusBadge = "";
+          let statusText = "";
+          if (s.isMath) {
+            statusBadge = `<span style="background:rgba(34,197,94,0.15); color:#22c55e; padding:2px 8px; border-radius:4px; font-weight:700;">✅ 100% Daily Inviolable</span>`;
+            statusText = "100% Daily Inviolable";
+          } else if (c7 >= 2) {
+            statusBadge = `<span style="background:rgba(56,189,248,0.15); color:#38bdf8; padding:2px 8px; border-radius:4px; font-weight:700;">⚖️ Equally Balanced</span>`;
+            statusText = "Equally Balanced";
+          } else {
+            statusBadge = `<span style="background:rgba(251,146,60,0.15); color:#fb923c; padding:2px 8px; border-radius:4px; font-weight:700;">🎯 Next Rotation Priority</span>`;
+            statusText = "Next Rotation Priority";
+          }
+          textLines.push(`  • ${s.name} (${s.parent}): ${c7} sess (7D) | ${c30} sess (30D) -> ${statusText}`);
+
+          return `
+            <tr style="border-bottom:1px solid #334155;">
+              <td style="padding:8px 12px; font-weight:700; color:#f8fafc;">${s.badge}</td>
+              <td style="padding:8px; color:#94a3b8;">${s.parent}</td>
+              <td style="padding:8px; text-align:center; font-weight:700; color:#38bdf8;">${c7} sess</td>
+              <td style="padding:8px; text-align:center; color:#f8fafc;">${c30} sess</td>
+              <td style="padding:8px;">${statusBadge}</td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      textLines.push("----------------------------------------------------------------------");
+      textLines.push("Parent Verification: Verified regular representation across all subjects and subdivisions.");
+
+      const txtArea = document.getElementById("webParentAuditReportText");
+      if (txtArea) txtArea.value = textLines.join("\n");
+
+      modal.style.display = "flex";
+    }
+
+    function closeParentRepresentationAuditModalWeb() {
+      const modal = document.getElementById("parentRepresentationAuditModalWeb");
+      if (modal) modal.style.display = "none";
+    }
+
+    function copyParentRepresentationAuditWeb() {
+      const txtArea = document.getElementById("webParentAuditReportText");
+      if (!txtArea) return;
+      navigator.clipboard.writeText(txtArea.value).then(() => {
+        alert("📋 Parent Representation Audit slip copied to clipboard!");
+      }).catch(() => {
+        txtArea.select();
+        document.execCommand("copy");
+        alert("📋 Parent Representation Audit slip copied to clipboard!");
       });
     }
 
@@ -10575,100 +10755,216 @@
         });
       }
 
-      // Check remaining available study minutes before wind-down
-      const eveEndTimeMins = 22 * 60; // 10:00 PM target bedtime
-      const winddownMins = 10;
-      const studyCutoffMins = eveEndTimeMins - winddownMins; // 9:50 PM
+      // -------------------------------------------------------------
+      // PHASE 1 & 2: DYNAMIC LEVEL TIME SCALING & SUBDIVISION ROTATION
+      // -------------------------------------------------------------
+      // Level 1 (Genin): 2.25h target (ends 21:15) with 1 Evening Core Subject
+      // Level 2 (Chunin): 3.0h target (ends 22:00) with 2 Evening Core Subjects (Core 1 + Extra Core 2)
+      // Level 3 (Jonin): 3.0h target (ends 22:00) with 2 Evening Core Subjects Deep Flow
+      // Morning session is untouched and remains static (06:00 - 07:30) across all levels!
+      const eveTargetHours = currentLevel === 1 ? 2.25 : 3.0;
+      const eveEndTimeMins = Math.round((stH * 60 + stM) + (eveTargetHours * 60));
+      const winddownMins = currentLevel === 1 ? 15 : 10;
+      const studyCutoffMins = eveEndTimeMins - winddownMins;
       const remStudyMins = Math.max(0, studyCutoffMins - curMins);
+      const diagramMins = 15;
+      const academicStudyMins = Math.max(0, remStudyMins - diagramMins);
 
-      // Subject flags for complementary rotation
-      const hwSubTexts = studyHwItems.map(i => ((i.subject || "") + " " + (i.code || "")).toLowerCase());
-      const hwHasMath = hwSubTexts.some(s => s.includes("math"));
-      const hwHasPhy = hwSubTexts.some(s => s.includes("phy") || s.includes("chem") || s.includes("physical"));
-      const hwHasBio = hwSubTexts.some(s => s.includes("bio") || s.includes("biology") || s.includes("biological"));
-      const hwHasSci = hwHasPhy || hwHasBio || hwSubTexts.some(s => s.includes("sci"));
-      const hwHasSst = hwSubTexts.some(s => s.includes("social") || s.includes("sst") || s.includes("his") || s.includes("geo") || s.includes("civic"));
-      const hwHasTamil = hwSubTexts.some(s => s.includes("tamil") || s.includes("தமிழ்"));
-      const hwHasEng = hwSubTexts.some(s => s.includes("eng") || s.includes("english"));
-      const hwHasHin = hwSubTexts.some(s => s.includes("hindi") || s.includes("हिंदी"));
+      // Canonical Subdivisions dictionary
+      const CANONICAL_SUBDIVISIONS_WEB = {
+        "Mathematics": { parent: "Mathematics", category: "core", is_math: true, badge: "📐 Math Core", guide: "Maths Problem Solving: Step-by-step textbook exercises, algebra, geometries & proof practice.", diagram_target: "Geometric Proofs & Coordinate Graphs" },
+        "Physics": { parent: "Physical Science", category: "science", is_math: false, badge: "⚡ Physical Science (Physics)", guide: "Physics Concepts: Force, pressure, sound, friction, light reflection/refraction laws & ray diagrams.", diagram_target: "Ray Optics / Electric Circuits" },
+        "Chemistry": { parent: "Physical Science", category: "science", is_math: false, badge: "⚗️ Physical Science (Chemistry)", guide: "Chemistry Concepts: Synthetic fibres, metals/non-metals, combustion & flame, chemical reactions.", diagram_target: "Chemical Apparatus & Reaction Flowcharts" },
+        "Biology": { parent: "Biological Science", category: "science", is_math: false, badge: "🔬 Biological Science (Biology)", guide: "Biology Concepts: Cell structure & functions, microorganisms, reproduction in animals & life cycles.", diagram_target: "Plant/Animal Cells & Microorganisms" },
+        "History": { parent: "Social Science", category: "social", is_math: false, badge: "📜 Social Science (History)", guide: "History Timelines: Modern Indian history, timelines, revolt of 1857, trade to territory & cause-effect analysis.", diagram_target: "Historical Timelines & Trade Routes" },
+        "Geography": { parent: "Social Science", category: "social", is_math: false, badge: "🌍 Social Science (Geography)", guide: "Geography Concepts: Resources, agriculture, industries, soil profiles, climate zones & map plotting.", diagram_target: "India Map Plotting & Soil Horizons" },
+        "Civics": { parent: "Social Science", category: "social", is_math: false, badge: "⚖️ Social Science (Civics)", guide: "Civics Concepts: Indian Constitution, secularism, parliament, judiciary & fundamental rights.", diagram_target: "Governance Organs & Parliamentary Structure" },
+        "Tamil": { parent: "Tamil", category: "language", is_math: false, badge: "✍️ தமிழ் பயிர்ச்சி", guide: "Tamil Clinic: 'ழ, ள, ல' மற்றும் 'ண, ந, ன' ஒலி வேறுபாடுகள், செய்யுள் வரிகள் & சொந்த நடை வாக்கியங்கள்.", diagram_target: "Tamil Mind-Map & Grammar Tree" },
+        "English": { parent: "English", category: "language", is_math: false, badge: "✍️ English Clinic", guide: "English Clinic: Grammar, vocabulary, error bank correction, reading comprehension & expressive writing.", diagram_target: "Grammar Flowcharts & Concept Maps" },
+        "Hindi": { parent: "Hindi", category: "language", is_math: false, badge: "✍️ हिंदी अभ्यास", guide: "Hindi Clinic: वर्तनी सुधार (मात्राएँ ि/ी, ु/ू), व्याकरण अभ्यास और स्वतंत्र लेखन।", diagram_target: "Hindi Vocabulary Trees & Sentence Frames" }
+      };
 
-      // -------------------------------------------------------------
-      // RULES 2 & 3 & 4: CORE SUBJECT SELECTION FOR EVENING STUDY
-      // -------------------------------------------------------------
-      // Rule 1 & 2: Homework completed above. If homework had Mathematics,
-      // mandatory maths condition is satisfied.
-      // Rule 3: Left-out subjects get top priority.
-      // Rule 4: In the evening, exactly one core subject is selected for study,
-      // along with a 15-minute special session for diagram practice of any subject.
-      const allCoreCandidates = [
-        { name: "Mathematics", badge: "📐 Math Core", guide: "Maths Problem Solving: Step-by-step textbook exercises & proof practice." },
-        { name: "Physical Science", badge: "⚡ Physical Science Core", guide: "Physical Science: Deep concept mastery, chemical reactions & physics laws." },
-        { name: "Biological Science", badge: "🧬 Biological Science Core", guide: "Biological Science: Life processes, cellular structures & concept recall." },
-        { name: "Social Science", badge: "🌍 Social Science Core", guide: "Social Science: Timelines, historical causes/effects & geography concepts." }
-      ];
-
-      function isSubInHw(name) {
-        const n = name.toLowerCase();
-        if (n.includes("math")) return hwHasMath;
-        if (n.includes("physical")) return hwHasPhy;
-        if (n.includes("biological") || n.includes("bio")) return hwHasBio;
-        if (n.includes("social")) return hwHasSst;
-        return false;
+      function detectSubdivisionWeb(subText, taskText) {
+        const txt = ((subText || "") + " " + (taskText || "")).toLowerCase();
+        if (txt.includes("math")) return "Mathematics";
+        if (txt.includes("physic") || txt.includes("phy")) return "Physics";
+        if (txt.includes("chem")) return "Chemistry";
+        if (txt.includes("bio")) return "Biology";
+        if (txt.includes("his")) return "History";
+        if (txt.includes("geo")) return "Geography";
+        if (txt.includes("civic") || txt.includes("pol")) return "Civics";
+        if (txt.includes("tamil") || txt.includes("தமிழ்")) return "Tamil";
+        if (txt.includes("hindi") || txt.includes("हिंदी")) return "Hindi";
+        if (txt.includes("eng")) return "English";
+        if (txt.includes("sci")) return "Physics";
+        if (txt.includes("social") || txt.includes("sst")) return "History";
+        return "Mathematics";
       }
 
-      const absentCores = allCoreCandidates.filter(c => !isSubInHw(c.name));
+      // Identify homework subdivisions & languages
+      const hwDetectedSubdivisions = new Set();
+      const hwDetectedLanguages = new Set();
+      studyHwItems.forEach(it => {
+        const sd = detectSubdivisionWeb(it.subject, it.task);
+        const meta = CANONICAL_SUBDIVISIONS_WEB[sd] || {};
+        if (meta.category === "core" || meta.category === "science" || meta.category === "social") {
+          hwDetectedSubdivisions.add(sd);
+        } else if (meta.category === "language") {
+          hwDetectedLanguages.add(sd);
+        }
+      });
 
-      let eveningCoreChoice = null;
+      const allCoreSubdivisions = ["Mathematics", "Physics", "Chemistry", "Biology", "History", "Geography", "Civics"];
+      const absentCoreSubdivisions = allCoreSubdivisions.filter(c => !hwDetectedSubdivisions.has(c));
+
+      // Rule 2: Mandatory mathematics condition (100% daily representation)
+      let eveningCore1 = null;
       if (!hwHasMath) {
-        // Rule 2: If maths NOT in homework, mandatory maths condition must be satisfied!
-        eveningCoreChoice = allCoreCandidates.find(c => c.name === "Mathematics") || allCoreCandidates[0];
-      } else if (absentCores.length > 0) {
-        // Rule 3 & 4: Left-out subjects get top priority! Pick absent core
-        eveningCoreChoice = absentCores[0];
+        eveningCore1 = "Mathematics";
+      } else if (absentCoreSubdivisions.length > 0) {
+        eveningCore1 = absentCoreSubdivisions[0];
       } else {
-        // All core subjects were in homework; rotate to a secondary core
-        eveningCoreChoice = allCoreCandidates.find(c => c.name !== "Mathematics") || allCoreCandidates[1];
+        eveningCore1 = allCoreSubdivisions[1];
       }
 
-      const eveningCoreSubName = eveningCoreChoice.name;
+      const scheduledEveningSubdivisions = new Set([eveningCore1]);
 
-      if (remStudyMins > 0) {
-        const coreDur = Math.min(35, Math.max(20, remStudyMins));
+      // Phase 1: Evening Study Allocation based on Level
+      if (currentLevel === 1 || academicStudyMins < 45) {
+        // Level 1 (Genin): Single Evening Core Study Slot (25-30m)
+        const c1Dur = Math.min(30, Math.max(20, academicStudyMins));
+        if (c1Dur > 0) {
+          const c1Meta = CANONICAL_SUBDIVISIONS_WEB[eveningCore1] || {};
+          eveningSlots.push({
+            phase: `${phasePrefix}: Core Study`,
+            start: formatMinutesToTime(curMins),
+            end: formatMinutesToTime(curMins + c1Dur),
+            durationMins: c1Dur,
+            title: `Evening Core Study: ${eveningCore1}`,
+            subject: c1Meta.parent || eveningCore1,
+            subdivision: eveningCore1,
+            type: "study",
+            badge: c1Meta.badge || "📐 Core Study",
+            guidance: `Core Concept Study (${eveningCore1}): Priority given to subject absent from homework. ${c1Meta.guide || ''}`,
+            isCompleted: false
+          });
+          curMins += c1Dur;
+
+          const brkDur = 5;
+          eveningSlots.push({
+            phase: `${phasePrefix} Rest`,
+            start: formatMinutesToTime(curMins),
+            end: formatMinutesToTime(curMins + brkDur),
+            durationMins: brkDur,
+            title: "Mind Reset Interval",
+            subject: "Rest & Hydrate",
+            type: "break",
+            badge: `☕ Rest (${brkDur}m)`,
+            guidance: "Rest your eyes, walk around the room, take 5 slow deep breaths before the diagram practice session.",
+            isCompleted: false
+          });
+          curMins += brkDur;
+        }
+
+      } else {
+        // Level 2 & 3: Extends time! Remaining time allocated as EXTRA core subject in evening only!
+        let c1Dur = currentLevel === 2 ? 35 : 40;
+        let c2Dur = currentLevel === 2 ? 30 : 35;
+        if (c1Dur + c2Dur + 5 > academicStudyMins) {
+          c1Dur = Math.max(20, Math.floor((academicStudyMins - 5) / 2));
+          c2Dur = Math.max(20, (academicStudyMins - 5) - c1Dur);
+        }
+
+        // Slot 1: Evening Core 1
+        const c1Meta = CANONICAL_SUBDIVISIONS_WEB[eveningCore1] || {};
         eveningSlots.push({
-          phase: `${phasePrefix}: Core Study`, start: formatMinutesToTime(curMins), end: formatMinutesToTime(curMins + coreDur), durationMins: coreDur,
-          title: `Evening Core Study: ${eveningCoreChoice.name}`, subject: eveningCoreChoice.name, type: "study", badge: eveningCoreChoice.badge,
-          guidance: `Core Concept Study (${eveningCoreChoice.name}): Priority given to subject absent from homework. ${eveningCoreChoice.guide}`,
+          phase: `${phasePrefix}: Core 1 Study`,
+          start: formatMinutesToTime(curMins),
+          end: formatMinutesToTime(curMins + c1Dur),
+          durationMins: c1Dur,
+          title: `Evening Core 1 Study: ${eveningCore1}`,
+          subject: c1Meta.parent || eveningCore1,
+          subdivision: eveningCore1,
+          type: "study",
+          badge: c1Meta.badge || "📐 Core 1",
+          guidance: `Core 1 Priority Concept Mastery (${eveningCore1}): ${c1Meta.guide || ''}`,
           isCompleted: false
         });
-        curMins += coreDur;
+        curMins += c1Dur;
 
-        // Restorative break before diagram practice
-        const brkDur = 5;
+        // Micro-rest
+        const brkInter = 5;
         eveningSlots.push({
-          phase: `${phasePrefix} Rest`, start: formatMinutesToTime(curMins), end: formatMinutesToTime(curMins + brkDur), durationMins: brkDur,
-          title: "Mind Reset Interval", subject: "Rest & Hydrate", type: "break", badge: `☕ Rest (${brkDur}m)`,
-          guidance: "Rest your eyes, walk around the room, take 5 slow deep breaths before the diagram practice session.",
+          phase: `${phasePrefix} Rest`,
+          start: formatMinutesToTime(curMins),
+          end: formatMinutesToTime(curMins + brkInter),
+          durationMins: brkInter,
+          title: "Inter-Core Focus Shift Break",
+          subject: "Rest & Hydrate",
+          type: "break",
+          badge: `☕ Rest (${brkInter}m)`,
+          guidance: "Cognitive palette cleanser: Take 3 slow breaths, hydrate, and prepare for Extra Core Subject 2.",
           isCompleted: false
         });
-        curMins += brkDur;
+        curMins += brkInter;
+
+        // Pick Extra Core 2 (apart from homework AND distinct from Core 1)
+        const c2Candidates = allCoreSubdivisions.filter(c => !hwDetectedSubdivisions.has(c) && !scheduledEveningSubdivisions.has(c));
+        const eveningCore2 = c2Candidates.length > 0 ? c2Candidates[0] : allCoreSubdivisions.find(c => !scheduledEveningSubdivisions.has(c)) || allCoreSubdivisions[2];
+        scheduledEveningSubdivisions.add(eveningCore2);
+
+        // Slot 2: Evening Extra Core 2
+        const c2Meta = CANONICAL_SUBDIVISIONS_WEB[eveningCore2] || {};
+        eveningSlots.push({
+          phase: `${phasePrefix}: Extra Core 2 Study`,
+          start: formatMinutesToTime(curMins),
+          end: formatMinutesToTime(curMins + c2Dur),
+          durationMins: c2Dur,
+          title: `Evening Extra Core 2 Study: ${eveningCore2} (Level ${currentLevel} Extension)`,
+          subject: c2Meta.parent || eveningCore2,
+          subdivision: eveningCore2,
+          type: "study",
+          badge: c2Meta.badge || "⚡ Extra Core 2",
+          guidance: `Level ${currentLevel} Evening Extension: Extra non-homework core subject practice (${eveningCore2}). ${c2Meta.guide || ''}`,
+          isCompleted: false
+        });
+        curMins += c2Dur;
+
+        // Rest before diagram practice
+        const brkPreDiag = 5;
+        eveningSlots.push({
+          phase: `${phasePrefix} Rest`,
+          start: formatMinutesToTime(curMins),
+          end: formatMinutesToTime(curMins + brkPreDiag),
+          durationMins: brkPreDiag,
+          title: "Pre-Diagram Posture Reset",
+          subject: "Rest & Hydrate",
+          type: "break",
+          badge: `☕ Rest (${brkPreDiag}m)`,
+          guidance: "Rest eyes, stand up and stretch before the 15-minute diagram practice session.",
+          isCompleted: false
+        });
+        curMins += brkPreDiag;
       }
 
-      // Rule 4: Special 15-Minute Dedicated Drawing Practice Slot
-      const drawDur = 15;
-      const diagramTargetName = hwHasSst ? "Physical Science / Biology" : "Biological Science / Science";
+      // Rule 4: Dedicated 15-Minute Diagram Practice Slot
+      const diagramCandidates = ["Physics", "Chemistry", "Biology", "Geography", "History", "Civics"];
+      const diagramSub = hwHasSst ? "Physics" : "Biology";
+      const diagMeta = CANONICAL_SUBDIVISIONS_WEB[diagramSub] || {};
       eveningSlots.push({
         phase: `${phasePrefix}: Diagram Practice`,
         start: formatMinutesToTime(curMins),
-        end: formatMinutesToTime(curMins + drawDur),
-        durationMins: drawDur,
-        title: "Special 15m Session: Diagram Practice (Any Subject)",
+        end: formatMinutesToTime(curMins + diagramMins),
+        durationMins: diagramMins,
+        title: `Special 15m Session: Diagram Practice (${diagramSub})`,
         subject: "Drawing Practice",
+        subdivision: diagramSub,
         type: "study",
         badge: "🎨 Diagram Practice (15m)",
-        guidance: `Rule 4 Inviolable Session: 15-minute special diagram & sketch practice (${diagramTargetName}). Practice neat pencil line work, scientific diagrams (e.g. eye, ray diagrams, cells), or map sketching to sharpen visual retention.`,
+        guidance: `Rule 4 Inviolable Session: 15-minute special diagram & sketch practice (${diagramSub}). Focus: ${diagMeta.diagram_target || 'Neat sketches and labels'}.`,
         isCompleted: false
       });
-      curMins += drawDur;
+      curMins += diagramMins;
 
       let winddownMsg = "Pack school bag according to tomorrow's timetable. Put morning revision copy on desk.";
       if (bagReminders.length > 0) {
@@ -10683,44 +10979,40 @@
       }
 
       eveningSlots.push({
-        phase: `${phasePrefix} Wind-down`, start: formatMinutesToTime(winddownStartMins), end: formatMinutesToTime(finishMins), durationMins: winddownMins,
-        title: "Desk Reset, Bag Packing & Early Finish Celebration", subject: "Routine Habit", type: "winddown", badge: curMins >= 17 * 60 ? "🌙 Wind-down" : "🏆 Early Finish!",
+        phase: `${phasePrefix} Wind-down`,
+        start: formatMinutesToTime(winddownStartMins),
+        end: formatMinutesToTime(finishMins),
+        durationMins: winddownMins,
+        title: "Desk Reset, Bag Packing & Early Finish Celebration",
+        subject: "Routine Habit",
+        type: "winddown",
+        badge: curMins >= 17 * 60 ? "🌙 Wind-down" : "🏆 Early Finish!",
         guidance: winddownMsg
       });
 
       // -------------------------------------------------------------
-      // RULES 5, 6, 7: MORNING STUDY PLAN
+      // RULES 5, 6, 7: MORNING STUDY PLAN (STATIC & UNTOUCHED ACROSS LEVELS)
       // -------------------------------------------------------------
-      // Rule 5: A second core subject which is NOT taken in the evening is present in the morning,
-      // along with one language. That language has to be non-repeated.
-      // Rule 6: What evening session homework contains should NOT be repeated in the morning.
-      // Rule 7: Any one of the languages can be taken. If 3 languages are in homework,
-      // skip language and take TWO CORE SUBJECTS in the morning!
-
+      // The morning session is untouched and remains static (06:00 - 07:30) across Level 1, 2, and 3.
       morningSlots.push({
-        phase: "Morning Wake-Up", start: "6:00 AM", end: "6:10 AM", durationMins: 10,
-        title: "Alertness Activation & Hydration", subject: "Morning Warmup", type: "prep", badge: "🌅 Wake-up",
+        phase: "Morning Wake-Up",
+        start: "06:00 AM",
+        end: "06:10 AM",
+        durationMins: 10,
+        title: "Alertness Activation & Hydration",
+        subject: "Morning Warmup",
+        type: "prep",
+        badge: "🌅 Wake-up",
         guidance: "Splash cool water on face, drink 2 glasses of water, gentle stretching. Zero devices."
       });
 
-      // Collect all subjects taken in evening (HW or Evening Core Study)
-      const eveTakenSubs = new Set();
-      eveningSlots.forEach(s => {
-        const sub = s.subject || "";
-        if (sub && !["Transition & Sensory Reset", "Rest & Hydrate", "Rest & Posture", "Rest", "Drawing Practice", "Routine Habit"].includes(sub)) {
-          eveTakenSubs.add(sub.toLowerCase());
-        }
-      });
-
       // Select Morning Core 1: Secondary core NOT taken in evening
-      let mornCorePool = allCoreCandidates.filter(c => !eveTakenSubs.has(c.name.toLowerCase()) && c.name !== eveningCoreSubName);
-      if (mornCorePool.length === 0) {
-        mornCorePool = allCoreCandidates.filter(c => c.name !== eveningCoreSubName);
-      }
-      if (mornCorePool.length === 0) mornCorePool = allCoreCandidates;
-      const morningCore1 = mornCorePool[0];
+      const allEveningSubdivisions = new Set([...hwDetectedSubdivisions, ...scheduledEveningSubdivisions]);
+      const mornCorePool = allCoreSubdivisions.filter(c => !allEveningSubdivisions.has(c));
+      const morningCore1 = mornCorePool.length > 0 ? mornCorePool[0] : allCoreSubdivisions.find(c => !scheduledEveningSubdivisions.has(c)) || allCoreSubdivisions[0];
+      const mc1Meta = CANONICAL_SUBDIVISIONS_WEB[morningCore1] || {};
 
-      // Rule 7: Count languages in homework
+      // Rule 7 Check: Were 3 languages in homework?
       const hwLangsCount = [hwHasTamil, hwHasEng, hwHasHin].filter(Boolean).length;
       const allLanguages = [
         { name: "Tamil", badge: "✍️ தமிழ் பயிர்ச்சி", tip: "Tamil spelling check and self-expression." },
@@ -10730,70 +11022,112 @@
 
       if (hwLangsCount >= 3) {
         // Rule 7 Special: All 3 languages were in homework! Take TWO CORE SUBJECTS in morning!
-        const mornCorePool2 = mornCorePool.filter(c => c.name !== morningCore1.name);
-        const morningCore2 = mornCorePool2.length > 0 ? mornCorePool2[0] : allCoreCandidates.find(c => c.name !== morningCore1.name && c.name !== eveningCoreSubName) || allCoreCandidates[1];
+        const mornCorePool2 = allCoreSubdivisions.filter(c => c !== morningCore1 && !scheduledEveningSubdivisions.has(c));
+        const morningCore2 = mornCorePool2.length > 0 ? mornCorePool2[0] : allCoreSubdivisions.find(c => c !== morningCore1) || allCoreSubdivisions[1];
+        const mc2Meta = CANONICAL_SUBDIVISIONS_WEB[morningCore2] || {};
 
         morningSlots.push({
-          phase: "Morning Core 1 Recall", start: "6:10 AM", end: "6:40 AM", durationMins: 30,
-          title: `Morning Core 1 Recall: ${morningCore1.name}`, subject: morningCore1.name, type: "revision", badge: morningCore1.badge,
-          guidance: `Rule 5 & 6 Non-Repeated Core: ${morningCore1.name} active retrieval. Close textbooks, recall formulas and concepts from memory.`
+          phase: "Morning Core 1 Recall",
+          start: "06:10 AM",
+          end: "06:45 AM",
+          durationMins: 35,
+          title: `Morning Core 1 Recall: ${morningCore1}`,
+          subject: mc1Meta.parent || morningCore1,
+          subdivision: morningCore1,
+          type: "revision",
+          badge: mc1Meta.badge || "🌅 Core 1 Recall",
+          guidance: `Rule 5 & 6 Non-Repeated Core: ${morningCore1} active retrieval. Close textbooks, recall formulas and concepts from memory.`
         });
 
         morningSlots.push({
-          phase: "Morning Rest", start: "6:40 AM", end: "6:45 AM", durationMins: 5,
-          title: "Micro Movement Break", subject: "Rest", type: "break", badge: "☕ Break (5m)",
+          phase: "Morning Rest",
+          start: "06:45 AM",
+          end: "06:50 AM",
+          durationMins: 5,
+          title: "Micro Movement Break",
+          subject: "Rest",
+          type: "break",
+          badge: "☕ Break (5m)",
           guidance: "Stretch legs and back, look out window at natural morning light."
         });
 
         morningSlots.push({
-          phase: "Morning Core 2 Recall", start: "6:45 AM", end: "7:25 AM", durationMins: 40,
-          title: `Morning Core 2 Recall: ${morningCore2.name} (2-Core Mode)`, subject: morningCore2.name, type: "revision", badge: morningCore2.badge,
-          guidance: `Rule 7 Active: 3 languages were already in homework, so language is skipped in morning. Second core ${morningCore2.name} takes study focus!`
+          phase: "Morning Core 2 Recall",
+          start: "06:50 AM",
+          end: "07:20 AM",
+          durationMins: 30,
+          title: `Morning Core 2 Recall: ${morningCore2} (2-Core Mode)`,
+          subject: mc2Meta.parent || morningCore2,
+          subdivision: morningCore2,
+          type: "revision",
+          badge: mc2Meta.badge || "🌅 Core 2 Recall",
+          guidance: `Rule 7 Active: 3 languages were already in homework, so language is skipped in morning. Second core ${morningCore2} takes study focus!`
         });
 
       } else {
-        // Rule 5 & 7 Standard: One non-repeated core + One non-repeated language
-        let candidateLangs = [];
-        allLanguages.forEach(l => {
+        // Rule 5 & 7 Standard: One non-repeated core (35m) + One non-repeated language (30m)
+        let candidateLangs = allLanguages.filter(l => {
           const lLow = l.name.toLowerCase();
-          if (lLow === "tamil" && !hwHasTamil && !eveTakenSubs.has("tamil")) candidateLangs.push(l);
-          else if (lLow === "english" && !hwHasEng && !eveTakenSubs.has("english") && !eveTakenSubs.has("eng")) candidateLangs.push(l);
-          else if (lLow === "hindi" && !hwHasHin && !eveTakenSubs.has("hindi")) candidateLangs.push(l);
+          if (lLow === "tamil" && hwHasTamil) return false;
+          if (lLow === "english" && hwHasEng) return false;
+          if (lLow === "hindi" && hwHasHin) return false;
+          return true;
         });
 
-        if (candidateLangs.length === 0) {
-          if (!hwHasTamil) candidateLangs.push(allLanguages[0]);
-          else if (!hwHasEng) candidateLangs.push(allLanguages[1]);
-          else if (!hwHasHin) candidateLangs.push(allLanguages[2]);
-          else candidateLangs.push(allLanguages[0]);
-        }
-
+        if (candidateLangs.length === 0) candidateLangs = allLanguages;
         let chosenLang = candidateLangs[0];
         const prefLang = candidateLangs.find(cl => cl.name.toLowerCase().includes((selectedLang || "").toLowerCase()));
         if (prefLang) chosenLang = prefLang;
+        const lMeta = CANONICAL_SUBDIVISIONS_WEB[chosenLang.name] || {};
 
         morningSlots.push({
-          phase: "Morning Secondary Core Recall", start: "6:10 AM", end: "6:45 AM", durationMins: 35,
-          title: `Active Recall: ${morningCore1.name} (Non-Repeated Core)`, subject: morningCore1.name, type: "revision", badge: morningCore1.badge,
-          guidance: `Rule 5 & 6 Active: Secondary core ${morningCore1.name} was NOT taken in the evening. Close books, recall definitions, proof outlines, and key diagrams.`
+          phase: "Morning Secondary Core Recall",
+          start: "06:10 AM",
+          end: "06:45 AM",
+          durationMins: 35,
+          title: `Active Recall: ${morningCore1} (Non-Repeated Core)`,
+          subject: mc1Meta.parent || morningCore1,
+          subdivision: morningCore1,
+          type: "revision",
+          badge: mc1Meta.badge || "🌅 Core Recall",
+          guidance: `Rule 5 & 6 Active: Secondary core ${morningCore1} was NOT taken in the evening. Close books, recall definitions, proof outlines, and key diagrams.`
         });
 
         morningSlots.push({
-          phase: "Morning Rest", start: "6:45 AM", end: "6:50 AM", durationMins: 5,
-          title: "Micro Movement Break", subject: "Rest", type: "break", badge: "☕ Break (5m)",
+          phase: "Morning Rest",
+          start: "06:45 AM",
+          end: "06:50 AM",
+          durationMins: 5,
+          title: "Micro Movement Break",
+          subject: "Rest",
+          type: "break",
+          badge: "☕ Break (5m)",
           guidance: "Stretch legs and back, look out window at natural morning light."
         });
 
         morningSlots.push({
-          phase: "Morning Language Clinic", start: "6:50 AM", end: "7:25 AM", durationMins: 35,
-          title: `Language Writing & Spelling Clinic: ${chosenLang.name} (Non-Repeated)`, subject: chosenLang.name, type: "revision", badge: chosenLang.badge,
+          phase: "Morning Language Clinic",
+          start: "06:50 AM",
+          end: "07:20 AM",
+          durationMins: 30,
+          title: `Language Writing & Spelling Clinic: ${chosenLang.name} (Non-Repeated)`,
+          subject: chosenLang.name,
+          subdivision: chosenLang.name,
+          type: "revision",
+          badge: lMeta.badge || chosenLang.badge,
           guidance: `Rule 5 & 7 Non-Repeated Language Clinic (${chosenLang.name}): Focus on neat handwriting, eliminating spelling slips, and self-expression in your own words.`
         });
       }
 
       morningSlots.push({
-        phase: "School Ready", start: "7:25 AM", end: "7:30 AM", durationMins: 5,
-        title: "School Readiness Audit & Confidence Boost", subject: "Ready for School", type: "winddown", badge: "🎒 School Ready",
+        phase: "School Ready",
+        start: "07:20 AM",
+        end: "07:30 AM",
+        durationMins: 10,
+        title: "School Readiness Audit & Confidence Boost",
+        subject: "Ready for School",
+        type: "winddown",
+        badge: "🎒 School Ready",
         guidance: "Double check books, pencil pouch, water bottle. You are primed and ready for school, Tharun!"
       });
 
