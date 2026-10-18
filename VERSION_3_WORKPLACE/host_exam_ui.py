@@ -13,6 +13,7 @@ Enhanced with:
 import os
 import sys
 import json
+import queue
 import threading
 import subprocess
 import webbrowser
@@ -20,6 +21,48 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, simpledialog
 from datetime import datetime
 from typing import Dict, Any, List, Optional
+
+_MAIN_THREAD_ID = threading.get_ident()
+_UI_CALLBACK_QUEUE = queue.Queue()
+
+
+def _enable_thread_safe_after(root):
+    """Ensures root.after and widget.after can be called safely from background threads in Python 3.12+ / 3.14+."""
+    if getattr(root, "_thread_safe_after_enabled", False):
+        return
+    root._thread_safe_after_enabled = True
+
+    _orig_after = tk.Misc.after
+
+    def _safe_after(self, ms, func=None, *args):
+        if threading.get_ident() == _MAIN_THREAD_ID:
+            return _orig_after(self, ms, func, *args)
+        else:
+            if func is not None:
+                _UI_CALLBACK_QUEUE.put(lambda: func(*args))
+            return None
+
+    tk.Misc.after = _safe_after
+
+    def _drain_queue():
+        try:
+            while True:
+                cb = _UI_CALLBACK_QUEUE.get_nowait()
+                try:
+                    cb()
+                except Exception as ex:
+                    print(f"[UI Queue Dispatcher] Callback notice: {ex}")
+        except queue.Empty:
+            pass
+        try:
+            root.after(30, _drain_queue)
+        except Exception:
+            pass
+
+    try:
+        root.after(30, _drain_queue)
+    except Exception:
+        pass
 
 import exam_engine_v3
 from exam_engine_v3 import (
@@ -114,6 +157,11 @@ class HostExamTabController:
         self.app = app
         self.parent = tab_frame
         self.colors = app.colors
+        try:
+            _root = self.parent.winfo_toplevel()
+            _enable_thread_safe_after(_root)
+        except Exception:
+            pass
 
         # State
         self.active_subview = "ledger"  # "ledger", "face_a", "face_b", "topper"

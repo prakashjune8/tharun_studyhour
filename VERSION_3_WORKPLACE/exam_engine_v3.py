@@ -263,14 +263,23 @@ def render_unified_binder_pdf(eval_res: Dict[str, Any], output_path: str):
             merger = PdfWriter()
             for s in sources:
                 merger.append(s)
-            merger.write(output_path)
+
+            import time
+            pdf_path = output_path
+            try:
+                merger.write(pdf_path)
+            except PermissionError:
+                fallback_path = pdf_path.replace(".pdf", f"_{int(time.time())}.pdf")
+                merger.write(fallback_path)
+                pdf_path = fallback_path
+                print(f"Original file locked. Saved fallback as {fallback_path}")
             merger.close()
-            return
+            return pdf_path
         except Exception as e:
             print(f"[ExamEngineV3] PdfWriter notice: {e}")
 
     # Fallback if merger not available
-    CBSEEvaluatorV3.render_graded_pdf(eval_res, output_path)
+    return CBSEEvaluatorV3.render_graded_pdf(eval_res, output_path)
 
 
 def load_score_history() -> List[Dict[str, Any]]:
