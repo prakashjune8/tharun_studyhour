@@ -12461,7 +12461,7 @@ class DesktopApp:
 
         tk.Label(
             hdr_row,
-            text="✨ Accepts Word (.docx), Diary Photos (.jpg/.png), PDF, Text, or JSON • Max 1–2 Homework Slabs/Night",
+            text="✨ Senthil Public School Handbook Source Engine • Photos (S1/S2/S3/S4) & PDFs • Dual-Engine AI Handwriting Extraction",
             font=("Segoe UI", 8),
             fg="#94a3b8",
             bg="#0e172a"
@@ -12544,57 +12544,6 @@ class DesktopApp:
         )
         self.btn_save.pack(side=tk.RIGHT, padx=2)
 
-        self.btn_open_input = tk.Button(
-            act_row,
-            text="📥 'diary_input'",
-            font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#34d399",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.open_diary_input_folder
-        )
-        self.btn_open_input.pack(side=tk.RIGHT, padx=2)
-
-        self.btn_import_folder = tk.Button(
-            act_row,
-            text="📂 Import Folder",
-            font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.import_diary_folder
-        )
-        self.btn_import_folder.pack(side=tk.RIGHT, padx=2)
-
-        self.btn_import = tk.Button(
-            act_row,
-            text="📁 Import File(s)",
-            font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.import_any_diary_file
-        )
-        self.btn_import.pack(side=tk.RIGHT, padx=2)
-
         self.btn_photo_assistant = tk.Button(
             act_row,
             text="📸 Photo Assistant",
@@ -12611,6 +12560,57 @@ class DesktopApp:
             command=self.open_diary_photo_assistant_window
         )
         self.btn_photo_assistant.pack(side=tk.RIGHT, padx=2)
+
+        self.btn_ai_retrieve = tk.Button(
+            act_row,
+            text="⚡ AI Handwriting Extract",
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#34d399",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=8,
+            pady=3,
+            cursor="hand2",
+            command=self.ai_retrieve_diary_sources
+        )
+        self.btn_ai_retrieve.pack(side=tk.RIGHT, padx=2)
+
+        self.btn_upload_pdf = tk.Button(
+            act_row,
+            text="📄 Upload Diary PDF",
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#38bdf8",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=8,
+            pady=3,
+            cursor="hand2",
+            command=self.upload_diary_pdf
+        )
+        self.btn_upload_pdf.pack(side=tk.RIGHT, padx=2)
+
+        self.btn_upload_photo = tk.Button(
+            act_row,
+            text="📷 Upload Diary Photo (S1-S4)",
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#f97316",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=8,
+            pady=3,
+            cursor="hand2",
+            command=self.upload_diary_photo
+        )
+        self.btn_upload_photo.pack(side=tk.RIGHT, padx=2)
 
         # 2. Compact Single-Row Quick-Add Homework Slab Bar
         add_box = tk.Frame(
@@ -12956,40 +12956,27 @@ class DesktopApp:
                 f"Allocated into at most 1 to 2 focused homework slots as requested, with time assigned to each indicated subject."
             )
 
-    def import_any_diary_file(self):
-        filepaths = filedialog.askopenfilenames(
+    def upload_diary_photo(self):
+        """Prompt to upload a School Diary photo (e.g. S1-S4), extract entries, and open side-by-side Photo Assistant."""
+        workspace_dir = os.path.dirname(os.path.abspath(__file__))
+        default_dir = os.path.join(workspace_dir, "diary_input")
+        filepath = filedialog.askopenfilename(
+            initialdir=default_dir if os.path.exists(default_dir) else workspace_dir,
             filetypes=[
-                ("All Supported Diary Formats (*.docx, *.pdf, *.jpg, *.png, *.json, *.txt)", "*.docx *.doc *.pdf *.jpg *.jpeg *.png *.bmp *.json *.txt *.md"),
-                ("Word Documents (*.docx, *.doc)", "*.docx *.doc"),
-                ("PDF Documents (*.pdf)", "*.pdf"),
-                ("School Diary Photos (*.jpg, *.png, *.jpeg)", "*.jpg *.jpeg *.png *.bmp"),
-                ("JSON Files (*.json)", "*.json"),
-                ("Text Files (*.txt, *.md)", "*.txt *.md"),
+                ("School Diary Photos (*.jpg, *.jpeg, *.png, *.bmp, *.webp)", "*.jpg *.jpeg *.png *.bmp *.webp"),
                 ("All Files (*.*)", "*.*")
             ],
-            title="Import School Diary File(s) (Word / PDF / Photo / JSON / Text)"
+            title="📷 Select Senthil Public School Diary Photo (S1, S2, S3, S4...)"
         )
-        if not filepaths:
+        if not filepath:
             return
-
-        if len(filepaths) == 1:
-            ext = os.path.splitext(filepaths[0])[1].lower()
-            if ext in [".jpg", ".jpeg", ".png", ".bmp", ".webp"]:
-                self.open_diary_photo_assistant_window(image_path=filepaths[0])
-                return
 
         try:
             if UniversalDiaryImporter is not None:
-                if len(filepaths) == 1:
-                    filepath = filepaths[0]
-                    parsed_entries, master_data, raw_text = UniversalDiaryImporter.convert_any_file_to_json(filepath, DIARY_FILE)
-                else:
-                    parsed_entries, master_data, raw_text, processed_files, errors = UniversalDiaryImporter.convert_multiple_files_to_json(filepaths, DIARY_FILE)
-
+                parsed_entries, master_data, raw_text = UniversalDiaryImporter.convert_any_file_to_json(filepath, DIARY_FILE)
                 self.last_imported_raw_text = raw_text
                 self.load_diary_data()
 
-                # Update date selector
                 date_list = [f"{e['date']} ({e.get('display_date', e['date'])})" for e in self.diary_data.get("diary_entries", [])]
                 self.diary_date_combo["values"] = date_list
 
@@ -13006,51 +12993,62 @@ class DesktopApp:
                     self.on_diary_date_selected()
                     self.apply_diary_to_timetable(silent=True)
 
-                src_label = filepaths[0] if len(filepaths) == 1 else f"{len(filepaths)} files imported"
-                self.open_diary_audit_window(parsed_entries=parsed_entries, filepath=src_label, raw_text=raw_text)
-            else:
-                # Direct JSON fallback if module not found
-                filepath = filepaths[0]
-                with open(filepath, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    if "diary_entries" in data:
-                        self.diary_data = data
-                        self.save_diary_data()
-                        date_list = [f"{e['date']} ({e.get('display_date', e['date'])})" for e in self.diary_data.get("diary_entries", [])]
-                        self.diary_date_combo["values"] = date_list
-                        if date_list:
-                            self.diary_date_combo.current(len(date_list)-1)
-                            self.on_diary_date_selected()
-                            self.apply_diary_to_timetable(silent=True)
-                        messagebox.showinfo("Import Success", f"Imported {len(data['diary_entries'])} diary dates successfully!")
-                    else:
-                        messagebox.showwarning("Format Error", "JSON does not contain 'diary_entries' key.")
+            self.open_diary_photo_assistant_window(image_path=filepath)
         except Exception as e:
-            messagebox.showerror("Import Error", f"Failed to process diary file:\n{e}")
+            messagebox.showerror("Diary Photo Error", f"Failed to process diary photo:\n{e}")
 
-    def import_diary_folder(self, target_folder=None):
-        """Scans a selected folder (or default diary_input folder) for all diary files and imports them."""
+    def upload_diary_pdf(self):
+        """Prompt to upload a School Diary or circular PDF, extract entries, and sync to timetable."""
         workspace_dir = os.path.dirname(os.path.abspath(__file__))
         default_dir = os.path.join(workspace_dir, "diary_input")
-        if not os.path.exists(default_dir):
-            try:
-                os.makedirs(default_dir, exist_ok=True)
-            except Exception:
-                default_dir = workspace_dir
-
-        chosen_dir = target_folder
-        if not chosen_dir:
-            chosen_dir = filedialog.askdirectory(
-                initialdir=default_dir if os.path.exists(default_dir) else workspace_dir,
-                title="Select Input Folder Containing School Diary Files / Photos"
-            )
-
-        if not chosen_dir:
+        filepath = filedialog.askopenfilename(
+            initialdir=default_dir if os.path.exists(default_dir) else workspace_dir,
+            filetypes=[
+                ("PDF Documents (*.pdf)", "*.pdf"),
+                ("All Files (*.*)", "*.*")
+            ],
+            title="📄 Select School Diary / Circular PDF Document"
+        )
+        if not filepath:
             return
 
         try:
             if UniversalDiaryImporter is not None:
-                all_parsed, master_data, combined_raw, processed_files, errors = UniversalDiaryImporter.convert_folder_to_json(chosen_dir, DIARY_FILE)
+                parsed_entries, master_data, raw_text = UniversalDiaryImporter.convert_any_file_to_json(filepath, DIARY_FILE)
+                self.last_imported_raw_text = raw_text
+                self.load_diary_data()
+
+                date_list = [f"{e['date']} ({e.get('display_date', e['date'])})" for e in self.diary_data.get("diary_entries", [])]
+                self.diary_date_combo["values"] = date_list
+
+                latest_p = parsed_entries[-1] if isinstance(parsed_entries, list) and parsed_entries else (parsed_entries if isinstance(parsed_entries, dict) else {})
+                target_idx = len(date_list) - 1
+                for idx, entry in enumerate(self.diary_data.get("diary_entries", [])):
+                    if entry.get("date") == latest_p.get("date"):
+                        target_idx = idx
+                        break
+
+                if date_list:
+                    self.diary_date_combo.current(target_idx)
+                    self.on_diary_date_selected()
+                    self.apply_diary_to_timetable(silent=True)
+
+                self.open_diary_audit_window(parsed_entries=parsed_entries, filepath=filepath, raw_text=raw_text)
+            else:
+                messagebox.showerror("Module Missing", "UniversalDiaryImporter is not available.")
+        except Exception as e:
+            messagebox.showerror("Diary PDF Error", f"Failed to process PDF document:\n{e}")
+
+    def ai_retrieve_diary_sources(self):
+        """Scans diary_input directory for all photos (S1-S4) and PDFs, running dual-engine AI extraction."""
+        workspace_dir = os.path.dirname(os.path.abspath(__file__))
+        target_dir = os.path.join(workspace_dir, "diary_input")
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir, exist_ok=True)
+
+        try:
+            if UniversalDiaryImporter is not None:
+                all_parsed, master_data, combined_raw, processed_files, errors = UniversalDiaryImporter.convert_folder_to_json(target_dir, DIARY_FILE)
                 self.last_imported_raw_text = combined_raw
                 self.load_diary_data()
 
@@ -13064,23 +13062,30 @@ class DesktopApp:
                 if processed_files:
                     err_txt = f"\n\nWarnings: {len(errors)} file(s) had issues." if errors else ""
                     messagebox.showinfo(
-                        "Folder Import Complete",
-                        f"🎉 Successfully scanned input folder!\n\n"
-                        f"• Folder: {chosen_dir}\n"
+                        "AI Extraction Complete",
+                        f"🎉 Successfully retrieved diary sources (S1-S4 Photos & PDFs)!\n\n"
+                        f"• Directory: {target_dir}\n"
                         f"• Processed files: {len(processed_files)}\n"
-                        f"• Loaded diary dates: {len(all_parsed)}{err_txt}"
+                        f"• Total dates active: {len(self.diary_data.get('diary_entries', []))}{err_txt}"
                     )
-                    self.open_diary_audit_window(parsed_entries=all_parsed, filepath=chosen_dir, raw_text=combined_raw)
+                    self.open_diary_audit_window(parsed_entries=all_parsed, filepath=target_dir, raw_text=combined_raw)
                 else:
                     messagebox.showwarning(
-                        "No Diary Files Found",
-                        f"No supported diary files (.jpg, .png, .pdf, .docx, .txt, .json) found in:\n{chosen_dir}\n\n"
-                        f"Tip: Place your homework photos, Word files, or PDFs inside this folder and click 'Import Folder' again!"
+                        "No Diary Sources Found",
+                        f"No diary photos (S1-S4) or PDFs found in:\n{target_dir}\n\n"
+                        f"Tip: Place your handbook photos or PDFs inside 'diary_input' and click again!"
                     )
             else:
                 messagebox.showerror("Module Missing", "UniversalDiaryImporter is not available.")
         except Exception as e:
-            messagebox.showerror("Folder Import Error", f"Failed to import from folder:\n{e}")
+            messagebox.showerror("AI Retrieval Error", f"Failed to retrieve diary sources:\n{e}")
+
+    def import_any_diary_file(self):
+        self.upload_diary_photo()
+
+    def import_diary_folder(self, target_folder=None):
+        """Scans diary_input folder for all diary files (S1-S4 photos and PDFs) and imports them."""
+        self.ai_retrieve_diary_sources()
 
     def open_diary_input_folder(self):
         """Opens the dedicated diary_input folder in Windows Explorer and offers 1-click scanning."""

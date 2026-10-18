@@ -120,64 +120,370 @@
     {
       "date": "2026-10-08",
       "display_date": "08/10/2026",
-      "efficiency_split_core": true,
+      "source_label": "Source S1 (Photo 1 Top: 8/10/26)",
+      "metrics": {
+        "wake": "6:20 AM",
+        "sleep": "8:45 PM",
+        "morning_study": "6:30 AM to 7:30 AM",
+        "evening_study": "7:00 PM to 8:20 PM",
+        "screen_or_self_study": "30 mins",
+        "yoga": "No",
+        "reading_habit": "Yes"
+      },
       "items": [
         {
           "subject": "Mathematics",
           "code": "Math",
-          "task": "Ex: 9.1 Q1, 2",
-          "task_type": "written",
-          "est_mins": 30,
-          "completed": false,
-          "raw_source": "Math: Ex: 9.1 1, 2",
-          "match_source": "Prefix 'Math:'",
-          "categorization_reason": "Mathematics problem solving practice"
-        },
-        {
-          "subject": "Physics",
-          "code": "Phy",
-          "task": "Kinetic theory of matter write",
+          "task": "Ex: 9.1 Q1, 2 (Concept & Steps)",
           "task_type": "written",
           "est_mins": 25,
           "completed": false,
+          "raw_source": "Math: Ex: 9.1 1, 2",
+          "match_source": "Senthil Handbook S1 (8/10/26)",
+          "categorization_reason": "Core Math sprint: solve textbook exercises by hand"
+        },
+        {
+          "subject": "Physical Science",
+          "code": "Phy",
+          "task": "Kinetic theory of matter write",
+          "task_type": "written",
+          "est_mins": 20,
+          "completed": false,
           "raw_source": "Phy: Kinetic theory of matter write",
-          "match_source": "Prefix 'Phy:'",
-          "categorization_reason": "Physics notes & definitions written practice"
+          "match_source": "Senthil Handbook S1 (8/10/26)",
+          "categorization_reason": "Science notebook pen-work: concept definitions & diagrams"
         },
         {
           "subject": "English",
           "code": "Eng",
           "task": "Ln: 1- Textual lines & make notes",
-          "task_type": "reading",
+          "task_type": "written",
           "est_mins": 20,
           "completed": false,
           "raw_source": "Eng: Ln: 1- Textual lines & make notes",
-          "match_source": "Prefix 'Eng:'",
-          "categorization_reason": "English textual reading & note making"
+          "match_source": "Senthil Handbook S1 (8/10/26)",
+          "categorization_reason": "English prose analysis & notes preparation"
         },
         {
           "subject": "Hindi",
           "code": "Hindi",
-          "task": "Write Ln - 9 शब्दार्थ",
+          "task": "Write Ln - 9 शब्दार्थ (Word Meanings)",
           "task_type": "written",
           "est_mins": 20,
           "completed": false,
           "raw_source": "Hin: Write Ln - 9 शब्दार्थ",
-          "match_source": "Prefix 'Hin:'",
-          "categorization_reason": "Hindi word meanings & spelling written practice"
+          "match_source": "Senthil Handbook S1 (8/10/26)",
+          "categorization_reason": "Hindi vocabulary & meaning practice"
         },
         {
-          "subject": "Language Clinic",
+          "subject": "Handwriting & Language Clinic",
           "code": "Lang",
           "task": "Handwriting practice: Eng, Tam, Hin, Science, Social",
           "task_type": "written",
           "est_mins": 15,
           "completed": false,
           "raw_source": "Handwrite: Eng, Tam, Hin, Science, Social",
-          "match_source": "Keyword 'Handwrite'",
-          "categorization_reason": "Multi-subject handwriting speed & neatness drill"
+          "match_source": "Senthil Handbook S1 (8/10/26)",
+          "categorization_reason": "Handwriting baseline alignment drill"
+        }
+      ],
+      "subjects": [
+        {
+          "subject": "Mathematics",
+          "type": "written",
+          "daily_activities": "Ex: 9.1 Q1, 2 (Concept & Steps)",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "Physical Science",
+          "type": "written",
+          "daily_activities": "Kinetic theory of matter write",
+          "suggested_duration_mins": 20
+        },
+        {
+          "subject": "English",
+          "type": "written",
+          "daily_activities": "Ln: 1- Textual lines & make notes",
+          "suggested_duration_mins": 20
+        },
+        {
+          "subject": "Hindi",
+          "type": "written",
+          "daily_activities": "Write Ln - 9 शब्दार्थ (Word Meanings)",
+          "suggested_duration_mins": 20
+        },
+        {
+          "subject": "Handwriting & Language Clinic",
+          "type": "written",
+          "daily_activities": "Handwriting practice: Eng, Tam, Hin, Science, Social",
+          "suggested_duration_mins": 15
         }
       ]
+    },
+    {
+      "date": "2026-10-09",
+      "display_date": "09/10/2026",
+      "source_label": "Source S2 (Photo 1 Bottom: 9/10/2026)",
+      "metrics": {
+        "wake": "6:30 AM",
+        "sleep": "9:30 PM",
+        "morning_study": "6:45 AM to 7:00 AM",
+        "evening_study": "6:30 PM to 9:00 PM",
+        "screen_or_self_study": "3 hrs",
+        "yoga": "No",
+        "reading_habit": "Yes"
+      },
+      "items": [
+        {
+          "subject": "Tamil",
+          "code": "Tamil",
+          "task": "செய்யுள் - 1, 2 Write (Poem lines & explanations)",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "தமிழ்: செய்யுள் - 1, 2 Write",
+          "match_source": "Senthil Handbook S2 (9/10/2026)",
+          "categorization_reason": "Tamil poetry memorization & pen-practice"
+        },
+        {
+          "subject": "English",
+          "code": "Eng",
+          "task": "R/W BBF (Book Back Formative) of Unit-1",
+          "task_type": "written",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Eng: R/W BBF of Unit-1",
+          "match_source": "Senthil Handbook S2 (9/10/2026)",
+          "categorization_reason": "English grammar & textbook exercise solving"
+        },
+        {
+          "subject": "Biological Science",
+          "code": "Bio",
+          "task": "Vegetative propagation by stem, leaves (Notes & Diagram)",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Bio: Vegetative propagation by stem, leaves",
+          "match_source": "Senthil Handbook S2 (9/10/2026)",
+          "categorization_reason": "Biological diagrams & vegetative reproduction notes"
+        },
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Read & recall formulas in Mensuration",
+          "task_type": "memorize",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Math: Read the Formula in Mensuration",
+          "match_source": "Senthil Handbook S2 (9/10/2026)",
+          "categorization_reason": "Formula memory sprint: 2D/3D shapes"
+        }
+      ],
+      "subjects": [
+        {
+          "subject": "Tamil",
+          "type": "written",
+          "daily_activities": "செய்யுள் - 1, 2 Write (Poem lines & explanations)",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "English",
+          "type": "written",
+          "daily_activities": "R/W BBF (Book Back Formative) of Unit-1",
+          "suggested_duration_mins": 20
+        },
+        {
+          "subject": "Biological Science",
+          "type": "written",
+          "daily_activities": "Vegetative propagation by stem, leaves (Notes & Diagram)",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "Mathematics",
+          "type": "memorize",
+          "daily_activities": "Read & recall formulas in Mensuration",
+          "suggested_duration_mins": 20
+        }
+      ]
+    },
+    {
+      "date": "2026-10-12",
+      "display_date": "12/10/2026",
+      "source_label": "Source S3 (Photo 2 Top: 12/10/2026)",
+      "metrics": {
+        "wake": "6:45 AM",
+        "sleep": "9:45 PM",
+        "morning_study": "No",
+        "evening_study": "7:15 PM to 8:45 PM",
+        "screen_or_self_study": "30 mins",
+        "yoga": "No",
+        "reading_habit": "Yes"
+      },
+      "items": [
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Ex: 9.3 - Q3 (a, d, e) (Algebraic Identities)",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Maths: Ex: 9.3 - 3 (a, d, e)",
+          "match_source": "Senthil Handbook S3 (12/10/2026)",
+          "categorization_reason": "Algebraic multiplication & identity calculations"
+        },
+        {
+          "subject": "Social Science",
+          "code": "Geo",
+          "task": "Basic of ownership read (Geography Chapter)",
+          "task_type": "reading",
+          "est_mins": 15,
+          "completed": false,
+          "raw_source": "Geo: Basic of ownership read",
+          "match_source": "Senthil Handbook S3 (12/10/2026)",
+          "categorization_reason": "Geography concept reading: public, private, joint sector"
+        },
+        {
+          "subject": "Tamil",
+          "code": "Tamil",
+          "task": "செய்யுள் - 1, 2 Read Textual lines",
+          "task_type": "reading",
+          "est_mins": 15,
+          "completed": false,
+          "raw_source": "தமிழ்: செய்யுள் - 1, 2 Read Textual lines",
+          "match_source": "Senthil Handbook S3 (12/10/2026)",
+          "categorization_reason": "Tamil literature reading & recitation"
+        },
+        {
+          "subject": "English",
+          "code": "Eng",
+          "task": "Complete Textual Exercises of Lesson 5",
+          "task_type": "written",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Eng: Complete Textual Ex: of Ln: 5",
+          "match_source": "Senthil Handbook S3 (12/10/2026)",
+          "categorization_reason": "English reading comprehension & question answering"
+        }
+      ],
+      "subjects": [
+        {
+          "subject": "Mathematics",
+          "type": "written",
+          "daily_activities": "Ex: 9.3 - Q3 (a, d, e) (Algebraic Identities)",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "Social Science",
+          "type": "reading",
+          "daily_activities": "Basic of ownership read (Geography Chapter)",
+          "suggested_duration_mins": 15
+        },
+        {
+          "subject": "Tamil",
+          "type": "reading",
+          "daily_activities": "செய்யுள் - 1, 2 Read Textual lines",
+          "suggested_duration_mins": 15
+        },
+        {
+          "subject": "English",
+          "type": "written",
+          "daily_activities": "Complete Textual Exercises of Lesson 5",
+          "suggested_duration_mins": 20
+        }
+      ]
+    },
+    {
+      "date": "2026-10-13",
+      "display_date": "13/10/2026",
+      "source_label": "Source S4 (Photo 2 Bottom: 13/10/26)",
+      "metrics": {
+        "wake": "6:45 AM",
+        "sleep": "9:00 PM",
+        "morning_study": "No",
+        "evening_study": "7:30 PM to 8:45 PM",
+        "screen_or_self_study": "No",
+        "yoga": "No",
+        "reading_habit": "Yes"
+      },
+      "items": [
+        {
+          "subject": "Mathematics",
+          "code": "Math",
+          "task": "Complete the sum given in Ex: 9.2",
+          "task_type": "written",
+          "est_mins": 25,
+          "completed": false,
+          "raw_source": "Math: Complete the sum given in Ex: 9.2",
+          "match_source": "Senthil Handbook S4 (13/10/26)",
+          "categorization_reason": "Math expressions multiplication & area solving"
+        },
+        {
+          "subject": "Social Science",
+          "code": "Geo",
+          "task": "Classification of industries: size, ownership & finished products",
+          "task_type": "reading",
+          "est_mins": 20,
+          "completed": false,
+          "raw_source": "Geo: On the basis of size, ownership and finished products",
+          "match_source": "Senthil Handbook S4 (13/10/26)",
+          "categorization_reason": "Geography industry classifications analysis"
+        },
+        {
+          "subject": "Social Science",
+          "code": "His",
+          "task": "History Chapter Reading: Pages 3, 4",
+          "task_type": "reading",
+          "est_mins": 15,
+          "completed": false,
+          "raw_source": "His: Pg - 3, 4 Read",
+          "match_source": "Senthil Handbook S4 (13/10/26)",
+          "categorization_reason": "History timeline & source reading"
+        },
+        {
+          "subject": "Tamil",
+          "code": "Tamil",
+          "task": "Bring Tamil composition notebook without fail",
+          "task_type": "bag_pack",
+          "est_mins": 5,
+          "completed": false,
+          "raw_source": "Note: Bring Tamil composition",
+          "match_source": "Senthil Handbook S4 (13/10/26)",
+          "categorization_reason": "School bag packing alert for next morning"
+        }
+      ],
+      "subjects": [
+        {
+          "subject": "Mathematics",
+          "type": "written",
+          "daily_activities": "Complete the sum given in Ex: 9.2",
+          "suggested_duration_mins": 25
+        },
+        {
+          "subject": "Social Science",
+          "type": "reading",
+          "daily_activities": "Classification of industries: size, ownership & finished products",
+          "suggested_duration_mins": 20
+        },
+        {
+          "subject": "Social Science",
+          "type": "reading",
+          "daily_activities": "History Chapter Reading: Pages 3, 4",
+          "suggested_duration_mins": 15
+        },
+        {
+          "subject": "Tamil",
+          "type": "bag_pack",
+          "daily_activities": "Bring Tamil composition notebook without fail",
+          "suggested_duration_mins": 5
+        }
+      ]
+    },
+    {
+      "date": "2026-10-18",
+      "display_date": "18/10/2026",
+      "efficiency_split_core": true,
+      "items": [],
+      "subjects": []
     }
   ]
 }
