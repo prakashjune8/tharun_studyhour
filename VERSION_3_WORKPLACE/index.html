@@ -10592,131 +10592,80 @@
       const hwHasEng = hwSubTexts.some(s => s.includes("eng") || s.includes("english"));
       const hwHasHin = hwSubTexts.some(s => s.includes("hindi") || s.includes("हिंदी"));
 
-      if (remStudyMins >= 25) {
-        // Core 1: Daily Maths Muscle (Math is ALWAYS practiced daily!)
-        const mathDur = Math.min(35, Math.floor(remStudyMins * 0.55));
-        const mathGuide = hwHasMath
-          ? "Daily Maths Muscle is non-negotiable! Homework is complete; now hand-solve 5 to 8 textbook exercise questions or revision proofs with pen on paper."
-          : "Daily solving is like sports practice! Pick 5 to 8 textbook exercise questions. Solve by hand on rough paper.";
-        eveningSlots.push({
-          phase: `${phasePrefix}: Core 1`, start: formatMinutesToTime(curMins), end: formatMinutesToTime(curMins + mathDur), durationMins: mathDur,
-          title: "Daily Maths Muscle: Step-by-Step Problem Solving", subject: "Mathematics", type: "study", badge: "📐 Daily Maths",
-          guidance: mathGuide,
-          isCompleted: false
-        });
-        curMins += mathDur;
+      // -------------------------------------------------------------
+      // RULES 2 & 3 & 4: CORE SUBJECT SELECTION FOR EVENING STUDY
+      // -------------------------------------------------------------
+      // Rule 1 & 2: Homework completed above. If homework had Mathematics,
+      // mandatory maths condition is satisfied.
+      // Rule 3: Left-out subjects get top priority.
+      // Rule 4: In the evening, exactly one core subject is selected for study,
+      // along with a 15-minute special session for diagram practice of any subject.
+      const allCoreCandidates = [
+        { name: "Mathematics", badge: "📐 Math Core", guide: "Maths Problem Solving: Step-by-step textbook exercises & proof practice." },
+        { name: "Physical Science", badge: "⚡ Physical Science Core", guide: "Physical Science: Deep concept mastery, chemical reactions & physics laws." },
+        { name: "Biological Science", badge: "🧬 Biological Science Core", guide: "Biological Science: Life processes, cellular structures & concept recall." },
+        { name: "Social Science", badge: "🌍 Social Science Core", guide: "Social Science: Timelines, historical causes/effects & geography concepts." }
+      ];
 
-        const remAfterMath = Math.max(0, studyCutoffMins - curMins);
-        if (remAfterMath >= 20) {
-          const brkDur = 7;
-          eveningSlots.push({
-            phase: `${phasePrefix} Rest`, start: formatMinutesToTime(curMins), end: formatMinutesToTime(curMins + brkDur), durationMins: brkDur,
-            title: "Mind Reset Interval", subject: "Rest", type: "break", badge: `☕ Rest (${brkDur}m)`,
-            guidance: "Rest your eyes, walk around room, take 5 slow deep breaths before complementary core practice.",
-            isCompleted: false
-          });
-          curMins += brkDur;
-
-          // Core 2 & Core 3: Complementary Core Subjects (STRICTLY CAPPED AT 30m - NEVER 78m!)
-          let core2Title = "Science Diagram & Concept Mastery: Physical Science";
-          let core2Sub = "Physical Science";
-          let core2Badge = "🔬 Science Core (Complementary)";
-          let core2Guide = "🔄 Complementary Core Rotation: Since Science was absent from today's homework, it is added here! Blind diagram practice: look for 2 mins, close book, draw from memory, check missing labels!";
-
-          let core3Title = "Social Science Concept & Map Recall";
-          let core3Sub = "Social Science";
-          let core3Badge = "🌍 Social Core (Complementary)";
-          let core3Guide = "🔄 Complementary Core Rotation: Since Social Science was absent from today's homework, it is added here! Review key dates, geographical maps, and social science concepts from textbook.";
-
-          if (!hwHasSci && !hwHasSst) {
-            // Both absent from HW -> Core 2 = Science, Core 3 = Social Science
-            core2Title = "Science Diagram & Concept Mastery: Physical Science";
-            core2Sub = "Physical Science";
-            core2Badge = "🔬 Science Core (Complementary)";
-            core2Guide = "🔄 Complementary Core Rotation: Science was absent from today's homework, so it is prioritized here! Blind diagram protocol.";
-
-            core3Title = "Social Science Concept & Map Recall";
-            core3Sub = "Social Science";
-            core3Badge = "🌍 Social Core (Complementary)";
-            core3Guide = "🔄 Complementary Core Rotation: Social Science was absent from today's homework, so it is prioritized here! Review timeline/map.";
-          } else if (!hwHasSci && hwHasSst) {
-            core2Title = "Science Diagram & Concept Mastery: Physical Science";
-            core2Sub = "Physical Science";
-            core2Badge = "🔬 Science Core (Complementary)";
-            core2Guide = "🔄 Complementary Core Rotation: Social Science was in homework, so absent Science is prioritized here for diagram retention!";
-
-            core3Title = "Biological Science Concept & Heart/Neuron Recall";
-            core3Sub = "Biological Science";
-            core3Badge = "🧬 Bio Science (Loop)";
-            core3Guide = "Review human circulation and plant transpiration functions on structure-function cards.";
-          } else if (hwHasSci && !hwHasSst) {
-            core2Title = "Social Science Concept & Map Recall";
-            core2Sub = "Social Science";
-            core2Badge = "🌍 Social Core (Complementary)";
-            core2Guide = "🔄 Complementary Core Rotation: Science was in homework, so absent Social Science is prioritized here for timeline and map recall!";
-
-            core3Title = hwHasPhy ? "Biological Science Concept & Heart/Neuron Recall" : "Physical Science Concept & Atom/Lens Review";
-            core3Sub = hwHasPhy ? "Biological Science" : "Physical Science";
-            core3Badge = "🔬 Alternate Science (Loop)";
-            core3Guide = "Review key scientific terms, formulas, and diagrams for the complementary science branch.";
-          } else {
-            // Both were in homework!
-            core2Title = hwHasPhy ? "Biological Science Concept & Heart/Neuron Recall" : "Physical Science Concept & Atom/Lens Review";
-            core2Sub = hwHasPhy ? "Biological Science" : "Physical Science";
-            core2Badge = "🔬 Science Diagram Depth";
-            core2Guide = "Deep diagram practice: Sketch and label diagrams accurately from memory without looking at notes.";
-
-            core3Title = "Social Science Map & Timeline Drill";
-            core3Sub = "Social Science";
-            core3Badge = "🌍 Map & Timeline Drill";
-            core3Guide = "Mark 1857 centers on India map or write 3-box vertical cause-event-consequence trees.";
-          }
-
-          const core2Dur = Math.min(30, Math.max(15, studyCutoffMins - curMins));
-          eveningSlots.push({
-            phase: `${phasePrefix}: Core 2`, start: formatMinutesToTime(curMins), end: formatMinutesToTime(curMins + core2Dur), durationMins: core2Dur,
-            title: core2Title, subject: core2Sub, type: "study", badge: core2Badge,
-            guidance: core2Guide,
-            isCompleted: false
-          });
-          curMins += core2Dur;
-
-          // Core 3 if time remains (capped at 25 mins)
-          const remAfterC2 = Math.max(0, studyCutoffMins - curMins);
-          if (remAfterC2 >= 20) {
-            const brk3Dur = 6;
-            eveningSlots.push({
-              phase: `${phasePrefix} Rest`, start: formatMinutesToTime(curMins), end: formatMinutesToTime(curMins + brk3Dur), durationMins: brk3Dur,
-              title: "Mental Shift Interval", subject: "Rest", type: "break", badge: `☕ Rest (${brk3Dur}m)`,
-              guidance: "Rest eyes, stretch back and shoulders before the next review block.",
-              isCompleted: false
-            });
-            curMins += brk3Dur;
-
-            const core3Dur = Math.min(25, Math.max(12, studyCutoffMins - curMins));
-            eveningSlots.push({
-              phase: `${phasePrefix}: Core 3`, start: formatMinutesToTime(curMins), end: formatMinutesToTime(curMins + core3Dur), durationMins: core3Dur,
-              title: core3Title, subject: core3Sub, type: "study", badge: core3Badge,
-              guidance: core3Guide,
-              isCompleted: false
-            });
-            curMins += core3Dur;
-          }
-        }
+      function isSubInHw(name) {
+        const n = name.toLowerCase();
+        if (n.includes("math")) return hwHasMath;
+        if (n.includes("physical")) return hwHasPhy;
+        if (n.includes("biological") || n.includes("bio")) return hwHasBio;
+        if (n.includes("social")) return hwHasSst;
+        return false;
       }
 
-      // Special 15-Minute Dedicated Drawing Practice Slot
+      const absentCores = allCoreCandidates.filter(c => !isSubInHw(c.name));
+
+      let eveningCoreChoice = null;
+      if (!hwHasMath) {
+        // Rule 2: If maths NOT in homework, mandatory maths condition must be satisfied!
+        eveningCoreChoice = allCoreCandidates.find(c => c.name === "Mathematics") || allCoreCandidates[0];
+      } else if (absentCores.length > 0) {
+        // Rule 3 & 4: Left-out subjects get top priority! Pick absent core
+        eveningCoreChoice = absentCores[0];
+      } else {
+        // All core subjects were in homework; rotate to a secondary core
+        eveningCoreChoice = allCoreCandidates.find(c => c.name !== "Mathematics") || allCoreCandidates[1];
+      }
+
+      const eveningCoreSubName = eveningCoreChoice.name;
+
+      if (remStudyMins > 0) {
+        const coreDur = Math.min(35, Math.max(20, remStudyMins));
+        eveningSlots.push({
+          phase: `${phasePrefix}: Core Study`, start: formatMinutesToTime(curMins), end: formatMinutesToTime(curMins + coreDur), durationMins: coreDur,
+          title: `Evening Core Study: ${eveningCoreChoice.name}`, subject: eveningCoreChoice.name, type: "study", badge: eveningCoreChoice.badge,
+          guidance: `Core Concept Study (${eveningCoreChoice.name}): Priority given to subject absent from homework. ${eveningCoreChoice.guide}`,
+          isCompleted: false
+        });
+        curMins += coreDur;
+
+        // Restorative break before diagram practice
+        const brkDur = 5;
+        eveningSlots.push({
+          phase: `${phasePrefix} Rest`, start: formatMinutesToTime(curMins), end: formatMinutesToTime(curMins + brkDur), durationMins: brkDur,
+          title: "Mind Reset Interval", subject: "Rest & Hydrate", type: "break", badge: `☕ Rest (${brkDur}m)`,
+          guidance: "Rest your eyes, walk around the room, take 5 slow deep breaths before the diagram practice session.",
+          isCompleted: false
+        });
+        curMins += brkDur;
+      }
+
+      // Rule 4: Special 15-Minute Dedicated Drawing Practice Slot
       const drawDur = 15;
+      const diagramTargetName = hwHasSst ? "Physical Science / Biology" : "Biological Science / Science";
       eveningSlots.push({
-        phase: `${phasePrefix}: Drawing & Art`,
+        phase: `${phasePrefix}: Diagram Practice`,
         start: formatMinutesToTime(curMins),
         end: formatMinutesToTime(curMins + drawDur),
         durationMins: drawDur,
-        title: "Special Drawing Practice: Science Diagrams & Visual Recall",
+        title: "Special 15m Session: Diagram Practice (Any Subject)",
         subject: "Drawing Practice",
         type: "study",
-        badge: "🎨 Drawing (15m)",
-        guidance: "Special Drawing Practice (15m): Dedicated sketching & drawing block. Practice neat pencil line work, scientific diagrams (e.g. eye, ray diagrams, cells), map sketching, or freeform artistic drawing to relax and sharpen fine-motor precision.",
+        badge: "🎨 Diagram Practice (15m)",
+        guidance: `Rule 4 Inviolable Session: 15-minute special diagram & sketch practice (${diagramTargetName}). Practice neat pencil line work, scientific diagrams (e.g. eye, ray diagrams, cells), or map sketching to sharpen visual retention.`,
         isCompleted: false
       });
       curMins += drawDur;
@@ -10739,72 +10688,109 @@
         guidance: winddownMsg
       });
 
-      // Smart Morning Language Clinic Rotation:
-      // If language in evening HW -> EXCLUDE it and rotate to a remaining language!
-      let mornLang = selectedLang;
-      let rotNote = "";
-      if (hwHasTamil) {
-        if (mornLang.toLowerCase().includes("tamil") || mornLang.includes("தமிழ்")) {
-          mornLang = "English";
-          rotNote = " (🔄 Auto-Rotated: Tamil was in homework)";
-        }
-      } else if (hwHasEng) {
-        if (mornLang.toLowerCase().includes("eng")) {
-          mornLang = "Tamil";
-          rotNote = " (🔄 Auto-Rotated: English was in homework)";
-        }
-      } else if (hwHasHin) {
-        if (mornLang.toLowerCase().includes("hin")) {
-          mornLang = "Tamil";
-          rotNote = " (🔄 Auto-Rotated: Hindi was in homework)";
-        }
-      }
+      // -------------------------------------------------------------
+      // RULES 5, 6, 7: MORNING STUDY PLAN
+      // -------------------------------------------------------------
+      // Rule 5: A second core subject which is NOT taken in the evening is present in the morning,
+      // along with one language. That language has to be non-repeated.
+      // Rule 6: What evening session homework contains should NOT be repeated in the morning.
+      // Rule 7: Any one of the languages can be taken. If 3 languages are in homework,
+      // skip language and take TWO CORE SUBJECTS in the morning!
 
-      // Morning slots
       morningSlots.push({
         phase: "Morning Wake-Up", start: "6:00 AM", end: "6:10 AM", durationMins: 10,
         title: "Alertness Activation & Hydration", subject: "Morning Warmup", type: "prep", badge: "🌅 Wake-up",
         guidance: "Splash cool water on face, drink 2 glasses of water, gentle stretching. Zero devices."
       });
-      // Determine Morning Secondary Core Subject (Maths is not mandatory in morning):
-      // Smart rotation between secondary core subjects (Physical Science, Biological Science, Social Science):
-      let mornCoreSub = "Physical Science";
-      let mornCoreTitle = "Active Recall: Physical Science Diagrams & Core Concepts";
-      let mornCoreBadge = "🔬 Science Recall";
-      let mornCoreGuidance = "Feynman Technique: Without opening textbook, redraw and label key scientific diagrams and recite core definitions and laws from memory!";
 
-      if (hwHasSci && !hwHasSst) {
-        mornCoreSub = "Social Science";
-        mornCoreTitle = "Active Recall: Social Science Maps, Timelines & Concepts";
-        mornCoreBadge = "🌍 Social Science Recall";
-        mornCoreGuidance = "Active Retrieval: Without looking at textbook, sketch historical timelines (dates, causes, consequences) and recall key geographical map locations!";
-      } else if (hwHasSst && !hwHasSci) {
-        mornCoreSub = hwHasPhy ? "Biological Science" : "Physical Science";
-        mornCoreTitle = `Active Recall: ${mornCoreSub} Diagrams & Key Terms`;
-        mornCoreBadge = hwHasPhy ? "🔬 Biology Recall" : "🔬 Science Recall";
-        mornCoreGuidance = "Feynman Technique: Without opening textbook, redraw key scientific diagrams and recite core formulas and laws from memory!";
-      } else if (hwHasPhy) {
-        mornCoreSub = "Biological Science";
-        mornCoreTitle = "Active Recall: Biological Science Diagrams & Life Concepts";
-        mornCoreBadge = "🔬 Biology Recall";
-        mornCoreGuidance = "Feynman Diagram Technique: Redraw biological diagrams (cell structures, organ systems, plant tissues) and recite key terms from memory.";
+      // Collect all subjects taken in evening (HW or Evening Core Study)
+      const eveTakenSubs = new Set();
+      eveningSlots.forEach(s => {
+        const sub = s.subject || "";
+        if (sub && !["Transition & Sensory Reset", "Rest & Hydrate", "Rest & Posture", "Rest", "Drawing Practice", "Routine Habit"].includes(sub)) {
+          eveTakenSubs.add(sub.toLowerCase());
+        }
+      });
+
+      // Select Morning Core 1: Secondary core NOT taken in evening
+      let mornCorePool = allCoreCandidates.filter(c => !eveTakenSubs.has(c.name.toLowerCase()) && c.name !== eveningCoreSubName);
+      if (mornCorePool.length === 0) {
+        mornCorePool = allCoreCandidates.filter(c => c.name !== eveningCoreSubName);
+      }
+      if (mornCorePool.length === 0) mornCorePool = allCoreCandidates;
+      const morningCore1 = mornCorePool[0];
+
+      // Rule 7: Count languages in homework
+      const hwLangsCount = [hwHasTamil, hwHasEng, hwHasHin].filter(Boolean).length;
+      const allLanguages = [
+        { name: "Tamil", badge: "✍️ தமிழ் பயிர்ச்சி", tip: "Tamil spelling check and self-expression." },
+        { name: "English", badge: "✍️ English Clinic", tip: "English vocabulary, error reduction, and self-expression." },
+        { name: "Hindi", badge: "✍️ हिंदी अभ्यास", tip: "Hindi matras and sentence formation practice." }
+      ];
+
+      if (hwLangsCount >= 3) {
+        // Rule 7 Special: All 3 languages were in homework! Take TWO CORE SUBJECTS in morning!
+        const mornCorePool2 = mornCorePool.filter(c => c.name !== morningCore1.name);
+        const morningCore2 = mornCorePool2.length > 0 ? mornCorePool2[0] : allCoreCandidates.find(c => c.name !== morningCore1.name && c.name !== eveningCoreSubName) || allCoreCandidates[1];
+
+        morningSlots.push({
+          phase: "Morning Core 1 Recall", start: "6:10 AM", end: "6:40 AM", durationMins: 30,
+          title: `Morning Core 1 Recall: ${morningCore1.name}`, subject: morningCore1.name, type: "revision", badge: morningCore1.badge,
+          guidance: `Rule 5 & 6 Non-Repeated Core: ${morningCore1.name} active retrieval. Close textbooks, recall formulas and concepts from memory.`
+        });
+
+        morningSlots.push({
+          phase: "Morning Rest", start: "6:40 AM", end: "6:45 AM", durationMins: 5,
+          title: "Micro Movement Break", subject: "Rest", type: "break", badge: "☕ Break (5m)",
+          guidance: "Stretch legs and back, look out window at natural morning light."
+        });
+
+        morningSlots.push({
+          phase: "Morning Core 2 Recall", start: "6:45 AM", end: "7:25 AM", durationMins: 40,
+          title: `Morning Core 2 Recall: ${morningCore2.name} (2-Core Mode)`, subject: morningCore2.name, type: "revision", badge: morningCore2.badge,
+          guidance: `Rule 7 Active: 3 languages were already in homework, so language is skipped in morning. Second core ${morningCore2.name} takes study focus!`
+        });
+
+      } else {
+        // Rule 5 & 7 Standard: One non-repeated core + One non-repeated language
+        let candidateLangs = [];
+        allLanguages.forEach(l => {
+          const lLow = l.name.toLowerCase();
+          if (lLow === "tamil" && !hwHasTamil && !eveTakenSubs.has("tamil")) candidateLangs.push(l);
+          else if (lLow === "english" && !hwHasEng && !eveTakenSubs.has("english") && !eveTakenSubs.has("eng")) candidateLangs.push(l);
+          else if (lLow === "hindi" && !hwHasHin && !eveTakenSubs.has("hindi")) candidateLangs.push(l);
+        });
+
+        if (candidateLangs.length === 0) {
+          if (!hwHasTamil) candidateLangs.push(allLanguages[0]);
+          else if (!hwHasEng) candidateLangs.push(allLanguages[1]);
+          else if (!hwHasHin) candidateLangs.push(allLanguages[2]);
+          else candidateLangs.push(allLanguages[0]);
+        }
+
+        let chosenLang = candidateLangs[0];
+        const prefLang = candidateLangs.find(cl => cl.name.toLowerCase().includes((selectedLang || "").toLowerCase()));
+        if (prefLang) chosenLang = prefLang;
+
+        morningSlots.push({
+          phase: "Morning Secondary Core Recall", start: "6:10 AM", end: "6:45 AM", durationMins: 35,
+          title: `Active Recall: ${morningCore1.name} (Non-Repeated Core)`, subject: morningCore1.name, type: "revision", badge: morningCore1.badge,
+          guidance: `Rule 5 & 6 Active: Secondary core ${morningCore1.name} was NOT taken in the evening. Close books, recall definitions, proof outlines, and key diagrams.`
+        });
+
+        morningSlots.push({
+          phase: "Morning Rest", start: "6:45 AM", end: "6:50 AM", durationMins: 5,
+          title: "Micro Movement Break", subject: "Rest", type: "break", badge: "☕ Break (5m)",
+          guidance: "Stretch legs and back, look out window at natural morning light."
+        });
+
+        morningSlots.push({
+          phase: "Morning Language Clinic", start: "6:50 AM", end: "7:25 AM", durationMins: 35,
+          title: `Language Writing & Spelling Clinic: ${chosenLang.name} (Non-Repeated)`, subject: chosenLang.name, type: "revision", badge: chosenLang.badge,
+          guidance: `Rule 5 & 7 Non-Repeated Language Clinic (${chosenLang.name}): Focus on neat handwriting, eliminating spelling slips, and self-expression in your own words.`
+        });
       }
 
-      morningSlots.push({
-        phase: "Morning Secondary Core Recall", start: "6:10 AM", end: "6:45 AM", durationMins: 35,
-        title: mornCoreTitle, subject: mornCoreSub, type: "revision", badge: mornCoreBadge,
-        guidance: mornCoreGuidance
-      });
-      morningSlots.push({
-        phase: "Morning Rest", start: "6:45 AM", end: "6:50 AM", durationMins: 5,
-        title: "Micro Movement Break", subject: "Rest", type: "break", badge: "☕ Break (5m)",
-        guidance: "Stretch legs and back, look out window at natural morning light."
-      });
-      morningSlots.push({
-        phase: "Morning Language Clinic", start: "6:50 AM", end: "7:25 AM", durationMins: 35,
-        title: `Language Writing & Spelling Clinic: ${mornLang}${rotNote}`, subject: mornLang, type: "revision", badge: "✍️ Language Clinic",
-        guidance: (rotNote ? `🔄 Complementary Rotation Active: ${mornLang} scheduled for morning clinic to ensure balanced weekly language coverage!\n` : "") + getLanguageTip(mornLang)
-      });
       morningSlots.push({
         phase: "School Ready", start: "7:25 AM", end: "7:30 AM", durationMins: 5,
         title: "School Readiness Audit & Confidence Boost", subject: "Ready for School", type: "winddown", badge: "🎒 School Ready",

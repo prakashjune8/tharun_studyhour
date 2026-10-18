@@ -3580,172 +3580,100 @@ class TharunScheduleBalancer:
         study_cutoff = eve_end_time - timedelta(minutes=winddown_mins)
         available_study_mins = max(0, int((study_cutoff - cur_time).total_seconds() / 60))
 
-        # Core 1: Daily Maths Muscle (Capped at 35 mins max - Non-negotiable Daily Muscle)
-        math_dur = 30 if current_level == 1 else (35 if current_level == 2 else 40)
-        math_dur = min(math_dur, max(20, int(available_study_mins * 0.55)))
+        # -------------------------------------------------------------
+        # RULES 2 & 3 & 4: CORE SUBJECT SELECTION FOR EVENING STUDY
+        # -------------------------------------------------------------
+        # Rule 1 & 2: Homework completed above. If homework had Mathematics,
+        # mandatory maths condition is already satisfied.
+        # Rule 3: Left-out subjects (not present in homework) get top priority for study!
+        # Rule 4: In the evening, exactly one core subject is selected for study,
+        # along with a 15-minute special session for diagram practice of any subject.
+        #
+        # Core Candidates: Mathematics, Physical Science, Biological Science, Social Science
+        all_core_candidates = [
+            ("Mathematics", sub_math, "📐 Math Core", "Maths Problem Solving: Step-by-step textbook exercises & proof practice."),
+            ("Physical Science", sub_phy_sci, "⚡ Physical Science Core", "Physical Science: Deep concept mastery, chemical reactions & physics laws."),
+            ("Biological Science", sub_bio_sci, "🧬 Biological Science Core", "Biological Science: Life processes, cellular structures & concept recall."),
+            ("Social Science", sub_sst, "🌍 Social Science Core", "Social Science: Timelines, historical causes/effects & geography concepts.")
+        ]
 
-        if available_study_mins >= 25:
-            math_dur = min(35, math_dur)
-            m_end = cur_time + timedelta(minutes=math_dur)
-            math_guidance = (
-                "Daily Maths Muscle is non-negotiable! Diary homework is complete; now hand-solve 5 to 8 textbook exercise questions or revision proofs with pen on paper."
-                if hw_has_math else
-                "Daily solving is like sports practice! Pick 5 to 8 textbook exercise questions. Solve step-by-step on rough copy with a pen."
-            )
+        # Prioritize left-out core subjects (not present in homework)
+        def is_sub_in_hw(name):
+            n = name.lower()
+            if "math" in n: return hw_has_math
+            if "physical" in n: return hw_has_phy
+            if "biological" in n or "bio" in n: return hw_has_bio
+            if "social" in n: return hw_has_sst
+            return False
+
+        absent_cores = [c for c in all_core_candidates if not is_sub_in_hw(c[0])]
+
+        evening_core_choice = None
+        if not hw_has_math:
+            # Rule 2: If maths NOT in homework, mandatory maths condition must be satisfied!
+            evening_core_choice = next((c for c in all_core_candidates if c[0] == "Mathematics"), all_core_candidates[0])
+        elif absent_cores:
+            # Rule 3 & 4: Left-out subjects get top priority! Pick absent core (Physical Science, Bio, or Social)
+            evening_core_choice = absent_cores[0]
+        else:
+            # All core subjects were in homework; rotate to a secondary core
+            evening_core_choice = next((c for c in all_core_candidates if c[0] != "Mathematics"), all_core_candidates[1])
+
+        evening_core_sub_name = evening_core_choice[0]
+
+        # Schedule Evening Core Study Slot
+        eve_core_dur = 30 if current_level == 1 else (35 if current_level == 2 else 40)
+        eve_core_dur = min(eve_core_dur, max(20, available_study_mins))
+        if eve_core_dur > 0:
+            c_end = cur_time + timedelta(minutes=eve_core_dur)
             evening_slots.append({
-                "phase": f"{phase_label}: Core 1",
+                "phase": f"{phase_label}: Core Study",
                 "start": cur_time.strftime("%I:%M %p"),
-                "end": m_end.strftime("%I:%M %p"),
-                "duration_mins": math_dur,
-                "title": f"Daily Maths Muscle: {sub_math['name']} Problem Solving",
-                "subject": "Mathematics",
+                "end": c_end.strftime("%I:%M %p"),
+                "duration_mins": eve_core_dur,
+                "title": f"Evening Core Study: {evening_core_choice[0]}",
+                "subject": evening_core_choice[0],
                 "type": "study",
-                "badge": "📐 Daily Maths",
-                "guidance": math_guidance,
+                "badge": evening_core_choice[2],
+                "guidance": f"Core Concept Study ({evening_core_choice[0]}): Priority given to subject absent from homework. {evening_core_choice[3]}",
                 "is_completed": False
             })
-            cur_time = m_end
+            cur_time = c_end
 
-            rem_before_cutoff = max(0, int((study_cutoff - cur_time).total_seconds() / 60))
-            if rem_before_cutoff >= 25:
-                brk_c2_end = cur_time + timedelta(minutes=lvl["break_duration"])
+            # Restorative break between core study and diagram practice
+            if lvl["break_duration"] > 0:
+                brk_c_end = cur_time + timedelta(minutes=min(6, lvl["break_duration"]))
                 evening_slots.append({
                     "phase": f"{phase_label} Rest",
                     "start": cur_time.strftime("%I:%M %p"),
-                    "end": brk_c2_end.strftime("%I:%M %p"),
-                    "duration_mins": lvl["break_duration"],
+                    "end": brk_c_end.strftime("%I:%M %p"),
+                    "duration_mins": min(6, lvl["break_duration"]),
                     "title": "Mind Reset Interval",
                     "subject": "Posture & Water",
                     "type": "break",
-                    "badge": f"☕ Rest ({lvl['break_duration']}m)",
-                    "guidance": "Rest your eyes, walk around the room, take 5 slow deep breaths before complementary core practice.",
+                    "badge": f"☕ Rest ({min(6, lvl['break_duration'])}m)",
+                    "guidance": "Rest eyes, stand up and stretch before the 15-minute diagram practice session.",
                     "is_completed": False
                 })
-                cur_time = brk_c2_end
+                cur_time = brk_c_end
 
-        # Core 2 & Core 3: Complementary Core Subject Rotation (STRICTLY CAPPED - ABSENT HOMEWORK ADDED)
-        rem_study = max(0, int((study_cutoff - cur_time).total_seconds() / 60))
-        if rem_study >= 15:
-            # Determine which core subjects are absent from homework:
-            # 1. If Science is absent, prioritize Science (Physical or Biological Science)
-            # 2. If Social Science is absent, prioritize Social Science
-            # 3. If both absent, Core 2 = Science, Core 3 = Social Science!
-            if not hw_has_sci and not hw_has_sst:
-                core2_sub = sub_phy_sci
-                core2_badge = "🔬 Science Core (Complementary)"
-                core2_title = f"Science Diagram & Concept Mastery: {core2_sub['name']}"
-                core2_guidance = (
-                    "🔄 Complementary Core Rotation: Since Science was absent from today's homework, it is added to the timetable! "
-                    "Blind Diagram Protocol: Look at textbook diagram for 2 minutes, close book, redraw and label completely from memory!"
-                )
-                core3_sub = sub_sst
-                core3_badge = "🌍 Social Core (Complementary)"
-                core3_title = f"Social Science Concept & Map Recall: {core3_sub['name']}"
-                core3_guidance = (
-                    "🔄 Complementary Core Rotation: Since Social Science was absent from today's homework, it is added here! "
-                    "Review 1857 timeline or map. Write down 3 key causes and effects in your own words."
-                )
-            elif not hw_has_sci and hw_has_sst:
-                core2_sub = sub_phy_sci
-                core2_badge = "🔬 Science Core (Complementary)"
-                core2_title = f"Science Diagram & Concept Mastery: {core2_sub['name']}"
-                core2_guidance = (
-                    "🔄 Complementary Core Rotation: Social Science was in homework, so absent Science is prioritized here! "
-                    "Blind Diagram Protocol: Redraw and label atom/lens diagrams completely from memory."
-                )
-                core3_sub = sub_bio_sci
-                core3_badge = "🧬 Bio Science (Loop)"
-                core3_title = f"Biological Science Concept & Heart/Neuron Recall: {core3_sub['name']}"
-                core3_guidance = "Review human circulation and plant transpiration functions on structure-function cards."
-            elif hw_has_sci and not hw_has_sst:
-                core2_sub = sub_sst
-                core2_badge = "🌍 Social Core (Complementary)"
-                core2_title = f"Social Science Concept & Map Recall: {core2_sub['name']}"
-                core2_guidance = (
-                    "🔄 Complementary Core Rotation: Science was in homework, so absent Social Science is prioritized here! "
-                    "Review 1857 cause-event flow-trees and M-C-T-R-S soil conservation mnemonics."
-                )
-                core3_sub = sub_bio_sci if hw_has_phy else sub_phy_sci
-                core3_badge = "🔬 Alternate Science (Loop)"
-                core3_title = f"Science Concept Consolidation: {core3_sub['name']}"
-                core3_guidance = "Review key scientific terms, formulas, and diagrams for the complementary science branch."
-            else:
-                # Both Science and Social Science were in homework!
-                # Rotate to the Science branch not covered, or deep diagram practice
-                core2_sub = sub_bio_sci if hw_has_phy else sub_phy_sci
-                core2_badge = "🔬 Science Diagram Depth"
-                core2_title = f"Deep Diagram Mastery: {core2_sub['name']}"
-                core2_guidance = "Deep diagram practice: Sketch and label diagrams accurately from memory without looking at notes."
-                core3_sub = sub_sst
-                core3_badge = "🌍 Map & Timeline Drill"
-                core3_title = f"Social Science Map & Timeline Drill: {core3_sub['name']}"
-                core3_guidance = "Mark 1857 centers on India map or write 3-box vertical cause-event-consequence trees."
-
-            c2_dur = min(30, max(15, rem_study))
-            c2_end = cur_time + timedelta(minutes=c2_dur)
-            evening_slots.append({
-                "phase": f"{phase_label}: Core 2",
-                "start": cur_time.strftime("%I:%M %p"),
-                "end": c2_end.strftime("%I:%M %p"),
-                "duration_mins": c2_dur,
-                "title": core2_title,
-                "subject": core2_sub["name"],
-                "type": "study",
-                "badge": core2_badge,
-                "guidance": core2_guidance,
-                "is_completed": False
-            })
-            cur_time = c2_end
-
-            # Core 3: Complementary Review (if time remains, capped at 25m)
-            rem_after_c2 = max(0, int((study_cutoff - cur_time).total_seconds() / 60))
-            if rem_after_c2 >= 20:
-                brk_dur = 6
-                brk_c3_end = cur_time + timedelta(minutes=brk_dur)
-                evening_slots.append({
-                    "phase": f"{phase_label} Rest",
-                    "start": cur_time.strftime("%I:%M %p"),
-                    "end": brk_c3_end.strftime("%I:%M %p"),
-                    "duration_mins": brk_dur,
-                    "title": "Mental Shift Interval",
-                    "subject": "Posture & Water",
-                    "type": "break",
-                    "badge": f"☕ Rest ({brk_dur}m)",
-                    "guidance": "Rest eyes, stand up and stretch before the next review block.",
-                    "is_completed": False
-                })
-                cur_time = brk_c3_end
-
-                c3_dur = min(25, max(12, int((study_cutoff - cur_time).total_seconds() / 60)))
-                c3_end = cur_time + timedelta(minutes=c3_dur)
-                evening_slots.append({
-                    "phase": f"{phase_label}: Core 3",
-                    "start": cur_time.strftime("%I:%M %p"),
-                    "end": c3_end.strftime("%I:%M %p"),
-                    "duration_mins": c3_dur,
-                    "title": core3_title,
-                    "subject": core3_sub["name"],
-                    "type": "study",
-                    "badge": core3_badge,
-                    "guidance": core3_guidance,
-                    "is_completed": False
-                })
-                cur_time = c3_end
-
-        # Special 15-Minute Dedicated Drawing Practice Slot
+        # Rule 4: Inviolable 15-minute special session for diagram practice of any subject
         draw_dur = 15
         end_draw = cur_time + timedelta(minutes=draw_dur)
+        # Select target diagram subject: prioritize science or social map
+        diagram_target_name = "Physical Science / Biology" if hw_has_sst else "Biological Science / Science"
         evening_slots.append({
-            "phase": f"{phase_label}: Drawing & Art",
+            "phase": f"{phase_label}: Diagram Practice",
             "start": cur_time.strftime("%I:%M %p"),
             "end": end_draw.strftime("%I:%M %p"),
             "duration_mins": draw_dur,
-            "title": "Special Drawing Practice: Science Diagrams & Visual Recall",
+            "title": "Special 15m Session: Diagram Practice (Any Subject)",
             "subject": "Drawing Practice",
             "type": "study",
-            "badge": "🎨 Drawing (15m)",
+            "badge": "🎨 Diagram Practice (15m)",
             "guidance": (
-                "Special Drawing Practice (15m): Dedicated sketching & drawing block. Practice neat pencil line work, scientific diagrams (e.g. eye, ray diagrams, cells), map sketching, or freeform artistic drawing to relax and sharpen fine-motor precision."
+                f"Rule 4 Inviolable Session: 15-minute special diagram & sketch practice ({diagram_target_name}). "
+                "Practice neat pencil line work, scientific diagrams (e.g. eye, ray diagrams, cells), or map sketching to sharpen visual retention."
             ),
             "is_completed": False
         })
@@ -3777,8 +3705,13 @@ class TharunScheduleBalancer:
         })
 
         # -------------------------------------------------------------
-        # PHASE 2: MORNING STUDY PLAN (Core Recall + Language Clinic)
+        # RULES 5, 6, 7: MORNING STUDY PLAN
         # -------------------------------------------------------------
+        # Rule 5: A second core subject which is NOT taken in the evening is present in the morning,
+        # along with one language. That language has to be non-repeated (not in homework).
+        # Rule 6: What evening session homework contains should NOT be repeated in the morning.
+        # Rule 7: Any one of the languages can be taken. If 3 languages are in the homework itself,
+        # then in the morning session do NOT concentrate on language; take TWO core subjects in morning!
         m_cur = datetime.strptime(lvl["morn_start"], "%H:%M")
         m_end_target = datetime.strptime(lvl["morn_end"], "%H:%M")
 
@@ -3797,7 +3730,7 @@ class TharunScheduleBalancer:
         })
         m_cur = b_end
 
-        # Bedtime Overrun to Morning Priming Rollover Engine
+        # Bedtime Overrun Rollover (if any)
         if bedtime_rollovers:
             for ro in bedtime_rollovers:
                 ro_dur = ro.get("truncated_mins", 15)
@@ -3818,58 +3751,132 @@ class TharunScheduleBalancer:
                 })
                 m_cur = ro_end
 
-        # Smart Morning Secondary Core Selection (Mathematics is NOT mandatory in morning):
-        # Place any of the secondary core subjects (Physical Science, Biological Science, Social Science):
-        if hw_has_sci and not hw_has_sst:
-            sec_core_sub = sub_sst
-            sec_core_name = sub_sst["name"]
-            sec_core_title = f"Active Recall: {sub_sst['name']} Maps, Timelines & Key Events"
-            sec_core_badge = "🌍 Social Core Recall"
-            sec_core_guidance = (
-                f"Active Retrieval ({sub_sst['name']}): Close all textbooks! Sketch key timelines (dates, causes, consequences) and redraw map locations from memory."
-            )
-        elif hw_has_sst and not hw_has_sci:
-            sec_core_sub = sub_bio_sci if hw_has_phy else sub_phy_sci
-            sec_core_name = sec_core_sub["name"]
-            sec_core_title = f"Active Recall: {sec_core_sub['name']} Diagrams & Core Laws"
-            sec_core_badge = "🔬 Science Core Recall"
-            sec_core_guidance = (
-                f"Feynman Blind Diagram Technique ({sec_core_sub['name']}): Close all books! Redraw and label key diagrams and recite core scientific laws/definitions from memory."
-            )
-        elif hw_has_phy:
-            sec_core_sub = sub_bio_sci
-            sec_core_name = sub_bio_sci["name"]
-            sec_core_title = f"Active Recall: {sub_bio_sci['name']} Diagrams & Life Concepts"
-            sec_core_badge = "🔬 Biology Core Recall"
-            sec_core_guidance = (
-                f"Feynman Diagram Technique ({sub_bio_sci['name']}): Redraw biological diagrams (cell structures, organ systems, plant tissues) and recite key terms from memory."
-            )
+        # Filter out subjects already taken in evening (HW or Evening Core Study)
+        # What evening session contains must NOT be repeated in morning!
+        eve_taken_subjects = set()
+        for s in evening_slots:
+            sub = s.get("subject", "")
+            if sub and sub not in ["Transition & Sensory Reset", "Rest & Hydrate", "Posture & Water", "Rest", "Drawing Practice", "Routine Habit"]:
+                eve_taken_subjects.add(sub.lower())
+
+        # Select Morning Core 1: Secondary core NOT taken in evening
+        morn_core_pool = [c for c in all_core_candidates if c[0].lower() not in eve_taken_subjects and c[0] != evening_core_sub_name]
+        if not morn_core_pool:
+            # Fallback if all were covered: select any core that was not the evening core
+            morn_core_pool = [c for c in all_core_candidates if c[0] != evening_core_sub_name]
+        if not morn_core_pool:
+            morn_core_pool = all_core_candidates
+
+        morning_core_1 = morn_core_pool[0]
+
+        # Rule 7: Check how many languages were in homework
+        hw_langs_count = sum([1 for l in [hw_has_tamil, hw_has_eng, hw_has_hin] if l])
+        all_languages = [("Tamil", "✍️ தமிழ் பயிர்ச்சி"), ("English", "✍️ English Clinic"), ("Hindi", "✍️ हिंदी अभ्यास")]
+
+        if hw_langs_count >= 3:
+            # Rule 7 Special: All 3 languages were in homework!
+            # Do NOT concentrate on language in the morning. Take TWO CORE SUBJECTS in the morning!
+            morn_core_pool_2 = [c for c in morn_core_pool if c[0] != morning_core_1[0]]
+            if not morn_core_pool_2:
+                morn_core_pool_2 = [c for c in all_core_candidates if c[0] != morning_core_1[0] and c[0] != evening_core_sub_name]
+            morning_core_2 = morn_core_pool_2[0] if morn_core_pool_2 else all_core_candidates[1]
+
+            # Morning Core 1
+            cm1_dur = 30
+            cm1_end = m_cur + timedelta(minutes=cm1_dur)
+            morning_slots.append({
+                "phase": "Morning Core 1 Recall",
+                "start": m_cur.strftime("%I:%M %p"),
+                "end": cm1_end.strftime("%I:%M %p"),
+                "duration_mins": cm1_dur,
+                "title": f"Morning Core 1 Recall: {morning_core_1[0]}",
+                "subject": morning_core_1[0],
+                "type": "revision",
+                "badge": morning_core_1[2],
+                "guidance": f"Rule 5 & 6 Non-Repeated Core: {morning_core_1[0]} active retrieval. Close textbooks, recall formulas/concepts.",
+                "is_completed": False
+            })
+            m_cur = cm1_end
+
+            # Break
+            m_brk_end = m_cur + timedelta(minutes=5)
+            morning_slots.append({
+                "phase": "Morning Rest",
+                "start": m_cur.strftime("%I:%M %p"),
+                "end": m_brk_end.strftime("%I:%M %p"),
+                "duration_mins": 5,
+                "title": "Quick Posture & Breath Reset",
+                "subject": "Rest",
+                "type": "break",
+                "badge": "☕ Break (5m)",
+                "guidance": "Stand up, stretch your back, drink water."
+            })
+            m_cur = m_brk_end
+
+            # Morning Core 2 (Replacing language since all 3 languages were in HW)
+            cm2_dur = max(20, int((m_end_target - timedelta(minutes=5) - m_cur).total_seconds() / 60))
+            cm2_end = m_cur + timedelta(minutes=cm2_dur)
+            morning_slots.append({
+                "phase": "Morning Core 2 Recall",
+                "start": m_cur.strftime("%I:%M %p"),
+                "end": cm2_end.strftime("%I:%M %p"),
+                "duration_mins": cm2_dur,
+                "title": f"Morning Core 2 Recall: {morning_core_2[0]} (2-Core Mode)",
+                "subject": morning_core_2[0],
+                "type": "revision",
+                "badge": morning_core_2[2],
+                "guidance": f"Rule 7 Active: 3 languages were already in homework, so language is skipped in morning. Second core {morning_core_2[0]} takes study focus!",
+                "is_completed": False
+            })
+            m_cur = cm2_end
+
         else:
-            sec_core_sub = sub_phy_sci
-            sec_core_name = sub_phy_sci["name"]
-            sec_core_title = f"Active Recall: {sub_phy_sci['name']} Diagrams & Concepts"
-            sec_core_badge = "🔬 Science Core Recall"
-            sec_core_guidance = (
-                f"Feynman Technique ({sub_phy_sci['name']}): Without opening textbook, redraw and label key diagrams and write core definitions from memory!"
-            )
+            # Rule 5 & 7 Standard: One non-repeated core + One non-repeated language
+            # Select non-repeated language (NOT in homework and NOT in evening)
+            candidate_langs = []
+            for l_name, l_badge in all_languages:
+                l_low = l_name.lower()
+                if l_low == "tamil" and not hw_has_tamil and "tamil" not in eve_taken_subjects:
+                    candidate_langs.append((l_name, l_badge))
+                elif l_low == "english" and not hw_has_eng and "english" not in eve_taken_subjects and "eng" not in eve_taken_subjects:
+                    candidate_langs.append((l_name, l_badge))
+                elif l_low == "hindi" and not hw_has_hin and "hindi" not in eve_taken_subjects:
+                    candidate_langs.append((l_name, l_badge))
 
-        core_morn_mins = 25 if current_level == 1 else 35
-        cm_end = m_cur + timedelta(minutes=core_morn_mins)
-        morning_slots.append({
-            "phase": "Morning Secondary Core Recall",
-            "start": m_cur.strftime("%I:%M %p"),
-            "end": cm_end.strftime("%I:%M %p"),
-            "duration_mins": core_morn_mins,
-            "title": sec_core_title,
-            "subject": sec_core_name,
-            "type": "revision",
-            "badge": sec_core_badge,
-            "guidance": sec_core_guidance,
-            "is_completed": False
-        })
-        m_cur = cm_end
+            if not candidate_langs:
+                # Fallback: pick any language not in homework
+                if not hw_has_tamil: candidate_langs.append(("Tamil", "✍️ தமிழ் பயிர்ச்சி"))
+                elif not hw_has_eng: candidate_langs.append(("English", "✍️ English Clinic"))
+                elif not hw_has_hin: candidate_langs.append(("Hindi", "✍️ हिंदी अभ्यास"))
+                else: candidate_langs.append((selected_language, "✍️ Language Clinic"))
 
-        if current_level > 1:
+            # If user selected a preference and it is in candidates, prefer it
+            chosen_lang = candidate_langs[0]
+            for cl in candidate_langs:
+                if cl[0].lower() in selected_language.lower():
+                    chosen_lang = cl
+                    break
+
+            lang_name, lang_badge = chosen_lang
+
+            # Morning Core Recall Slot
+            cm1_dur = 30 if current_level == 1 else 35
+            cm1_end = m_cur + timedelta(minutes=cm1_dur)
+            morning_slots.append({
+                "phase": "Morning Secondary Core Recall",
+                "start": m_cur.strftime("%I:%M %p"),
+                "end": cm1_end.strftime("%I:%M %p"),
+                "duration_mins": cm1_dur,
+                "title": f"Active Recall: {morning_core_1[0]} (Non-Repeated Core)",
+                "subject": morning_core_1[0],
+                "type": "revision",
+                "badge": morning_core_1[2],
+                "guidance": f"Rule 5 & 6 Active: Secondary core {morning_core_1[0]} was NOT taken in the evening. Close books, recall definitions, proof outlines and diagrams.",
+                "is_completed": False
+            })
+            m_cur = cm1_end
+
+            # Break
             m_brk_end = m_cur + timedelta(minutes=5)
             morning_slots.append({
                 "phase": "Morning Rest",
@@ -3884,69 +3891,45 @@ class TharunScheduleBalancer:
             })
             m_cur = m_brk_end
 
-        # Smart Morning Language Clinic Rotation:
-        # Rule: If any language is in today's evening homework, EXCLUDE it and rotate to a remaining language!
-        # E.g. Tamil in HW -> English in morning; English in HW -> Tamil in morning; Hindi in HW -> Tamil or English in morning.
-        morn_lang = selected_language
-        rotation_note = ""
+            # Morning Non-Repeated Language Clinic Slot
+            if "tamil" in lang_name.lower():
+                lang_guidance = (
+                    "Rule 5 & 7 Non-Repeated Language Clinic (Tamil):\n"
+                    "1. 'ழ', 'ள', 'ல' மற்றும் 'ண', 'ந', 'ன' வேறுபாடுகளில் கவனம் செலுத்துங்கள்.\n"
+                    "2. மனப்பாடம் செய்யாமல், சொந்த நடையில் 4-5 வாக்கியங்கள் எழுதிப் பாருங்கள்.\n"
+                    "3. 'Error Bank' நோட்டில் 3 பிழைகளை திருத்தி எழுதுங்கள்."
+                )
+            elif "hindi" in lang_name.lower():
+                lang_guidance = (
+                    "Rule 5 & 7 Non-Repeated Language Clinic (Hindi):\n"
+                    "1. मात्राओं (ि/ी, ु/ू) और संयुक्त अक्षरों की गलतियों पर ध्यान दें।\n"
+                    "2. रटने के बजाय अपने शब्दों में 4 वाक्यों में उत्तर लिखें।\n"
+                    "3. पिछली गलतियों को अपने 'Error Bank' में देखकर वर्तनी सुधारें।"
+                )
+            else:
+                lang_guidance = (
+                    "Rule 5 & 7 Non-Repeated Language Clinic (English):\n"
+                    "1. Focus on tricky double-letter spellings, silent letters, and past tense forms.\n"
+                    "2. Write answers IN YOUR OWN WORDS! Evaluators award higher marks for original sentences with clean grammar.\n"
+                    "3. Review 5 words from your 'Error Bank' notebook."
+                )
 
-        if hw_has_tamil:
-            if "tamil" in morn_lang.lower() or "தமிழ்" in morn_lang.lower():
-                morn_lang = "English"
-                rotation_note = " (🔄 Auto-Rotated: Tamil was in homework)"
-        elif hw_has_eng:
-            if "eng" in morn_lang.lower():
-                morn_lang = "Tamil"
-                rotation_note = " (🔄 Auto-Rotated: English was in homework)"
-        elif hw_has_hin:
-            if "hin" in morn_lang.lower():
-                morn_lang = "Tamil"
-                rotation_note = " (🔄 Auto-Rotated: Hindi was in homework)"
+            rem_lang_mins = max(20, int((m_end_target - timedelta(minutes=5) - m_cur).total_seconds() / 60))
+            lang_end = m_cur + timedelta(minutes=rem_lang_mins)
+            morning_slots.append({
+                "phase": "Morning Language Clinic",
+                "start": m_cur.strftime("%I:%M %p"),
+                "end": lang_end.strftime("%I:%M %p"),
+                "duration_mins": rem_lang_mins,
+                "title": f"Language Writing & Spelling Clinic: {lang_name} (Non-Repeated)",
+                "subject": lang_name,
+                "type": "revision",
+                "badge": lang_badge,
+                "guidance": lang_guidance
+            })
+            m_cur = lang_end
 
-        lang_name = morn_lang
-        if "tamil" in lang_name.lower():
-            lang_guidance = (
-                ("🔄 Complementary Rotation Active: Tamil scheduled for morning clinic to ensure balanced weekly language coverage!\n" if rotation_note else "") +
-                "பிழை திருத்தம் & சொந்தமாக விடையளித்தல்:\n"
-                "1. 'ழ', 'ள', 'ல' மற்றும் 'ண', 'ந', 'ன' வேறுபாடுகளில் கவனம் செலுத்துங்கள்.\n"
-                "2. மனப்பாடம் செய்யாமல், சொந்த நடையில் 4-5 வாக்கியங்கள் எழுதிப் பாருங்கள்.\n"
-                "3. 'Error Bank' நோட்டில் 3 பிழைகளை திருத்தி எழுதுங்கள்."
-            )
-            lang_badge = "✍️ தமிழ் பயிர்ச்சி"
-        elif "hindi" in lang_name.lower():
-            lang_guidance = (
-                ("🔄 Complementary Rotation Active: Hindi scheduled for morning clinic to ensure balanced weekly language coverage!\n" if rotation_note else "") +
-                "वर्तनी सुधार और स्व-लेखन:\n"
-                "1. मात्राओं (ि/ी, ु/ू) और संयुक्त अक्षरों की गलतियों पर ध्यान दें।\n"
-                "2. रटने के बजाय अपने शब्दों में 4 वाक्यों में उत्तर लिखें।\n"
-                "3. पिछली गलतियों को अपने 'Error Bank' में देखकर वर्तनी सुधारें।"
-            )
-            lang_badge = "✍️ हिंदी अभ्यास"
-        else:
-            lang_guidance = (
-                ("🔄 Complementary Rotation Active: English scheduled for morning clinic to ensure balanced weekly language coverage!\n" if rotation_note else "") +
-                "Spelling Reduction & Self-Expression Clinic:\n"
-                "1. Focus on tricky double-letter spellings, silent letters, and past tense forms.\n"
-                "2. Write answers IN YOUR OWN WORDS! Evaluators award higher marks for original sentences with clean grammar.\n"
-                "3. Review 5 words from your 'Error Bank' notebook."
-            )
-            lang_badge = "✍️ English Clinic"
-
-        rem_lang_mins = max(20, int((m_end_target - timedelta(minutes=5) - m_cur).total_seconds() / 60))
-        lang_end = m_cur + timedelta(minutes=rem_lang_mins)
-        morning_slots.append({
-            "phase": "Morning Language Clinic",
-            "start": m_cur.strftime("%I:%M %p"),
-            "end": lang_end.strftime("%I:%M %p"),
-            "duration_mins": rem_lang_mins,
-            "title": f"Language Writing & Spelling Clinic: {lang_name}",
-            "subject": lang_name,
-            "type": "revision",
-            "badge": lang_badge,
-            "guidance": lang_guidance
-        })
-        m_cur = lang_end
-
+        # School Readiness Wind-down
         morning_slots.append({
             "phase": "School Ready",
             "start": m_cur.strftime("%I:%M %p"),
