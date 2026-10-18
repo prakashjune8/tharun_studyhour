@@ -283,6 +283,373 @@ class SubjectRepresentationTracker:
 
 
 
+PRE_EXAM_21_DAYS = [
+    {
+        "day": 1,
+        "phase": 1,
+        "phase_name": "Phase 1: Portion Completion & Foundation",
+        "title": "Tamil Poetry & Math Rational Numbers",
+        "focus_core": "Mathematics",
+        "core_topic": "Ch-1 Rational Numbers (Ex 1.4, pp.25-32)",
+        "focus_second": "Tamil",
+        "second_topic": "செய்யுள் (தமிழ்மொழி வாழ்த்து, மரபு, ஓடை) & வினா-விடை",
+        "guidance_core": "Solve rational operations on number line and closure/associative properties by hand on rough paper.",
+        "guidance_second": "Recite 3 poems with rhythm, answer line-by-line questions without guidebook.",
+        "morning_task": "Rational number operations speed test + Tamil கடின சொற்கள் (ழ, ள, ல) error check."
+    },
+    {
+        "day": 2,
+        "phase": 1,
+        "phase_name": "Phase 1: Portion Completion & Foundation",
+        "title": "Physical Science (Refraction) & Tamil Thirukkural",
+        "focus_core": "Physical Science",
+        "core_topic": "Physics Ln-1 Refraction of Light (pp.7-24)",
+        "focus_second": "Tamil",
+        "second_topic": "திருக்குறள் (1-10) மனப்பாடப் பகுதி & பொருள் அறிதல்",
+        "guidance_core": "Understand laws of refraction, refractive index formula, and real vs apparent depth.",
+        "guidance_second": "Write Thirukkural 1 to 10 twice on rough paper from memory. Check punctuation and சீர்/அசை.",
+        "morning_task": "Write all 10 Thirukkural without peeking + Snell's law formula flash review."
+    },
+    {
+        "day": 3,
+        "phase": 1,
+        "phase_name": "Phase 1: Portion Completion & Foundation",
+        "title": "Social Science (1857 Revolt) & Math Squares & Cubes",
+        "focus_core": "Mathematics",
+        "core_topic": "Ch-2 Squares/Square Roots & Cubes (Ex 2.2, 2.5, pp.47, 58-64)",
+        "focus_second": "Social Science",
+        "second_topic": "History Ln-3 The Revolt of 1857 (pp.37-53)",
+        "guidance_core": "Hand-solve square roots by long division method and cube roots by prime factorization.",
+        "guidance_second": "Draft 5-point structured answers for causes of 1857 Revolt (Political, Military, Religious).",
+        "morning_task": "Memorize squares up to 30 and cubes up to 15 + Revolt 1857 timeline recall."
+    },
+    {
+        "day": 4,
+        "phase": 1,
+        "phase_name": "Phase 1: Portion Completion & Foundation",
+        "title": "Biological Science (Heart & Circulation) & English Grammar",
+        "focus_core": "Biological Science",
+        "core_topic": "Ln-1 Transportation in Animals (pp.7-20)",
+        "focus_second": "English",
+        "second_topic": "Grammar Ch 1-3 (Parts of Speech, Countable/Uncountable, Articles)",
+        "guidance_core": "Draw internal structure of human heart, label 4 chambers, valves, and double circulation path.",
+        "guidance_second": "Solve 15 exercises on article rules (a/an/the) and countable/uncountable nouns.",
+        "morning_task": "Blind redrawing of Human Heart diagram + 10 articles test."
+    },
+    {
+        "day": 5,
+        "phase": 1,
+        "phase_name": "Phase 1: Portion Completion & Foundation",
+        "title": "Hindi Lessons 1-2 & Math Ratio & Proportion",
+        "focus_core": "Mathematics",
+        "core_topic": "Ch-3 Ratio and Proportion (pp.67-84)",
+        "focus_second": "Hindi",
+        "second_topic": "Ln-1 Hindusthan Hamara & Ln-2 Pariksha (pp.8-21)",
+        "guidance_core": "Solve unitary method and direct/inverse proportion word problems by hand.",
+        "guidance_second": "Read stories carefully, write word meanings (शब्दार्थ), and answer short questions in Hindi.",
+        "morning_task": "Ratio proportion word problem sprint + Hindi spelling Error Bank test."
+    },
+    {
+        "day": 6,
+        "phase": 1,
+        "phase_name": "Phase 1: Portion Completion & Foundation",
+        "title": "Physical Science (Atom Structure I) & Social Resources",
+        "focus_core": "Physical Science",
+        "core_topic": "Chemistry Ln-1 Structure of the Atom I (pp.7-24)",
+        "focus_second": "Social Science",
+        "second_topic": "Geography Ln-1 Resources & Ln-2 Land, Soil, Water (pp.3-44)",
+        "guidance_core": "Thomson plum pudding model, Rutherford alpha scattering experiment, atomic number and mass number.",
+        "guidance_second": "Differentiate renewable vs non-renewable resources, soil profile layers, and water conservation.",
+        "morning_task": "Subatomic particles table (p, n, e charges & masses) + Soil conservation points."
+    },
+    {
+        "day": 7,
+        "phase": 1,
+        "phase_name": "Phase 1: Portion Completion & Foundation",
+        "title": "Week 1 Consolidation & Active Blurting Review",
+        "focus_core": "Mathematics & Science",
+        "core_topic": "Week 1 Problem Solving Review & Formula Retention",
+        "focus_second": "Tamil & Hindi",
+        "second_topic": "Thirukkural Recitation & Hindi Spelling Error Bank",
+        "guidance_core": "Blurting test: On a blank paper, write down every formula, definition, and diagram from Days 1-6.",
+        "guidance_second": "Verify weak points from textbook. Re-attempt any sums answered incorrectly during the week.",
+        "morning_task": "Full formula blurting sheet without looking at any notebook."
+    },
+    {
+        "day": 8,
+        "phase": 2,
+        "phase_name": "Phase 2: High-Weight Concepts & Blind Testing",
+        "title": "Math Shapes & Tamil Prose (தமிழர் மருத்துவம்)",
+        "focus_core": "Mathematics",
+        "core_topic": "Ch-4 Understanding Shapes (pp.87-110)",
+        "focus_second": "Tamil",
+        "second_topic": "உரைநடை இயல் 1-3 (வரிவடிவ வளர்ச்சி, நிலம் பொது, தமிழர் மருத்துவம்)",
+        "guidance_core": "Polygon angle sum formula (n-2)×180°, quadrilateral classifications, diagonal properties.",
+        "guidance_second": "Write 5-mark answers on தமிழர் மருத்துவம் and நிலம் பொது in your own sentences.",
+        "morning_task": "Shape angle sum calculations + Tamil prose keywords retention."
+    },
+    {
+        "day": 9,
+        "phase": 2,
+        "phase_name": "Phase 2: High-Weight Concepts & Blind Testing",
+        "title": "Biological Science (Plants Xylem/Phloem) & Hindi Writing",
+        "focus_core": "Biological Science",
+        "core_topic": "Ln-2 Transportation in Plants (pp.30-41)",
+        "focus_second": "Hindi",
+        "second_topic": "General Writing: Vigyapan Lekhan & Chitra Varnan (pp.6-17)",
+        "guidance_core": "Blind diagram of xylem and phloem, explain transpiration pull, root hair absorption, and translocation.",
+        "guidance_second": "Draft 1 neat Advertisement box (विज्ञापन) and 1 Picture description (चित्र वर्णन) paragraph.",
+        "morning_task": "Blind redrawing of Plant Vascular Bundle (Xylem/Phloem) + Hindi Vigyapan layout."
+    },
+    {
+        "day": 10,
+        "phase": 2,
+        "phase_name": "Phase 2: High-Weight Concepts & Blind Testing",
+        "title": "Physical Science (Lenses & Rays) & Social Agriculture",
+        "focus_core": "Physical Science",
+        "core_topic": "Physics Ln-2 Lenses (pp.35-51)",
+        "focus_second": "Social Science",
+        "second_topic": "Geography Ln-3 Agriculture (pp.45-65)",
+        "guidance_core": "Draw 6 ray diagrams for convex lens (object at 2F, between F and 2F, etc.), lens formula and power.",
+        "guidance_second": "Subsistence vs commercial agriculture, conditions for Rice, Wheat, Cotton, Tea crops.",
+        "morning_task": "Convex lens 6 ray diagrams quick sketch + Crop distribution check."
+    },
+    {
+        "day": 11,
+        "phase": 2,
+        "phase_name": "Phase 2: High-Weight Concepts & Blind Testing",
+        "title": "Math Data Handling & English Literature",
+        "focus_core": "Mathematics",
+        "core_topic": "Ch-5 Data Handling (pp.113-134)",
+        "focus_second": "English",
+        "second_topic": "Literature (Historic Delhi, Entertainment, The Letter A pp.12-42)",
+        "guidance_core": "Draw bar graphs, double bar graphs, pie charts (central angle calculations), and probability problems.",
+        "guidance_second": "Draft character sketches and theme-based answers in own words without guidebook clichés.",
+        "morning_task": "Pie chart central angle formula + English character sketches keywords."
+    },
+    {
+        "day": 12,
+        "phase": 2,
+        "phase_name": "Phase 2: High-Weight Concepts & Blind Testing",
+        "title": "Biological Science (Neuron/Brain) & Tamil Grammar (யாப்பு)",
+        "focus_core": "Biological Science",
+        "core_topic": "Ln-3 Control and Coordination (pp.52-63)",
+        "focus_second": "Tamil",
+        "second_topic": "இலக்கணம் (எழுத்துகளின் பிறப்பு, வினைமுற்று, எச்சம், யாப்பு)",
+        "guidance_core": "Blind diagram of Neuron, reflex arc pathway, cerebrum/cerebellum/medulla functions, endocrine glands.",
+        "guidance_second": "Practice grammar exercises: identify வினைமுற்று vs பெயரெச்சம்/வினையெச்சம், யாப்பு உறுப்புகள் (எழுத்து, அசை, சீர்).",
+        "morning_task": "Blind redrawing of Neuron & Reflex Arc + Tamil இலக்கண விதிகள் recall."
+    },
+    {
+        "day": 13,
+        "phase": 2,
+        "phase_name": "Phase 2: High-Weight Concepts & Blind Testing",
+        "title": "High-Weight Math (Sets & Functions) & Chemistry Periodic Table",
+        "focus_core": "Mathematics",
+        "core_topic": "Ch-6 Sets & Ch-7 Functions (pp.137-172)",
+        "focus_second": "Physical Science",
+        "second_topic": "Chemistry Ln-3 Periodic Properties (pp.66-78)",
+        "guidance_core": "Set representations, union, intersection, difference, Venn diagrams, function domain/range/codomain.",
+        "guidance_second": "Modern periodic law, periodic trends across periods and down groups (valency, atomic radius, metallic nature).",
+        "morning_task": "Venn diagram shading rules + Function mappings check + Periodic trends recall."
+    },
+    {
+        "day": 14,
+        "phase": 2,
+        "phase_name": "Phase 2: High-Weight Concepts & Blind Testing",
+        "title": "Week 2 Blind Test Sprint (Science Diagrams & Math Formulas)",
+        "focus_core": "Science & Mathematics",
+        "core_topic": "Full Blind Retrieval Sprint: Heart, Neuron, Lenses, Atom Models",
+        "focus_second": "Languages & Social",
+        "second_topic": "Thirukkural 1-10 + Hindi 1-25 Sentences + Constitution Preamble",
+        "guidance_core": "Redraw all 4 high-weight diagrams with zero reference. Grade labels with red pen. Solve 5 tough math sums.",
+        "guidance_second": "Self-test on languages: write 10 Thirukkural without error, recite Hindi sentences 1-25.",
+        "morning_task": "Master blind drawing sheet + 10-minute all-formula memory checkpoint."
+    },
+    {
+        "day": 15,
+        "phase": 3,
+        "phase_name": "Phase 3: Mock Drills & Reverse Countdown",
+        "title": "High-Weight Math (Matrices Hand-Solving) & Hindi Lab",
+        "focus_core": "Mathematics",
+        "core_topic": "Ch-8 Matrices (pp.175-189)",
+        "focus_second": "Hindi",
+        "second_topic": "Language Lab & Spoken Sentences 1-25 (pp.2-10, 20-21)",
+        "guidance_core": "Matrix order (m×n), types of matrices, matrix addition, subtraction, scalar multiplication by hand.",
+        "guidance_second": "Recite and write Hindi spoken sentences 1-25, practice self-introduction dialog (अपना परिचय).",
+        "morning_task": "Matrix addition/multiplication speed test + Hindi spoken sentences recall."
+    },
+    {
+        "day": 16,
+        "phase": 3,
+        "phase_name": "Phase 3: Mock Drills & Reverse Countdown",
+        "title": "Bio (Reproduction) & Social 1857 Map Work",
+        "focus_core": "Biological Science",
+        "core_topic": "Ln-4 Animal Reproduction (pp.73-87)",
+        "focus_second": "Social Science",
+        "second_topic": "Civics Ln-1 Constitution & Map Work (1857 Centers, Soil, Crops)",
+        "guidance_core": "Asexual reproduction diagrams (Amoeba binary fission, Hydra budding), sexual reproduction stages, metamorphosis.",
+        "guidance_second": "Mark 1857 Revolt centers (Delhi, Meerut, Jhansi, Kanpur) on India outline map; review Constitution preamble.",
+        "morning_task": "Amoeba fission & Hydra budding diagrams + India map centers check."
+    },
+    {
+        "day": 17,
+        "phase": 3,
+        "phase_name": "Phase 3: Mock Drills & Reverse Countdown",
+        "title": "English Composition Sprint & Physics Static Electricity",
+        "focus_core": "English",
+        "core_topic": "Composition: Formal/Informal Letter, Story & Article (pp.6-17)",
+        "focus_second": "Physical Science",
+        "second_topic": "Physics Ln-3 Static Electricity & Chem Atom II (pp.36-55, 61-77)",
+        "guidance_core": "Draft 1 Formal Letter to Principal and 1 Article with proper title, layout, and paragraph breaks.",
+        "guidance_second": "Electroscope working, charging by induction, Bohr model electron configuration (2,8,8 rule).",
+        "morning_task": "Formal letter layout flash review + Electron shell configurations check."
+    },
+    {
+        "day": 18,
+        "phase": 3,
+        "phase_name": "Phase 3: Mock Drills & Reverse Countdown",
+        "title": "English Grammar Master Drill & Social Full Revision",
+        "focus_core": "English",
+        "core_topic": "Grammar Master Sprint: Tenses, Modals, Gerunds (pp.32-70)",
+        "focus_second": "Social Science",
+        "second_topic": "Complete Review: History, Geography, Civics 5-Markers",
+        "guidance_core": "Rapid solve 25 mixed grammar questions; test present/past/future tense conversions and modals.",
+        "guidance_second": "Review 5-point summaries for Company Power, Rural Life, Revolt 1857, and Constitution.",
+        "morning_task": "English tenses conversion matrix + Civics fundamental rights recall."
+    },
+    {
+        "day": 19,
+        "phase": 3,
+        "phase_name": "Phase 3: Mock Drills & Reverse Countdown",
+        "title": "Reverse Alignment: Tamil & Maths Full Revision",
+        "focus_core": "Tamil",
+        "core_topic": "Complete Term-I Portion (செய்யுள், உரைநடை, துணைப்பாடம், கடிதம்/கட்டுரை)",
+        "focus_second": "Mathematics",
+        "second_topic": "8 Chapters Formula Flashcards & high-probability sums",
+        "guidance_core": "Check all Tamil question answers; write 1 essay on பொதுக் கட்டுரை without assistance.",
+        "guidance_second": "Quick solve 1 sum from each of the 8 Math chapters (Rational to Matrices).",
+        "morning_task": "Tamil Thirukkural 1-10 + Math all-chapter formula flashcards."
+    },
+    {
+        "day": 20,
+        "phase": 3,
+        "phase_name": "Phase 3: Mock Drills & Reverse Countdown",
+        "title": "Pre-Exam Mock Sprint: Tamil (Exam 09.09) Simulated Paper",
+        "focus_core": "Tamil",
+        "core_topic": "1.5-Hour Mock Question Paper Solving (Question Bank & Workbook)",
+        "focus_second": "Tamil",
+        "second_topic": "திருக்குறள் 1-10 Perfect Recitation & வினா-விடை Speed Writing",
+        "guidance_core": "Sit in quiet room with exam clock. Answer entire question paper with neat handwriting.",
+        "guidance_second": "Cross-check spelling errors in Error Bank notebook. Zero late-night reading.",
+        "morning_task": "Tamil Error Bank words test (ழ, ள, ல, ண, ந, ன) + calm mindset."
+    },
+    {
+        "day": 21,
+        "phase": 3,
+        "phase_name": "Phase 3: Mock Drills & Reverse Countdown",
+        "title": "Final Pre-Exam Eve: Tamil Exam Eve Mastery & Mindset Lock",
+        "focus_core": "Tamil",
+        "core_topic": "Final High-Yield Revision (Thirukkural, Grammar Rules, Key Prose Qs)",
+        "focus_second": "Exam Hall Kit Audit & Restful Sleep",
+        "second_topic": "Pack Hall Ticket, 2 Pens, Pencil, Eraser, Scale",
+        "guidance_core": "Light review only! No new topics. Verify Exam Hall kit (pens, pencil, hall ticket).",
+        "guidance_second": "Inviolable 10:00 PM sleep! Neocortical memory consolidation guarantees peak focus tomorrow!",
+        "morning_task": "Formula & poem visual glance only. Confident departure for exam hall!"
+    }
+]
+
+
+def build_dynamic_pre_exam_roadmap(total_days=21, portions_data=None):
+    """
+    Dynamically generates an optimal, phased Pre-Exam preparation roadmap
+    for ANY duration (e.g. 7-day sprint, 10-day crash, 14-day mid-term, 21-day standard, 28-day comprehensive).
+    Adapts according to teachers' variable announcement timelines and exam date proximity.
+    """
+    total_days = max(3, min(45, int(total_days)))
+    if total_days == 21 and not portions_data:
+        return PRE_EXAM_21_DAYS
+
+    core_cycle = [
+        ("Mathematics", "Ch-1 Rational Numbers & Squares", "Tamil", "செய்யுள் & திருக்குறள் (1-10)", "Math speed-sums + Thirukkural error check"),
+        ("Physical Science", "Physics: Refraction & Lenses", "Social Science", "History: Revolt of 1857 Causes", "Lens ray diagrams + 1857 timeline recall"),
+        ("Mathematics", "Ch-3 Ratio, Shapes & Mensuration", "English", "Grammar (Tenses, Articles, Modals)", "Formula sheet blurting + 10 articles test"),
+        ("Biological Science", "Heart Circulation & Neurons", "Hindi", "Lessons 1-4 & Vigyapan Lekhan", "Blind Human Heart diagram + Hindi spelling test"),
+        ("Mathematics", "Ch-5 Data Handling, Sets & Functions", "Social Science", "Geography: Resources & Agriculture", "Sets Venn diagram solving + Map pointing"),
+        ("Physical Science", "Chemistry: Structure of Atom & Periodic", "Tamil", "உரைநடை & இலக்கணம் (எழுத்துகளின் பிறப்பு)", "Atomic models sketch + Tamil grammar recall"),
+        ("Biological Science", "Plant Circulation (Xylem/Phloem) & Growth", "English", "Composition & Literature Question-Answers", "Plant vascular bundle sketch + Formal letter draft")
+    ]
+
+    roadmap = []
+    for d in range(1, total_days + 1):
+        if total_days <= 7:
+            phase = 1 if d <= max(1, total_days // 2) else 2
+            phase_name = "Phase 1: Rapid Portion Blitz & Formula Lock" if phase == 1 else "Phase 2: Active Recall & Mock Tests"
+        elif total_days <= 16:
+            phase = 1 if d <= (total_days // 2) else 2
+            phase_name = "Phase 1: Portion Mastery & Foundation" if phase == 1 else "Phase 2: Blind Tests & High-Weight Blitz"
+        else:
+            p1_end = total_days // 3
+            p2_end = (2 * total_days) // 3
+            if d <= p1_end:
+                phase = 1
+                phase_name = "Phase 1: Portion Completion & Foundation"
+            elif d <= p2_end:
+                phase = 2
+                phase_name = "Phase 2: High-Weight Concepts & Blind Testing"
+            else:
+                phase = 3
+                phase_name = "Phase 3: Mock Papers & Active Blurting"
+
+        if d == total_days:
+            title = "Final Pre-Exam Confidence Run & Sleep Protocol"
+            focus_core = "Mathematics & Science"
+            core_topic = "Formula Lock & Mistake Diary Review"
+            focus_sec = "Languages"
+            sec_topic = "Spelling Bank & Active Recall"
+            morn = "Final active blurting sheet + 10:00 PM sleep boundary lock"
+            g_core = "Review error log and key formulas without cramming."
+            g_sec = "Spelling accuracy and calm mental priming."
+        elif d == total_days - 1 and total_days >= 5:
+            title = "Full Exam Simulation & Timed Mock Papers"
+            focus_core = "Mathematics"
+            core_topic = "Timed 2.5-hour Question Paper Hand-Solving"
+            focus_sec = "Science"
+            sec_topic = "Blind Diagram Test & Definitions"
+            morn = "Timed paper simulation on lined paper"
+            g_core = "Strict timed conditions, handwriting speed, and step presentation."
+            g_sec = "Blind diagram accuracy without guidebook help."
+        else:
+            item = core_cycle[(d - 1) % len(core_cycle)]
+            focus_core = item[0]
+            core_topic = item[1]
+            focus_sec = item[2]
+            sec_topic = item[3]
+            morn = item[4]
+            title = f"{focus_core} & {focus_sec}"
+            g_core = f"Deep hand practice and problem solving on {core_topic}."
+            g_sec = f"Active self-writing and memorization for {sec_topic}."
+
+        roadmap.append({
+            "day": d,
+            "phase": phase,
+            "phase_name": phase_name,
+            "title": title,
+            "focus_core": focus_core,
+            "core_topic": core_topic,
+            "focus_second": focus_sec,
+            "second_topic": sec_topic,
+            "guidance_core": g_core,
+            "guidance_second": g_sec,
+            "morning_task": morn
+        })
+
+    return roadmap
+
+
+# Pre-configured diary entries matching Tharun's Senthil Public School diary
+
+
 class TharunScheduleBalancer:
     """
     Pedagogical Routine Balancer for Tharun:

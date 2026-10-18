@@ -514,6 +514,90 @@ class ShinobiPillButton(tk.Canvas):
         self.configure(**{item: value})
 
 
+NARUTO_METADATA = {
+    "naruto_sage": {
+        "display_name": "🍥 Naruto: Sage Mode & Kurama",
+        "character": "Naruto Uzumaki",
+        "title": "Seventh Hokage • Master Sage",
+        "quote": "I never go back on my word! That's my nindo, my ninja way! Dattebayo!",
+        "stylish_letter": "",
+        "icon": "🍥",
+        "jutsu": "🔥 Sage Art: Massive Rasengan & Kurama Link",
+        "rank": "Hokage"
+    },
+    "sasuke_chidori": {
+        "display_name": "⚡ Sasuke: Chidori & Sharingan",
+        "character": "Sasuke Uchiha",
+        "title": "Shadow Hokage • Uchiha Prodigy",
+        "quote": "Concentrate chakra like the Chidori: 100% piercing focus on a single target!",
+        "stylish_letter": "",
+        "icon": "⚡",
+        "jutsu": "⚡ Chidori Lightning Blade & Susanoo Flame",
+        "rank": "Shadow Shinobi"
+    },
+    "kakashi_hatake": {
+        "display_name": "🌀 Kakashi: Copy Ninja & Anbu",
+        "character": "Kakashi Hatake",
+        "title": "Sixth Hokage • Team 7 Captain",
+        "quote": "Those who break rules are scum, but those who abandon their routine are worse than scum!",
+        "stylish_letter": "",
+        "icon": "🌀",
+        "jutsu": "⚡ Raikiri & Thousand Years of Training",
+        "rank": "Sixth Hokage"
+    },
+    "minato_flash": {
+        "display_name": "⚡ Minato: The Yellow Flash",
+        "character": "Minato Namikaze",
+        "title": "Fourth Hokage • The Yellow Flash",
+        "quote": "Speed and unwavering precision! Clear your homework in a flash with zero delay!",
+        "stylish_letter": "",
+        "icon": "⚡",
+        "jutsu": "🌪️ Flying Thunder God & Spiral Sphere",
+        "rank": "Fourth Hokage"
+    },
+    "itachi_uchiha": {
+        "display_name": "🌙 Itachi: Akatsuki & Tsukuyomi",
+        "character": "Itachi Uchiha",
+        "title": "Uchiha Genius • Leaf Guardian",
+        "quote": "Self-mastery is acknowledging your limits and expanding them calmly every single day.",
+        "stylish_letter": "",
+        "icon": "🌙",
+        "jutsu": "👁️ Tsukuyomi & Crow Mirage Illusion",
+        "rank": "S-Rank Master"
+    },
+    "leaf_village": {
+        "display_name": "🍃 Konoha: Will of Fire",
+        "character": "Hidden Leaf Shinobi",
+        "title": "Konohagakure • Will of Fire",
+        "quote": "Where tree leaves dance, one shall find flame. The fire's shadow illuminates the village!",
+        "stylish_letter": "",
+        "icon": "🍃",
+        "jutsu": "🍃 Leaf Hurricane & Will of Fire",
+        "rank": "Leaf Champion"
+    },
+    "dark": {
+        "display_name": "🌙 Classic Dark Slate",
+        "character": "Classic Dark",
+        "title": "Standard Slate Interface",
+        "quote": "Quiet focus and clear concentration.",
+        "stylish_letter": "",
+        "icon": "🌙",
+        "jutsu": "Focused Mind",
+        "rank": "Scholar"
+    },
+    "light": {
+        "display_name": "☀️ Classic Light Day",
+        "character": "Classic Light",
+        "title": "Daylight Paper Interface",
+        "quote": "Clear vision and bright morning energy.",
+        "stylish_letter": "",
+        "icon": "☀️",
+        "jutsu": "Daylight Study",
+        "rank": "Scholar"
+    }
+}
+
+
 class ShinobiPillSelector(tk.Frame):
     """
     Custom Rounded Dark-Glass Selector Card with Native Dark Popup Menu:
@@ -588,6 +672,10 @@ class ShinobiPillSelector(tk.Frame):
     def close_active_popup(cls):
         if cls._active_popup and cls._active_popup.winfo_exists():
             try:
+                cls._active_popup.unbind_all("<MouseWheel>")
+            except Exception:
+                pass
+            try:
                 cls._active_popup.destroy()
             except Exception:
                 pass
@@ -607,6 +695,8 @@ class ShinobiPillSelector(tk.Frame):
             "10:00 AM": ("☀️", "10:00 AM Focus", "Holiday & Weekend Morning Session"),
             "2:00 PM": ("🌤️", "2:00 PM Focus", "Weekend Afternoon Study Block"),
             "⚡ Start Now": ("⚡", "Start Right Now", "Align Schedule Start with Live System Clock"),
+            "✏️ Custom Time...": ("✏️", "Custom Start Time", "Set Any Custom Hour & Minute for Routine"),
+            "Custom Time": ("✏️", "Custom Start Time", "Set Any Custom Hour & Minute for Routine"),
             "Tamil": ("📖", "Tamil (09.09)", "Grammar, Prose & Thirukkural Memorization"),
             "Mathematics": ("📐", "Mathematics (11.09)", "Ch 1-8 Concepts, Formulas & Hand Solving"),
             "Physical Science": ("🔬", "Physical Science (16.09)", "Physics Laws, Equations & Numerical Practice"),
@@ -639,13 +729,16 @@ class ShinobiPillSelector(tk.Frame):
         if "Pre-Exam Planner" in txt:
             return "📅", txt, "Dynamic Multi-Day Horizon & Exam Portions"
 
+        if (txt.endswith("PM") or txt.endswith("AM")) and (":" in txt or any(c.isdigit() for c in txt)):
+            return "🕒", f"{txt} Focus", "Custom Scheduled Study Routine"
+
         if "(" in txt and ")" in txt:
             idx = txt.index("(")
             dt = txt[:idx].strip()
             subs = txt[idx+1:txt.rindex(")")].strip()
             return "📅", dt, f"Subjects: {subs}"
 
-        emojis = ['🌿', '🔥', '📅', '⚡', '🍥', '👁️', '🟡', '🔴', '🍃', '🌑', '📜', '🔰', '🕒', '☀️', '🌤️', '📐', '🔬', '🌍', '📝', '🧬', '📚', '📖', '🎨', '🎯']
+        emojis = ['🌿', '🔥', '📅', '⚡', '🍥', '👁️', '🟡', '🔴', '🍃', '🌑', '📜', '🔰', '🕒', '☀️', '🌤️', '📐', '🔬', '🌍', '📝', '🧬', '📚', '📖', '🎨', '🎯', '✏️']
         for em in emojis:
             if txt.startswith(em):
                 rem = txt[len(em):].strip()
@@ -684,21 +777,19 @@ class ShinobiPillSelector(tk.Frame):
         screen_h = self.winfo_screenheight()
         popup_w = max(self.winfo_width(), 290)
 
-        item_h = 44
-        total_items_h = len(self.values) * item_h + 8
-        popup_h = min(360, max(50, total_items_h))
+        # Check subtitle presence to accurately gauge required height
+        parsed_items = [self._parse_dropdown_item_info(v) for v in self.values]
+        has_sub = any(bool(s) for _, _, s in parsed_items)
+        card_est_h = 52 if has_sub else 38
+        total_items_h = len(self.values) * card_est_h + 16
 
-        if x + popup_w > screen_w - 10:
-            x = screen_w - popup_w - 10
-        if y + popup_h > screen_h - 40:
-            y = self.winfo_rooty() - popup_h - 2
+        max_allowed_h = min(380, screen_h - 100)
+        use_scroll = total_items_h > max_allowed_h
 
-        popup.geometry(f"{popup_w}x{popup_h}+{x}+{y}")
-
-        use_scroll = total_items_h > popup_h
         if use_scroll:
+            popup_h = max_allowed_h
             canvas = tk.Canvas(popup, bg="#0c1322", highlightthickness=0)
-            inner = tk.Frame(canvas, bg="#0c1322")
+            inner = tk.Frame(canvas, bg="#0c1322", padx=2, pady=2)
             inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=popup_w)
             canvas.pack(fill=tk.BOTH, expand=True)
 
@@ -709,15 +800,28 @@ class ShinobiPillSelector(tk.Frame):
             canvas.bind("<Configure>", lambda e: canvas.itemconfig(inner_id, width=e.width))
 
             def _on_wheel(e):
-                canvas.yview_scroll(int(-1 * (e.delta / 120)), "units")
+                try:
+                    canvas.yview_scroll(int(-1 * (e.delta / 120)), "units")
+                except Exception:
+                    pass
             popup.bind_all("<MouseWheel>", _on_wheel)
             container = inner
+            for val in self.values:
+                self._create_dropdown_item_card(container, val, popup)
         else:
             container = tk.Frame(popup, bg="#0c1322", padx=4, pady=4)
             container.pack(fill=tk.BOTH, expand=True)
+            for val in self.values:
+                self._create_dropdown_item_card(container, val, popup)
+            popup.update_idletasks()
+            popup_h = popup.winfo_reqheight() + 4
 
-        for val in self.values:
-            self._create_dropdown_item_card(container, val, popup)
+        if x + popup_w > screen_w - 10:
+            x = max(10, screen_w - popup_w - 10)
+        if y + popup_h > screen_h - 40:
+            y = max(10, self.winfo_rooty() - popup_h - 2)
+
+        popup.geometry(f"{popup_w}x{popup_h}+{x}+{y}")
 
         def _check_click_outside(e):
             if not popup.winfo_exists():
