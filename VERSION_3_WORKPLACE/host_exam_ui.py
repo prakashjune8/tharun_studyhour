@@ -123,11 +123,39 @@ class HostExamTabController:
         self.uploaded_answer_files: List[str] = []
         self.active_model_var = tk.StringVar(value="gemini-3.8-flash")
 
+        # Explicit 6-subview architecture mapping
+        self.subview_map = {
+            'ledger': self.subview_1, 
+            'textbook_vault': self.subview_2, 
+            'sample_papers': self.subview_3, 
+            'face_a': self.subview_4, 
+            'face_b': self.subview_5, 
+            'topper_guide': self.subview_6
+        }
+
         # Auto-sync ledger on init
         try:
             SubjectStudyLedger.auto_sync_from_diary_and_portions()
         except Exception as e:
             print(f"[HostExamTabController] Warning during ledger auto-sync: {e}")
+
+    def subview_1(self, parent=None):
+        return self._render_subview_ledger(parent or self.subview_container)
+
+    def subview_2(self, parent=None):
+        return self._render_subview_vault(parent or self.subview_container)
+
+    def subview_3(self, parent=None):
+        return self._render_subview_sample_questions(parent or self.subview_container)
+
+    def subview_4(self, parent=None):
+        return self._render_clean_face_a(parent or self.subview_container)
+
+    def subview_5(self, parent=None):
+        return self._render_subview_face_b(parent or self.subview_container)
+
+    def subview_6(self, parent=None):
+        return self._render_subview_topper(parent or self.subview_container)
 
     def build_ui(self):
         """Construct the entire Host Examination UI inside the tab frame with strict geometry lock."""
@@ -406,11 +434,11 @@ class HostExamTabController:
         self.subview_buttons = {}
         tabs = [
             ("ledger", "📋 1. Study Ledger & Phases"),
-            ("vault", "📚 2. Textbook Vault"),
-            ("sample_q", "📑 3. Sample Questions & Papers"),
+            ("textbook_vault", "📚 2. Textbook Vault"),
+            ("sample_papers", "📑 3. Sample Questions & Papers"),
             ("face_a", "📝 4. Face A: Question Architect"),
             ("face_b", "🔍 5. Face B: Answer Evaluator"),
-            ("topper", "⭐ 6. CBSE Topper Guide")
+            ("topper_guide", "⭐ 6. CBSE Topper Guide")
         ]
 
         for key, label in tabs:
@@ -448,39 +476,34 @@ class HostExamTabController:
                     activeforeground="#f8fafc"
                 )
 
-    def switch_subview(self, subview_key: str, exam_id: Optional[str] = None):
+    def switch_subview(self, subview_key, exam_id: Optional[str] = None):
         if exam_id:
             self.active_exam_id = exam_id
-        self.active_subview = subview_key
+
+        # Normalize old array indices (0-5, 1-6) and legacy alias strings
+        key_alias_map = {
+            0: 'ledger', '0': 'ledger',
+            1: 'ledger', '1': 'ledger', 'phases': 'ledger', 'study_ledger': 'ledger',
+            2: 'textbook_vault', '2': 'textbook_vault', 'vault': 'textbook_vault',
+            3: 'sample_papers', '3': 'sample_papers', 'sample_q': 'sample_papers', 'sample_questions': 'sample_papers',
+            4: 'face_a', '4': 'face_a',
+            5: 'face_b', '5': 'face_b',
+            6: 'topper_guide', '6': 'topper_guide', 'topper': 'topper_guide'
+        }
+        normalized_key = key_alias_map.get(subview_key, str(subview_key).lower())
+        if normalized_key not in self.subview_map:
+            normalized_key = 'ledger'
+
+        self.active_subview = normalized_key
         self._update_subview_tab_styles()
 
-        for w in self.subview_container.winfo_children():
-            w.destroy()
+        if hasattr(self, "subview_container") and self.subview_container.winfo_exists():
+            for w in self.subview_container.winfo_children():
+                w.destroy()
 
-        if subview_key in ("sample_q", "sample_questions", "3"):
-            self.active_subview = "sample_q"
-            self._update_subview_tab_styles()
-            self._render_subview_sample_questions(self.subview_container)
-        elif subview_key in ("ledger", "phases", "study_ledger", "1"):
-            self.active_subview = "ledger"
-            self._update_subview_tab_styles()
-            self._render_subview_ledger(self.subview_container)
-        elif subview_key in ("vault", "2"):
-            self.active_subview = "vault"
-            self._update_subview_tab_styles()
-            self._render_subview_vault(self.subview_container)
-        elif subview_key in ("face_a", "4"):
-            self.active_subview = "face_a"
-            self._update_subview_tab_styles()
-            self._render_clean_face_a(self.subview_container)
-        elif subview_key in ("face_b", "5"):
-            self.active_subview = "face_b"
-            self._update_subview_tab_styles()
-            self._render_subview_face_b(self.subview_container)
-        elif subview_key in ("topper", "6"):
-            self.active_subview = "topper"
-            self._update_subview_tab_styles()
-            self._render_subview_topper(self.subview_container)
+            render_func = self.subview_map.get(normalized_key)
+            if render_func:
+                render_func(self.subview_container)
 
     def _render_subview_vault(self, parent):
         """Cleanly renders the dedicated Subject Vault & Upload Library (unmingled)."""
