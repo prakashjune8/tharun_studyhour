@@ -174,6 +174,33 @@ class HostExamTabController:
         # Refresh active subview with new theme colors
         self.switch_subview(self.active_subview)
 
+    def _create_scroll_banner(self, parent, title: str, subtitle: Optional[str] = None, height: int = 42):
+        """Renders an unfurled true 3D cylindrical shaded parchment scroll banner using ShinobiGraphicsEngine."""
+        _resolve_shinobi_components()
+        canvas = tk.Canvas(parent, height=height, bg=self.colors.get("bg", "#0a0e17"), highlightthickness=0)
+        canvas.pack(fill=tk.X, pady=(2, 4))
+
+        def _draw(event=None):
+            w = canvas.winfo_width()
+            if w <= 10:
+                w = 800
+            h = height
+            if ShinobiGraphicsEngine and hasattr(ShinobiGraphicsEngine, "create_3d_parchment_scroll"):
+                photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=18)
+                if photo:
+                    canvas.photo = photo
+                    canvas.delete("all")
+                    canvas.create_image(0, 0, image=photo, anchor="nw")
+                    if subtitle:
+                        canvas.create_text(w // 2, 15, text=title, font=("Segoe UI", 8, "bold"), fill="#1f1206", anchor="center")
+                        canvas.create_text(w // 2, 28, text=subtitle, font=("Segoe UI", 7, "bold"), fill="#451a03", anchor="center")
+                    else:
+                        canvas.create_text(w // 2, h // 2, text=title, font=("Segoe UI", 9, "bold"), fill="#1f1206", anchor="center")
+        canvas.bind("<Configure>", _draw)
+        canvas.after(20, _draw)
+        return canvas
+
+
     # ==========================================
     # 1. TOP COMMAND DECK & STATUS BAR
     # ==========================================
@@ -1259,15 +1286,13 @@ class HostExamTabController:
         btn_top_html = tk.Button(top_bar, text="🖨️ View Guide (HTML Print)", font=("Segoe UI", 8, "bold"), fg="#0f172a", bg="#38bdf8", activebackground="#0284c7", relief=tk.FLAT, bd=0, padx=8, pady=3, cursor="hand2", command=self._print_topper_guide_html)
         btn_top_html.pack(side=tk.RIGHT, padx=3)
 
-        # Instructions Banner
-        tk.Label(
+        # Instructions Banner: 3D Parchment Scroll Banner via ShinobiGraphicsEngine
+        self._create_scroll_banner(
             parent,
-            text="P-E-E-D Protocol: Point • Explain • Evidence/Formula • Diagram/Step  |  Highlights required keywords to underline for 100% marks.",
-            font=("Segoe UI", 8),
-            fg="#94a3b8",
-            bg=self.colors.get("bg", "#0a0e17"),
-            pady=4
-        ).pack(fill=tk.X)
+            title="CBSE TOPPER P-E-E-D PROTOCOL: POINT • EXPLAIN • EVIDENCE/FORMULA • DIAGRAM/STEP",
+            subtitle="Underline required keywords in blue/pencil for 100% full marks.",
+            height=42
+        )
 
         # Scrollable comparison container with custom 6px dark scrollbar
         container = tk.Frame(parent, bg="#020617")
