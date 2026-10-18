@@ -281,6 +281,12 @@ def run_session_2_verification():
         from reportlab.lib import colors
 
         doc = SimpleDocTemplate(out_pdf_path, pagesize=A4, leftMargin=36, rightMargin=36, topMargin=36, bottomMargin=36)
+        _orig_build = doc.build
+        def _wrapped_build(flowables, *b_args, **b_kwargs):
+            if "filename" in b_kwargs:
+                doc.filename = b_kwargs.pop("filename")
+            return _orig_build(flowables, *b_args, **b_kwargs)
+        doc.build = _wrapped_build
         styles = getSampleStyleSheet()
 
         normal_style = ParagraphStyle(
@@ -319,7 +325,15 @@ def run_session_2_verification():
             elements.append(t)
             elements.append(Spacer(1, 10))
 
-        doc.build(elements)
+        import time
+        try:
+            doc.build(elements)
+        except PermissionError:
+            fallback_path = out_pdf_path.replace(".pdf", f"_{int(time.time())}.pdf")
+            # Overwrite the path variable so the UI knows where the file went
+            doc.build(elements, filename=fallback_path)
+            out_pdf_path = fallback_path
+            print(f"Original file locked. Saved fallback as {fallback_path}")
         print(f" -> ✅ Multi-Language Vector PDF Generated Successfully: {out_pdf_path}")
         pdf_success = True
     except Exception as e:

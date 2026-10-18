@@ -45,6 +45,12 @@ class ExamPrintStudio:
             topMargin=32,
             bottomMargin=32
         )
+        _orig_build = doc.build
+        def _wrapped_build(flowables, *b_args, **b_kwargs):
+            if "filename" in b_kwargs:
+                doc.filename = b_kwargs.pop("filename")
+            return _orig_build(flowables, *b_args, **b_kwargs)
+        doc.build = _wrapped_build
 
         styles = getSampleStyleSheet()
 
@@ -222,7 +228,15 @@ class ExamPrintStudio:
         elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#cbd5e1')))
         elements.append(Paragraph(f"Exam ID: {exam_id} • Senthil Public School Examination Division", sub_info_style))
 
-        doc.build(elements)
+        import time
+        try:
+            doc.build(elements)
+        except PermissionError:
+            fallback_path = output_pdf_path.replace(".pdf", f"_{int(time.time())}.pdf")
+            # Overwrite the path variable so the UI knows where the file went
+            doc.build(elements, filename=fallback_path)
+            output_pdf_path = fallback_path
+            print(f"Original file locked. Saved fallback as {fallback_path}")
         return output_pdf_path
 
     @classmethod
@@ -242,6 +256,12 @@ class ExamPrintStudio:
             topMargin=32,
             bottomMargin=32
         )
+        _orig_build = doc.build
+        def _wrapped_build(flowables, *b_args, **b_kwargs):
+            if "filename" in b_kwargs:
+                doc.filename = b_kwargs.pop("filename")
+            return _orig_build(flowables, *b_args, **b_kwargs)
+        doc.build = _wrapped_build
 
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle('Title', fontName=bold_font, fontSize=11, leading=14, alignment=1)
@@ -358,7 +378,15 @@ class ExamPrintStudio:
         t_sig.setStyle(TableStyle([('PADDING', (0,0), (-1,-1), 4)]))
         elements.append(t_sig)
 
-        doc.build(elements)
+        import time
+        try:
+            doc.build(elements)
+        except PermissionError:
+            fallback_path = output_pdf_path.replace(".pdf", f"_{int(time.time())}.pdf")
+            # Overwrite the path variable so the UI knows where the file went
+            doc.build(elements, filename=fallback_path)
+            output_pdf_path = fallback_path
+            print(f"Original file locked. Saved fallback as {fallback_path}")
         return output_pdf_path
 
     @classmethod

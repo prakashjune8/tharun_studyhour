@@ -404,6 +404,12 @@ class CBSEEvaluatorV3:
             reg_font, bold_font = register_reportlab_indic_fonts()
 
             doc = SimpleDocTemplate(pdf_path, pagesize=A4, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+            _orig_build = doc.build
+            def _wrapped_build(flowables, *b_args, **b_kwargs):
+                if "filename" in b_kwargs:
+                    doc.filename = b_kwargs.pop("filename")
+                return _orig_build(flowables, *b_args, **b_kwargs)
+            doc.build = _wrapped_build
             styles = getSampleStyleSheet()
 
             story = []
@@ -469,7 +475,15 @@ class CBSEEvaluatorV3:
                 story.append(Paragraph(f"<b>Teacher Red-Ink Feedback:</b> {notes_clean}", note_style))
                 story.append(Spacer(1, 10))
 
-            doc.build(story)
+            import time
+            try:
+                doc.build(story)
+            except PermissionError:
+                fallback_path = pdf_path.replace(".pdf", f"_{int(time.time())}.pdf")
+                # Overwrite the path variable so the UI knows where the file went
+                doc.build(story, filename=fallback_path)
+                pdf_path = fallback_path
+                print(f"Original file locked. Saved fallback as {fallback_path}")
         except Exception as e:
             print(f"[CBSEEvaluatorV3] PDF generation note: {e}")
 
@@ -585,6 +599,12 @@ class CBSEEvaluatorV3:
             reg_font, bold_font = register_reportlab_indic_fonts()
 
             doc = SimpleDocTemplate(pdf_path, pagesize=A4, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+            _orig_build = doc.build
+            def _wrapped_build(flowables, *b_args, **b_kwargs):
+                if "filename" in b_kwargs:
+                    doc.filename = b_kwargs.pop("filename")
+                return _orig_build(flowables, *b_args, **b_kwargs)
+            doc.build = _wrapped_build
             styles = getSampleStyleSheet()
             story = []
 
@@ -649,7 +669,15 @@ class CBSEEvaluatorV3:
                 story.append(Paragraph(f"<b>Marking Scheme:</b> {scheme_clean}", scheme_style))
                 story.append(Spacer(1, 10))
 
-            doc.build(story)
+            import time
+            try:
+                doc.build(story)
+            except PermissionError:
+                fallback_path = pdf_path.replace(".pdf", f"_{int(time.time())}.pdf")
+                # Overwrite the path variable so the UI knows where the file went
+                doc.build(story, filename=fallback_path)
+                pdf_path = fallback_path
+                print(f"Original file locked. Saved fallback as {fallback_path}")
         except Exception as e:
             print(f"[CBSEEvaluatorV3] Topper PDF generation note: {e}")
 
