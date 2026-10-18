@@ -41,25 +41,35 @@ class HostExamTopperView:
         })
 
         self.available_evaluations = self._list_available_evaluations()
-        self.selected_exam_var = tk.StringVar(value=self.available_evaluations[0] if self.available_evaluations else "")
+        active_id = getattr(controller, "active_exam_id", None)
+        if active_id and active_id in self.available_evaluations:
+            default_val = active_id
+        else:
+            default_val = self.available_evaluations[0] if self.available_evaluations else ""
+        self.selected_exam_var = tk.StringVar(value=default_val)
         self.active_tab = "graded"  # "graded" or "topper"
         self.active_record: Optional[Dict[str, Any]] = None
 
     def _list_available_evaluations(self) -> List[str]:
-        """Lists exam IDs with available evaluations."""
+        """Lists exam IDs with available evaluations, newest first."""
         exams = []
         if os.path.exists(CORRECTED_COPIES_DIR):
-            for fn in os.listdir(CORRECTED_COPIES_DIR):
-                if fn.endswith("_evaluation.json"):
-                    eid = fn.replace("_evaluation.json", "")
-                    exams.append(eid)
+            files = [fn for fn in os.listdir(CORRECTED_COPIES_DIR) if fn.endswith("_evaluation.json")]
+            files.sort(key=lambda fn: os.path.getmtime(os.path.join(CORRECTED_COPIES_DIR, fn)), reverse=True)
+            for fn in files:
+                eid = fn.replace("_evaluation.json", "")
+                exams.append(eid)
         if not exams:
             # Fallback to current verified exam
             exams = ["EXAM-MAT-DAI-20261018-664F52"]
-        return sorted(exams)
+        return exams
 
     def build_ui(self):
         """Constructs the high-definition Topper & Evaluator UI."""
+        active_id = getattr(self.controller, "active_exam_id", None)
+        if active_id and active_id in self.available_evaluations:
+            self.selected_exam_var.set(active_id)
+
         for w in self.parent.winfo_children():
             w.destroy()
 
@@ -229,17 +239,20 @@ class HostExamTopperView:
 
         # Update KPI Header
         if self.active_record:
+            import html
             awd = self.active_record.get("total_marks_awarded", 0)
             poss = self.active_record.get("total_marks_possible", 0)
             pct = self.active_record.get("percentage", 100)
             grd = self.active_record.get("grade", "A1")
+            verdict = html.unescape(self.active_record.get('evaluator_verdict', ''))
             self.lbl_score_kpi.configure(text=f"🏆 SCORE: {awd} / {poss} MARKS ({pct}%) • {grd}")
-            self.lbl_verdict.configure(text=f"CBSE Senior Examiner Verdict: {self.active_record.get('evaluator_verdict', '')}")
+            self.lbl_verdict.configure(text=f"CBSE Senior Examiner Verdict: {verdict}")
 
         self._render_cards()
 
     def _render_cards(self):
         """Renders the question cards according to active tab."""
+        import html
         for w in self.cards_inner.winfo_children():
             w.destroy()
 
@@ -254,9 +267,10 @@ class HostExamTopperView:
             q_hdr = tk.Frame(card, bg="#131c2e")
             q_hdr.pack(fill=tk.X, pady=(0, 6))
 
+            q_txt_clean = html.unescape(q.get("question_text", ""))
             tk.Label(
                 q_hdr,
-                text=f"{q['question_number']}. {q['question_text']}",
+                text=f"{q['question_number']}. {q_txt_clean}",
                 font=("Segoe UI", 9, "bold"),
                 fg="#f8fafc",
                 bg="#131c2e",
@@ -280,8 +294,9 @@ class HostExamTopperView:
                 ans_box = tk.Frame(card, bg="#0d1522", bd=1, relief=tk.SOLID, highlightbackground="#2563eb", highlightthickness=1, padx=10, pady=8)
                 ans_box.pack(fill=tk.X, pady=(0, 6))
 
+                student_ans_clean = html.unescape(q.get("student_response", ""))
                 tk.Label(ans_box, text="✍️ THARUN'S EVALUATED ANSWER SCRIPT:", font=("Segoe UI", 8, "bold"), fg="#60a5fa", bg="#0d1522").pack(anchor="w", pady=(0, 3))
-                tk.Label(ans_box, text=q["student_response"], font=("Consolas", 8), fg="#e2e8f0", bg="#0d1522", justify=tk.LEFT, wraplength=860).pack(anchor="w")
+                tk.Label(ans_box, text=student_ans_clean, font=("Consolas", 8), fg="#e2e8f0", bg="#0d1522", justify=tk.LEFT, wraplength=860).pack(anchor="w")
 
                 # Step-wise Rubric Breakdown & Red-Ink Notes
                 rubric_box = tk.Frame(card, bg="#2a1215", bd=1, relief=tk.SOLID, highlightbackground="#dc2626", highlightthickness=1, padx=10, pady=8)
@@ -292,22 +307,26 @@ class HostExamTopperView:
                 for s in q.get("step_annotations", []):
                     s_row = tk.Frame(rubric_box, bg="#2a1215")
                     s_row.pack(fill=tk.X, pady=1)
-                    tk.Label(s_row, text=f"✔ {s['step']}", font=("Segoe UI", 8), fg="#fecdd3", bg="#2a1215").pack(side=tk.LEFT)
+                    step_txt_clean = html.unescape(s.get("step", ""))
+                    tk.Label(s_row, text=f"✔ {step_txt_clean}", font=("Segoe UI", 8), fg="#fecdd3", bg="#2a1215").pack(side=tk.LEFT)
                     tk.Label(s_row, text=f"+{s['awarded']} / {s['rubric_mark']}M", font=("Segoe UI", 8, "bold"), fg="#fbbf24", bg="#2a1215").pack(side=tk.RIGHT)
 
-                tk.Label(rubric_box, text=f"Examiner Note: {q.get('evaluator_feedback', '')}", font=("Segoe UI", 8, "italic"), fg="#34d399", bg="#2a1215").pack(anchor="w", pady=(4, 0))
+                fb_clean = html.unescape(q.get('evaluator_feedback', ''))
+                tk.Label(rubric_box, text=f"Examiner Note: {fb_clean}", font=("Segoe UI", 8, "italic"), fg="#34d399", bg="#2a1215").pack(anchor="w", pady=(4, 0))
 
             else:
                 # 🏆 CBSE 100/100 Topper Reference Model
                 topper_box = tk.Frame(card, bg="#0a251b", bd=1, relief=tk.SOLID, highlightbackground="#10b981", highlightthickness=1, padx=10, pady=8)
                 topper_box.pack(fill=tk.X, pady=(0, 6))
 
+                model_ans_clean = html.unescape(q.get("model_answer", ""))
                 tk.Label(topper_box, text="🏆 CBSE 100/100 TOPPER PRESENTATION (P-E-E-D PROTOCOL):", font=("Segoe UI", 8, "bold"), fg="#34d399", bg="#0a251b").pack(anchor="w", pady=(0, 3))
-                tk.Label(topper_box, text=q["model_answer"], font=("Consolas", 8), fg="#e2e8f0", bg="#0a251b", justify=tk.LEFT, wraplength=860).pack(anchor="w")
+                tk.Label(topper_box, text=model_ans_clean, font=("Consolas", 8), fg="#e2e8f0", bg="#0a251b", justify=tk.LEFT, wraplength=860).pack(anchor="w")
 
                 scheme_box = tk.Frame(card, bg="#1e293b", bd=1, relief=tk.SOLID, highlightbackground="#f59e0b", highlightthickness=1, padx=10, pady=6)
                 scheme_box.pack(fill=tk.X)
-                tk.Label(scheme_box, text=f"🎯 Marking Scheme: {q['marking_scheme']}", font=("Segoe UI", 8), fg="#fbbf24", bg="#1e293b").pack(anchor="w")
+                scheme_clean = html.unescape(q.get("marking_scheme", ""))
+                tk.Label(scheme_box, text=f"🎯 Marking Scheme: {scheme_clean}", font=("Segoe UI", 8), fg="#fbbf24", bg="#1e293b").pack(anchor="w")
 
     def _open_graded_html(self):
         eid = self.selected_exam_var.get()

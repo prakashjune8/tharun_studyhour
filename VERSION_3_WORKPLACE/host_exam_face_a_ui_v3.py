@@ -406,6 +406,22 @@ class HostExamFaceAView:
         )
         self.btn_blank_booklet.pack(side=tk.RIGHT, padx=(4, 0))
 
+        self.btn_to_face_b = tk.Button(
+            bar,
+            text="➔ Face B: Answer Evaluator",
+            font=("Segoe UI", 8, "bold"),
+            fg="#ffffff",
+            bg="#8b5cf6",
+            activebackground="#7c3aed",
+            relief=tk.FLAT,
+            bd=0,
+            padx=10,
+            pady=3,
+            cursor="hand2",
+            command=self._on_proceed_to_face_b
+        )
+        self.btn_to_face_b.pack(side=tk.RIGHT, padx=(4, 0))
+
         # Preview Scrollable Text View
         from host_exam_ui import CustomDarkScrollbar
         self.preview_text = tk.Text(
@@ -600,18 +616,26 @@ class HostExamFaceAView:
 
     def _on_generation_success(self, paper: Dict[str, Any]):
         """Renders the generated paper text into the preview window."""
+        import html
         self.btn_generate.configure(state=tk.NORMAL, text="⚡ GENERATE CBSE QUESTION PAPER")
         self.preview_text.configure(state=tk.NORMAL)
         self.preview_text.delete("1.0", tk.END)
 
         meta = paper["metadata"]
+        exam_id = meta.get("exam_id")
+        if hasattr(self.app, "active_exam_id"):
+            self.app.active_exam_id = exam_id
+
+        subj_unescaped = html.unescape(meta.get("subject", ""))
+        title_unescaped = html.unescape(meta.get("exam_title", "CBSE EXAMINATION")).upper()
+
         lines = []
         lines.append("=" * 88)
         lines.append("                               THARUN REVISION BANNER                                  ")
-        lines.append(f"               {meta.get('exam_title', 'CBSE EXAMINATION').upper()}                    ")
+        lines.append(f"               {title_unescaped}                    ")
         lines.append("=" * 88)
-        lines.append(f" Student: Tharun | Class: Class 8 CBSE | Subject: {meta.get('subject')} | Mode: {meta.get('generation_mode')}")
-        lines.append(f" Time Allowed: {meta.get('time_allowed_mins')} Mins | Max Marks: {meta.get('max_marks')} Marks | Exam ID: {meta.get('exam_id')}")
+        lines.append(f" Student: Tharun | Class: Class 8 CBSE | Subject: {subj_unescaped} | Mode: {meta.get('generation_mode')}")
+        lines.append(f" Time Allowed: {meta.get('time_allowed_mins')} Mins | Max Marks: {meta.get('max_marks')} Marks | Exam ID: {exam_id}")
         lines.append("-" * 88)
 
         for sec in paper.get("sections", []):
@@ -622,10 +646,10 @@ class HostExamFaceAView:
             for q in sec.get("questions", []):
                 q_num = q.get("question_number", "Q.")
                 q_m = q.get("marks", 1)
-                q_txt = q.get("question_text", "")
+                q_txt = html.unescape(q.get("question_text", ""))
                 lines.append(f" {q_num} [{q_m}M]  {q_txt}")
                 for opt in q.get("options", []):
-                    lines.append(f"       {opt}")
+                    lines.append(f"       {html.unescape(opt)}")
                 lines.append("")
 
         lines.append("=" * 88)
@@ -635,7 +659,7 @@ class HostExamFaceAView:
         self.preview_text.insert(tk.END, "\n".join(lines))
         self.preview_text.configure(state=tk.DISABLED)
         if not getattr(self, "suppress_modal", False):
-            messagebox.showinfo("Exam Paper Ready", f"Successfully generated CBSE Question Paper for {meta.get('subject')}!")
+            messagebox.showinfo("Exam Paper Ready", f"Successfully generated CBSE Question Paper for {subj_unescaped}!")
 
     def _on_generation_error(self, err_msg: str):
         self.btn_generate.configure(state=tk.NORMAL, text="⚡ GENERATE CBSE QUESTION PAPER")
@@ -751,6 +775,15 @@ class HostExamFaceAView:
         path = os.path.join(EXAM_SYSTEM_DIR, "03_GENERATED_QUESTION_PAPERS", f"{exam_id}_BLANK_ANSWER_SHEET.pdf")
         if os.path.exists(path):
             os.startfile(path)
+
+    def _on_proceed_to_face_b(self):
+        """Advances workflow directly to Face B (Answer Evaluator) with the generated paper."""
+        if not self.active_paper:
+            messagebox.showinfo("No Exam Paper", "Please generate a question paper first.")
+            return
+        exam_id = self.active_paper["metadata"]["exam_id"]
+        if hasattr(self.app, "switch_subview"):
+            self.app.switch_subview("face_b", exam_id=exam_id)
 
 
 # ==============================================================================

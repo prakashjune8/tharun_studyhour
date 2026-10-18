@@ -84,7 +84,7 @@ class ExamVaultLibraryView:
 
         # 3. Main Split View: Left Upload Center (380px), Right Vault Explorer (Expand)
         work_area = tk.Frame(self.main_container, bg=self.colors["bg"])
-        work_area.pack(fill=tk.BOTH, expand=True, pady=(8, 0))
+        work_area.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
 
         self.left_panel = tk.Frame(
             work_area,
@@ -119,7 +119,7 @@ class ExamVaultLibraryView:
     # 1. HEADER BANNER
     # =========================================================================
     def _build_header(self, parent):
-        hdr = tk.Frame(parent, bg="#131c2e", padx=14, pady=10, relief=tk.SOLID, bd=1, highlightthickness=1, highlightbackground=self.colors["border"])
+        hdr = tk.Frame(parent, bg="#131c2e", padx=14, pady=5, relief=tk.SOLID, bd=1, highlightthickness=1, highlightbackground=self.colors["border"])
         hdr.pack(fill=tk.X)
 
         title_box = tk.Frame(hdr, bg="#131c2e")
@@ -251,6 +251,11 @@ class ExamVaultLibraryView:
                 canvas.itemconfig(win_id, width=e.width - 8)
         canvas.bind("<Configure>", _on_canvas_cfg)
 
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
+        canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
+
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
@@ -262,7 +267,7 @@ class ExamVaultLibraryView:
             bg=self.colors["card_bg"],
             anchor="w"
         )
-        hdr.pack(fill=tk.X, padx=12, pady=(6, 3))
+        hdr.pack(fill=tk.X, padx=12, pady=(4, 2))
 
         # Target Subject Indicator
         self.lbl_target_subj = tk.Label(
@@ -277,14 +282,14 @@ class ExamVaultLibraryView:
             pady=3,
             anchor="w"
         )
-        self.lbl_target_subj.pack(fill=tk.X, padx=12, pady=(0, 5))
+        self.lbl_target_subj.pack(fill=tk.X, padx=12, pady=(0, 3))
 
         # Step 1: Browse File
         lbl_s1 = tk.Label(content, text="1. SELECT PDF OR PHOTOCOPY:", font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg=self.colors["card_bg"], anchor="w")
-        lbl_s1.pack(fill=tk.X, padx=12, pady=(2, 2))
+        lbl_s1.pack(fill=tk.X, padx=12, pady=(1, 1))
 
-        f_box = tk.Frame(content, bg="#161f30", padx=6, pady=3, relief=tk.SOLID, bd=1, highlightthickness=1, highlightbackground=self.colors["border"])
-        f_box.pack(fill=tk.X, padx=12, pady=(0, 5))
+        f_box = tk.Frame(content, bg="#161f30", padx=6, pady=2, relief=tk.SOLID, bd=1, highlightthickness=1, highlightbackground=self.colors["border"])
+        f_box.pack(fill=tk.X, padx=12, pady=(0, 3))
 
         entry_f = tk.Entry(f_box, textvariable=self.upload_file_path_var, font=("Segoe UI", 8), bg="#0f172a", fg="#f8fafc", relief=tk.FLAT)
         entry_f.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
@@ -305,10 +310,10 @@ class ExamVaultLibraryView:
 
         # Step 2: Material Category
         lbl_s2 = tk.Label(content, text="2. MATERIAL CLASSIFICATION:", font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg=self.colors["card_bg"], anchor="w")
-        lbl_s2.pack(fill=tk.X, padx=12, pady=(2, 2))
+        lbl_s2.pack(fill=tk.X, padx=12, pady=(1, 1))
 
         cat_box = tk.Frame(content, bg=self.colors["card_bg"])
-        cat_box.pack(fill=tk.X, padx=12, pady=(0, 3))
+        cat_box.pack(fill=tk.X, padx=12, pady=(0, 2))
 
         rb1 = tk.Radiobutton(
             cat_box, text="📑 Topic Photocopy", variable=self.material_type_var, value="topic_photocopy",
@@ -332,16 +337,16 @@ class ExamVaultLibraryView:
         rb3.pack(side=tk.LEFT)
 
         # Step 3: Dynamic Detail Fields
-        self.detail_container = tk.Frame(content, bg="#161f30", padx=8, pady=4, relief=tk.SOLID, bd=1, highlightthickness=1, highlightbackground=self.colors["border"])
-        self.detail_container.pack(fill=tk.X, padx=12, pady=(0, 4))
+        self.detail_container = tk.Frame(content, bg="#161f30", padx=8, pady=3, relief=tk.SOLID, bd=1, highlightthickness=1, highlightbackground=self.colors["border"])
+        self.detail_container.pack(fill=tk.X, padx=12, pady=(0, 3))
         self._render_dynamic_fields()
 
         # Step 4: Canonical Preview
         lbl_s4 = tk.Label(content, text="3. CANONICAL STANDARDIZATION PREVIEW:", font=("Segoe UI", 8, "bold"), fg="#fbbf24", bg=self.colors["card_bg"], anchor="w")
-        lbl_s4.pack(fill=tk.X, padx=12, pady=(2, 2))
+        lbl_s4.pack(fill=tk.X, padx=12, pady=(1, 1))
 
-        prev_box = tk.Frame(content, bg="#0b1120", padx=8, pady=3, relief=tk.SOLID, bd=1, highlightthickness=1, highlightbackground="#fbbf24")
-        prev_box.pack(fill=tk.X, padx=12, pady=(0, 5))
+        prev_box = tk.Frame(content, bg="#0b1120", padx=8, pady=2, relief=tk.SOLID, bd=1, highlightthickness=1, highlightbackground="#fbbf24")
+        prev_box.pack(fill=tk.X, padx=12, pady=(0, 3))
 
         self.lbl_prev_canon = tk.Label(
             prev_box,
@@ -365,11 +370,11 @@ class ExamVaultLibraryView:
             activebackground="#15803d",
             relief=tk.FLAT,
             bd=0,
-            pady=5,
+            pady=4,
             cursor="hand2",
             command=self._on_ingest_clicked
         )
-        self.btn_ingest.pack(fill=tk.X, padx=12, pady=(0, 6))
+        self.btn_ingest.pack(fill=tk.X, padx=12, pady=(2, 6))
 
     def _render_dynamic_fields(self):
         for w in self.detail_container.winfo_children():
@@ -379,21 +384,18 @@ class ExamVaultLibraryView:
         if t == "topic_photocopy":
             r1 = tk.Frame(self.detail_container, bg="#161f30")
             r1.pack(fill=tk.X, pady=1)
-            tk.Label(r1, text="Chapter:", font=("Segoe UI", 8), fg="#cbd5e1", bg="#161f30", width=8, anchor="w").pack(side=tk.LEFT)
+            tk.Label(r1, text="Chapter:", font=("Segoe UI", 8), fg="#cbd5e1", bg="#161f30", width=7, anchor="w").pack(side=tk.LEFT)
             e1 = tk.Entry(r1, textvariable=self.chapter_var, font=("Segoe UI", 8), bg="#0f172a", fg="#f8fafc", relief=tk.FLAT)
-            e1.pack(side=tk.LEFT, fill=tk.X, expand=True)
-            e1.bind("<KeyRelease>", lambda e: self._update_canonical_preview())
-
-            r2 = tk.Frame(self.detail_container, bg="#161f30")
-            r2.pack(fill=tk.X, pady=1)
-            tk.Label(r2, text="Exercise:", font=("Segoe UI", 8), fg="#cbd5e1", bg="#161f30", width=8, anchor="w").pack(side=tk.LEFT)
-            e2 = tk.Entry(r2, textvariable=self.exercise_var, font=("Segoe UI", 8), bg="#0f172a", fg="#f8fafc", relief=tk.FLAT)
+            e1.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 4))
+            tk.Label(r1, text="Ex:", font=("Segoe UI", 8), fg="#cbd5e1", bg="#161f30", width=3, anchor="w").pack(side=tk.LEFT)
+            e2 = tk.Entry(r1, textvariable=self.exercise_var, font=("Segoe UI", 8), bg="#0f172a", fg="#f8fafc", relief=tk.FLAT, width=12)
             e2.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            e1.bind("<KeyRelease>", lambda e: self._update_canonical_preview())
             e2.bind("<KeyRelease>", lambda e: self._update_canonical_preview())
 
         elif t == "full_textbook":
             r1 = tk.Frame(self.detail_container, bg="#161f30")
-            r1.pack(fill=tk.X, pady=2)
+            r1.pack(fill=tk.X, pady=1)
             tk.Label(r1, text="Book Title:", font=("Segoe UI", 8), fg="#cbd5e1", bg="#161f30", width=10, anchor="w").pack(side=tk.LEFT)
             e1 = tk.Entry(r1, textvariable=self.book_title_var, font=("Segoe UI", 8), bg="#0f172a", fg="#f8fafc", relief=tk.FLAT)
             e1.pack(side=tk.LEFT, fill=tk.X, expand=True)
@@ -401,7 +403,7 @@ class ExamVaultLibraryView:
 
         else:  # model_exam_paper
             r1 = tk.Frame(self.detail_container, bg="#161f30")
-            r1.pack(fill=tk.X, pady=2)
+            r1.pack(fill=tk.X, pady=1)
             tk.Label(r1, text="Exam Title:", font=("Segoe UI", 8), fg="#cbd5e1", bg="#161f30", width=10, anchor="w").pack(side=tk.LEFT)
             e1 = tk.Entry(r1, textvariable=self.book_title_var, font=("Segoe UI", 8), bg="#0f172a", fg="#f8fafc", relief=tk.FLAT)
             e1.pack(side=tk.LEFT, fill=tk.X, expand=True)
@@ -430,7 +432,7 @@ class ExamVaultLibraryView:
             book_title=self.book_title_var.get(),
             original_ext=ext or ".pdf"
         )
-        self.canonical_preview_var.set(f"Canonical:\n{canon}")
+        self.canonical_preview_var.set(f"Canonical: {canon}")
 
     def _on_browse_file(self):
         path = filedialog.askopenfilename(
@@ -693,6 +695,28 @@ class ExamVaultLibraryView:
             command=lambda p=item.get("absolute_path", ""): self._open_document(p)
         )
         btn_open.pack(side=tk.RIGHT, padx=(4, 0))
+
+        # Direct 1-Click Send to Face A Architect
+        btn_face_a = tk.Button(
+            bot_row,
+            text="⚡ Send to Face A ➔",
+            font=("Segoe UI", 7, "bold"),
+            fg="#ffffff",
+            bg="#f97316",
+            activebackground="#ea580c",
+            relief=tk.FLAT,
+            bd=0,
+            padx=8,
+            pady=2,
+            cursor="hand2",
+            command=lambda r_id=item["id"]: self._send_to_face_a(r_id)
+        )
+        btn_face_a.pack(side=tk.RIGHT, padx=(4, 0))
+
+    def _send_to_face_a(self, record_id: str):
+        SmartIngestionWizard.set_active_material(record_id)
+        if hasattr(self.controller, "switch_subview"):
+            self.controller.switch_subview("face_a")
 
     def _on_set_active_material(self, record_id: str):
         SmartIngestionWizard.set_active_material(record_id)

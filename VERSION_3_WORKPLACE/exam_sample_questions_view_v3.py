@@ -651,7 +651,29 @@ class ExamSampleQuestionsView:
             cursor="hand2",
             command=lambda p=item.get("absolute_path", ""): self._open_document(p)
         )
-        btn_open.pack(side=tk.RIGHT)
+        btn_open.pack(side=tk.RIGHT, padx=(4, 0))
+
+        # Direct 1-Click Apply to Face A
+        btn_apply = tk.Button(
+            bot_row,
+            text="⚡ Apply to Face A ➔",
+            font=("Segoe UI", 7, "bold"),
+            fg="#ffffff",
+            bg="#f97316",
+            activebackground="#ea580c",
+            relief=tk.FLAT,
+            bd=0,
+            padx=8,
+            pady=2,
+            cursor="hand2",
+            command=lambda r_id=item["id"]: self._apply_and_switch_to_face_a(r_id)
+        )
+        btn_apply.pack(side=tk.RIGHT, padx=(4, 0))
+
+    def _apply_and_switch_to_face_a(self, record_id: str):
+        SampleQuestionsEngine.set_active_style_reference(record_id)
+        if hasattr(self.controller, "switch_subview"):
+            self.controller.switch_subview("face_a")
 
     def _on_set_active_paper(self, record_id: str):
         SampleQuestionsEngine.set_active_style_reference(record_id)

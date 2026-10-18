@@ -448,7 +448,9 @@ class HostExamTabController:
                     activeforeground="#f8fafc"
                 )
 
-    def switch_subview(self, subview_key: str):
+    def switch_subview(self, subview_key: str, exam_id: Optional[str] = None):
+        if exam_id:
+            self.active_exam_id = exam_id
         self.active_subview = subview_key
         self._update_subview_tab_styles()
 

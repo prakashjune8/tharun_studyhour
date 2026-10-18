@@ -94,7 +94,12 @@ class HostExamFaceBView:
         })
 
         self.available_exams = VisionOCREngineV3.list_available_exams()
-        self.selected_exam_var = tk.StringVar(value=self.available_exams[0] if self.available_exams else "")
+        active_id = getattr(controller, "active_exam_id", None)
+        if active_id and active_id in self.available_exams:
+            default_exam = active_id
+        else:
+            default_exam = self.available_exams[0] if self.available_exams else ""
+        self.selected_exam_var = tk.StringVar(value=default_exam)
         self.available_sheets = VisionOCREngineV3.list_uploaded_sheets()
         self.selected_sheet_var = tk.StringVar(value=self.available_sheets[0]["filename"] if self.available_sheets else "")
         self.ocr_mode_var = tk.StringVar(value="gemini_vision")
@@ -173,7 +178,8 @@ class HostExamFaceBView:
             font=("Segoe UI", 8),
             fg="#38bdf8",
             bg="#161f30",
-            justify=tk.LEFT
+            justify=tk.LEFT,
+            wraplength=340
         )
         self.lbl_exam_info.pack(anchor="w")
 
@@ -365,6 +371,7 @@ class HostExamFaceBView:
         self.canvas.itemconfig(self.canvas.find_withtag("all")[0], width=event.width)
 
     def _get_exam_info_text(self) -> str:
+        import html
         exam_id = self.selected_exam_var.get()
         if not exam_id:
             return "No exam generated yet."
@@ -372,11 +379,11 @@ class HostExamFaceBView:
         if not qp:
             return f"Exam ID: {exam_id}\n(Schema file not found)"
         meta = qp.get("metadata", {})
-        subj = meta.get("subject", "Mathematics")
+        subj = html.unescape(meta.get("subject", "Mathematics"))
         marks = meta.get("max_marks", 15)
         mins = meta.get("time_allowed_mins", 20)
         total_q = sum(len(s.get("questions", [])) for s in qp.get("sections", []))
-        return f"Exam: {exam_id}\nSubject: {subj} | Marks: {marks} | Time: {mins}m\nTotal Questions: {total_q} Questions"
+        return f"Exam: {exam_id}\nSubject: {subj}\nMarks: {marks}M | Time: {mins}m | Questions: {total_q}"
 
     def _on_exam_selected(self):
         self.lbl_exam_info.configure(text=self._get_exam_info_text())
@@ -545,12 +552,13 @@ class HostExamFaceBView:
             return
 
         for idx, q in enumerate(questions, 1):
+            import html
             q_num = q.get("question_number", f"Q.{idx}")
             q_type = q.get("question_type", "SA")
             q_marks = q.get("marks", 1)
-            q_text = q.get("question_text", "")
-            student_ans = q.get("student_response", "")
-            model_ans = q.get("model_answer", "")
+            q_text = html.unescape(q.get("question_text", ""))
+            student_ans = html.unescape(q.get("student_response", ""))
+            model_ans = html.unescape(q.get("model_answer", ""))
             status = q.get("alignment_status", "ALIGNED_VERIFIED")
             conf = q.get("confidence", 0.98)
 
@@ -657,6 +665,20 @@ class HostExamFaceBView:
             ).pack(anchor="w")
 
     def _on_proceed_to_step7(self):
-        """Switches subview to Step 7 (CBSE Topper Guide / Evaluation)."""
-        if hasattr(self.controller, "switch_subview"):
-            self.controller.switch_subview("topper")
+        """Switches subview to Step 7 (CBSE Topper Guide / Evaluation) with active exam evaluation."""
+        exam_id = self.selected_exam_var.get()
+        if exam_id:
+            if hasattr(self.controller, "active_exam_id"):
+                self.controller.active_exam_id = exam_id
+            eval_file = os.path.join(CORRECTED_COPIES_DIR, f"{exam_id}_evaluation.json")
+            if not os.path.exists(eval_file):
+                try:
+                    from cbse_evaluator_v3 import CBSEEvaluatorV3
+                    CBSEEvaluatorV3.evaluate_exam(exam_id)
+                except Exception as e:
+                    print(f"[Face B] Auto-evaluation notice: {e}")
+            if hasattr(self.controller, "switch_subview"):
+                self.controller.switch_subview("topper", exam_id=exam_id)
+        else:
+            if hasattr(self.controller, "switch_subview"):
+                self.controller.switch_subview("topper")
