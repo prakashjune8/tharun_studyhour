@@ -5,8 +5,8 @@
     "school": "Senthil Public School, Dharmapuri",
     "last_updated": "2026-10-19T00:50:59.490250",
     "total_entries": 83,
-    "total_evaluations": 3,
-    "last_evaluation_sync": "2026-10-18T23:53:50.034689"
+    "total_evaluations": 7,
+    "last_evaluation_sync": "2026-10-19T01:44:32.163300"
   },
   "entries": [
     {
@@ -1310,6 +1310,58 @@
       "mastery_status": "MASTERED • 100/100 BENCHMARK",
       "source": "cbse_evaluator_v3",
       "logged_at": "2026-10-18T23:53:50.034681"
+    },
+    {
+      "entry_id": "EVAL-EXAM-V3-VERIFY-001",
+      "date": "2026-10-19",
+      "subject": "Mathematics & Indic Languages (Tamil & Hindi)",
+      "exam_id": "EXAM-V3-VERIFY-001",
+      "score_obtained": 12,
+      "score_max": 12,
+      "percentage": 100.0,
+      "grade": "A1 • Exemplary CBSE Standard",
+      "mastery_status": "MASTERED • 100/100 BENCHMARK",
+      "source": "cbse_evaluator_v3",
+      "logged_at": "2026-10-19T01:29:21.289998"
+    },
+    {
+      "entry_id": "EVAL-EXAM-V3-VERIFY-001",
+      "date": "2026-10-19",
+      "subject": "Mathematics & Indic Languages (Tamil & Hindi)",
+      "exam_id": "EXAM-V3-VERIFY-001",
+      "score_obtained": 12,
+      "score_max": 12,
+      "percentage": 100.0,
+      "grade": "A1 • Exemplary CBSE Standard",
+      "mastery_status": "MASTERED • 100/100 BENCHMARK",
+      "source": "cbse_evaluator_v3",
+      "logged_at": "2026-10-19T01:30:25.178543"
+    },
+    {
+      "entry_id": "EVAL-EXAM-V3-VERIFY-001",
+      "date": "2026-10-19",
+      "subject": "Mathematics & Indic Languages (Tamil & Hindi)",
+      "exam_id": "EXAM-V3-VERIFY-001",
+      "score_obtained": 12,
+      "score_max": 12,
+      "percentage": 100.0,
+      "grade": "A1 • Exemplary CBSE Standard",
+      "mastery_status": "MASTERED • 100/100 BENCHMARK",
+      "source": "cbse_evaluator_v3",
+      "logged_at": "2026-10-19T01:31:32.667443"
+    },
+    {
+      "entry_id": "EVAL-EXAM-V3-VERIFY-001",
+      "date": "2026-10-19",
+      "subject": "Mathematics & Indic Languages (Tamil & Hindi)",
+      "exam_id": "EXAM-V3-VERIFY-001",
+      "score_obtained": 12,
+      "score_max": 12,
+      "percentage": 100.0,
+      "grade": "A1 • Exemplary CBSE Standard",
+      "mastery_status": "MASTERED • 100/100 BENCHMARK",
+      "source": "cbse_evaluator_v3",
+      "logged_at": "2026-10-19T01:44:32.163282"
     }
   ]
 }
