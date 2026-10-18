@@ -775,7 +775,7 @@ class ShinobiPillSelector(tk.Frame):
         y = self.winfo_rooty() + self.winfo_height() + 2
         screen_w = self.winfo_screenwidth()
         screen_h = self.winfo_screenheight()
-        popup_w = max(self.winfo_width(), 290)
+        popup_w = max(self.winfo_width(), 310)
 
         # Check subtitle presence to accurately gauge required height
         parsed_items = [self._parse_dropdown_item_info(v) for v in self.values]
@@ -789,13 +789,17 @@ class ShinobiPillSelector(tk.Frame):
         if use_scroll:
             popup_h = max_allowed_h
             canvas = tk.Canvas(popup, bg="#0c1322", highlightthickness=0)
+            scrollbar = tk.Scrollbar(popup, orient=tk.VERTICAL, command=canvas.yview, width=6, bg="#0f172a", troughcolor="#0c1322", bd=0, relief=tk.FLAT)
+            canvas.configure(yscrollcommand=scrollbar.set)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
             inner = tk.Frame(canvas, bg="#0c1322", padx=2, pady=2)
-            inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=popup_w)
-            canvas.pack(fill=tk.BOTH, expand=True)
+            inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=popup_w - 10)
 
             def _on_cfg(e):
                 canvas.configure(scrollregion=canvas.bbox("all"))
-                canvas.itemconfig(inner_id, width=e.width)
+                canvas.itemconfig(inner_id, width=canvas.winfo_width())
             inner.bind("<Configure>", _on_cfg)
             canvas.bind("<Configure>", lambda e: canvas.itemconfig(inner_id, width=e.width))
 
@@ -808,6 +812,8 @@ class ShinobiPillSelector(tk.Frame):
             container = inner
             for val in self.values:
                 self._create_dropdown_item_card(container, val, popup)
+            popup.update_idletasks()
+            canvas.configure(scrollregion=canvas.bbox("all"))
         else:
             container = tk.Frame(popup, bg="#0c1322", padx=4, pady=4)
             container.pack(fill=tk.BOTH, expand=True)

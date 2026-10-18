@@ -3352,21 +3352,11 @@ class DesktopApp:
                 ("🔍", "V1 Chronological System Audit", "Timeline Verification, Checkpoints & Material Inspector", self.open_v1_audit_inspector_modal),
             ]
 
-            popup_w = 360
-            item_h = 48
-            total_h = 36 + len(guide_items) * item_h + 10
-
+            popup_w = 370
             x = btn.winfo_rootx()
             y = btn.winfo_rooty() + btn.winfo_height() + 3
             screen_w = popup.winfo_screenwidth()
             screen_h = popup.winfo_screenheight()
-
-            if x + popup_w > screen_w - 10:
-                x = screen_w - popup_w - 10
-            if y + total_h > screen_h - 40:
-                y = btn.winfo_rooty() - total_h - 3
-
-            popup.geometry(f"{popup_w}x{total_h}+{x}+{y}")
 
             # Top Header Strip
             hdr = tk.Frame(popup, bg="#0c1322", padx=10, pady=6)
@@ -3441,6 +3431,19 @@ class DesktopApp:
                     w.bind("<Enter>", ent_fn)
                     w.bind("<Leave>", lev_fn)
                     w.bind("<Button-1>", clk_fn)
+
+            popup.update_idletasks()
+            total_h = popup.winfo_reqheight() + 4
+            max_allowed_h = min(460, screen_h - 80)
+            if total_h > max_allowed_h:
+                total_h = max_allowed_h
+
+            if x + popup_w > screen_w - 10:
+                x = max(10, screen_w - popup_w - 10)
+            if y + total_h > screen_h - 40:
+                y = max(10, btn.winfo_rooty() - total_h - 3)
+
+            popup.geometry(f"{popup_w}x{total_h}+{x}+{y}")
 
             def _check_click_outside(e):
                 if not popup.winfo_exists():
@@ -4391,13 +4394,6 @@ class DesktopApp:
             bx = self.root.winfo_rootx() + 420
             by = self.root.winfo_rooty() + 50
 
-        pop_w = 470
-        pop_h = 395
-        screen_w = self.root.winfo_screenwidth()
-        if bx + pop_w > screen_w - 16:
-            bx = max(16, screen_w - pop_w - 16)
-        win.geometry(f"{pop_w}x{pop_h}+{bx}+{by}")
-
         def close_dropdown(event=None):
             if hasattr(self, "month_dropdown_win") and self.month_dropdown_win and self.month_dropdown_win.winfo_exists():
                 self.month_dropdown_win.destroy()
@@ -4670,6 +4666,37 @@ class DesktopApp:
             fg="#34d399" if is_last_day else "#94a3b8",
             bg="#0f172a"
         ).pack(anchor="w", pady=(5, 0))
+
+        win.update_idletasks()
+        pop_w = max(480, inner.winfo_reqwidth() + 10)
+        pop_h = win.winfo_reqheight() + 4
+        screen_w = self.root.winfo_screenwidth()
+        screen_h = self.root.winfo_screenheight()
+        if bx + pop_w > screen_w - 16:
+            bx = max(16, screen_w - pop_w - 16)
+        if by + pop_h > screen_h - 40:
+            btn_h = self.btn_month_dropdown.winfo_height() if hasattr(self, "btn_month_dropdown") else 40
+            by = max(10, by - pop_h - btn_h - 6)
+        win.geometry(f"{pop_w}x{pop_h}+{bx}+{by}")
+
+        def _check_click_outside(e):
+            if not win.winfo_exists():
+                return
+            try:
+                wx = win.winfo_rootx()
+                wy = win.winfo_rooty()
+                ww = win.winfo_width()
+                wh = win.winfo_height()
+                if not (wx <= e.x_root <= wx + ww and wy <= e.y_root <= wy + wh):
+                    close_dropdown()
+            except Exception:
+                close_dropdown()
+
+        win.bind("<FocusOut>", lambda e: close_dropdown())
+        try:
+            self.root.bind("<Button-1>", _check_click_outside, add="+")
+        except Exception:
+            pass
 
     def open_monthly_parent_audit_report_window(self, year=None, month=None, submit_now=True):
         """Submits the Monthly Chakra Consistency Report to Tharun's Audit and opens the Parents Review Window."""

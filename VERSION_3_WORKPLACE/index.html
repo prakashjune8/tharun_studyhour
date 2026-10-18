@@ -14418,14 +14418,14 @@ function copyV1AuditSummaryWeb() {
       dd.appendChild(item);
     });
 
-    const popupW = Math.max(rect.width, 290);
+    const popupW = Math.max(rect.width, 310);
     let leftPos = rect.left;
     if (leftPos + popupW > window.innerWidth - 12) {
       leftPos = Math.max(8, window.innerWidth - popupW - 12);
     }
 
     let topPos = rect.bottom + 4;
-    const estH = Math.min(360, selectEl.options.length * 46 + 12);
+    const estH = Math.min(380, selectEl.options.length * 52 + 16);
     if (topPos + estH > window.innerHeight - 10) {
       topPos = Math.max(10, rect.top - estH - 4);
     }
