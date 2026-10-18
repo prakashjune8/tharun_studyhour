@@ -471,7 +471,7 @@ class HostExamTabController:
 
         # Top section: 3-Phase Host Examination Selector Cards
         phase_frame = tk.Frame(pane, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=12, pady=10)
-        pane.add(phase_frame, minsize=145)
+        pane.add(phase_frame, minsize=235)
 
         lbl_phase_title = tk.Label(
             phase_frame,
@@ -527,9 +527,31 @@ class HostExamTabController:
         btn_p3 = tk.Button(p3_row, text="⚡ Sprint (25M)", font=("Segoe UI", 8, "bold"), fg="#0f172a", bg="#34d399", activebackground="#059669", relief=tk.FLAT, bd=0, padx=8, pady=5, cursor="hand2", command=lambda: self._launch_phase(3, self.p3_sub_var.get()))
         btn_p3.pack(side=tk.LEFT)
 
+        # Interactive 5-Card Phase 1 Selector Strip (Weeks 1–4 + Month-End Mega Exam)
+        self.p1_strip_frame = tk.Frame(phase_frame, bg="#0e172a")
+        self.p1_strip_frame.pack(fill=tk.X, pady=(10, 0))
+
+        lbl_p1_strip = tk.Label(
+            self.p1_strip_frame,
+            text="📅 PHASE 1 INTERACTIVE CURATION GRID (SELECT SUNDAY TEST TO FILTER LEDGER & PRE-LOAD FACE A):",
+            font=("Segoe UI", 8, "bold"),
+            fg="#f59e0b",
+            bg="#0e172a"
+        )
+        lbl_p1_strip.pack(anchor="w", pady=(0, 4))
+
+        self.p1_cards_row = tk.Frame(self.p1_strip_frame, bg="#0e172a")
+        self.p1_cards_row.pack(fill=tk.X)
+
+        self.p1_card_widgets = {}
+        self.active_p1_card = 3
+        self.selected_week_filter = 3
+
+        self._render_p1_week_cards()
+
         # Bottom section: Interactive Study Ledger Table with Custom 6px Dark Scrollbar
         ledger_frame = tk.Frame(pane, bg="#0e172a", bd=1, relief=tk.SOLID, highlightbackground="#334155", highlightthickness=1, padx=12, pady=10)
-        pane.add(ledger_frame, minsize=220)
+        pane.add(ledger_frame, minsize=200)
 
         # Toolbar above ledger
         tb = tk.Frame(ledger_frame, bg="#0e172a")
@@ -582,6 +604,95 @@ class HostExamTabController:
 
         self._render_ledger_table()
 
+    def _render_p1_week_cards(self):
+        if not hasattr(self, "p1_cards_row") or not self.p1_cards_row.winfo_exists():
+            return
+        for widget in self.p1_cards_row.winfo_children():
+            widget.destroy()
+        self.p1_card_widgets.clear()
+
+        stats = SubjectStudyLedger.get_week_stats(month="October")
+        card_configs = [
+            (1, "📅 Week 1 Sunday Test", "Mon–Sat Homework", 35, 60),
+            (2, "📅 Week 2 Sunday Test", "Mon–Sat Homework", 35, 60),
+            (3, "📅 Week 3 Sunday Test", "Mon–Sat Homework", 35, 60),
+            (4, "📅 Week 4 Sunday Test", "Mon–Sat Homework", 35, 60),
+            ("monthend", "🏆 Month-End Mega Exam", "Weeks 1–4 Combined", 80, 180),
+        ]
+
+        for key, title, subtitle, marks, mins in card_configs:
+            is_active = (str(self.active_p1_card) == str(key))
+            border_col = "#f59e0b" if is_active else "#334155"
+            bg_col = "#261e12" if is_active else "#161f30"
+            title_col = "#fbbf24" if is_active else "#e2e8f0"
+
+            st = stats.get(key, {"entries_count": 0, "subjects_count": 0})
+            ent_cnt = st.get("entries_count", 0)
+            sub_cnt = st.get("subjects_count", 0)
+
+            c = tk.Frame(
+                self.p1_cards_row,
+                bg=bg_col,
+                bd=1,
+                relief=tk.SOLID,
+                highlightbackground=border_col,
+                highlightthickness=2 if is_active else 1,
+                padx=8,
+                pady=6,
+                cursor="hand2"
+            )
+            c.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=2)
+
+            c.bind("<Button-1>", lambda e, k=key: self._on_p1_card_clicked(k))
+
+            lbl_t = tk.Label(c, text=title, font=("Segoe UI", 8, "bold"), fg=title_col, bg=bg_col)
+            lbl_t.pack(anchor="w")
+            lbl_t.bind("<Button-1>", lambda e, k=key: self._on_p1_card_clicked(k))
+
+            lbl_sub = tk.Label(
+                c,
+                text=f"{ent_cnt} Entries • {sub_cnt} Subjects\n{marks}M • {mins}m • {subtitle}",
+                font=("Segoe UI", 7),
+                fg="#fde68a" if is_active else "#94a3b8",
+                bg=bg_col,
+                justify=tk.LEFT
+            )
+            lbl_sub.pack(anchor="w", pady=(2, 3))
+            lbl_sub.bind("<Button-1>", lambda e, k=key: self._on_p1_card_clicked(k))
+
+            btn_act = tk.Button(
+                c,
+                text="✓ Active" if is_active else "Select & Load",
+                font=("Segoe UI", 7, "bold"),
+                fg="#0f172a" if is_active else "#cbd5e1",
+                bg="#f59e0b" if is_active else "#1e293b",
+                activebackground="#fbbf24",
+                relief=tk.FLAT,
+                bd=0,
+                padx=6,
+                pady=2,
+                cursor="hand2",
+                command=lambda k=key: self._on_p1_card_clicked(k)
+            )
+            btn_act.pack(anchor="w")
+
+            self.p1_card_widgets[key] = c
+
+    def _on_p1_card_clicked(self, key):
+        self.active_p1_card = key
+        self.selected_week_filter = key
+        self._render_p1_week_cards()
+        self._render_ledger_table()
+
+        # Pre-load that exact dataset into Sub-View 2 (Face A: Question Paper Architect)
+        if key == "monthend":
+            spec = ExamPhaseAssembler.assemble_phase1_monthend_mega_exam()
+        else:
+            spec = ExamPhaseAssembler.assemble_phase1_weekly_sunday_test(week_number=int(key))
+
+        self.assembled_exam_spec = spec
+        self._populate_face_a_with_spec(spec)
+
     def _render_ledger_table(self):
         if not hasattr(self, "ledger_tree") or not self.ledger_tree.winfo_exists():
             return
@@ -592,12 +703,19 @@ class HostExamTabController:
         entries = data.get("entries", [])
         filter_sub = getattr(self, "ledger_filter_var", None)
         filter_val = filter_sub.get() if filter_sub else "All Subjects"
+        week_filter = getattr(self, "selected_week_filter", None)
 
         sorted_entries = sorted(entries, key=lambda x: x.get("date", ""), reverse=True)
         for e in sorted_entries:
             sub = e.get("subject", "")
             if filter_val != "All Subjects" and filter_val.lower() not in sub.lower():
                 continue
+            if week_filter and week_filter != "monthend":
+                try:
+                    if int(e.get("week_number", 0)) != int(week_filter):
+                        continue
+                except Exception:
+                    pass
             self.ledger_tree.insert("", tk.END, values=(
                 e.get("date", ""),
                 e.get("subject", ""),
@@ -1280,6 +1398,23 @@ class HostExamTabController:
             bg="#0e172a"
         ).pack(side=tk.LEFT)
 
+        btn_binder_pdf = tk.Button(
+            top_bar,
+            text="🖨️ Export Complete Exam & Topper Binder PDF",
+            font=("Segoe UI", 8, "bold"),
+            fg="#1c1104",
+            bg="#f59e0b",
+            activebackground="#fbbf24",
+            activeforeground="#1c1104",
+            relief=tk.FLAT,
+            bd=0,
+            padx=10,
+            pady=4,
+            cursor="hand2",
+            command=self._export_unified_binder_pdf
+        )
+        btn_binder_pdf.pack(side=tk.RIGHT, padx=5)
+
         btn_top_pdf = tk.Button(top_bar, text="📄 Export Topper Guide (PDF)", font=("Segoe UI", 8, "bold"), fg="#ffffff", bg="#0284c7", activebackground="#0369a1", relief=tk.FLAT, bd=0, padx=8, pady=3, cursor="hand2", command=self._export_topper_guide_pdf)
         btn_top_pdf.pack(side=tk.RIGHT, padx=3)
 
@@ -1386,3 +1521,26 @@ class HostExamTabController:
                     os.startfile(out_pdf)
         except Exception as e:
             messagebox.showerror("PDF Error", f"Failed to generate Topper guide PDF: {e}")
+
+    def _export_unified_binder_pdf(self):
+        if not self.active_evaluation:
+            messagebox.showwarning("No Data", "Please evaluate an answer sheet first in Face B to generate the complete binder PDF.")
+            return
+        exam_id = self.active_evaluation.get("exam_id", "EXAM")
+        out_pdf = os.path.join(MODEL_ANSWERS_DIR, f"{exam_id}_COMPLETE_PHYSICAL_BINDER.pdf")
+        try:
+            GeminiExamClient.render_unified_binder_pdf(self.active_evaluation, out_pdf)
+            if os.path.exists(out_pdf):
+                messagebox.showinfo(
+                    "Physical Binder Generated",
+                    f"✓ 1-Click Complete Exam & Topper Binder PDF exported successfully!\n\n"
+                    f"Contains:\n"
+                    f"• Part 1: Evaluated Scorecard & Red-Ink Corrected Answer Script\n"
+                    f"• Part 2: Side-by-Side Comparison vs. CBSE 100/100 Topper\n"
+                    f"• Part 3: P-E-E-D Structure Protocol & Mandatory Keywords Checklist\n\n"
+                    f"File: {out_pdf}"
+                )
+                if sys.platform == "win32":
+                    os.startfile(out_pdf)
+        except Exception as e:
+            messagebox.showerror("Binder PDF Error", f"Failed to generate Complete Binder PDF: {e}")

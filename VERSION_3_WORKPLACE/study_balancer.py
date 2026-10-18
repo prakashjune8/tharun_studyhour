@@ -2929,6 +2929,26 @@ class DesktopApp:
         )
         self.btn_month_dropdown.pack(side=tk.LEFT)
 
+        # Proactive "Host Exam Due" Glowing Header Badge (3-Day Checkpoint / Sunday / Exam Eve)
+        self.btn_exam_due_badge = tk.Button(
+            header_right,
+            text="🚨 HOST EXAM DUE: SUNDAY TEST",
+            font=("Segoe UI", 8, "bold"),
+            bg="#7f1d1d",
+            fg="#fecaca",
+            activebackground="#991b1b",
+            activeforeground="#ffffff",
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#ef4444",
+            highlightthickness=1,
+            padx=10,
+            pady=5,
+            cursor="hand2",
+            command=self.open_due_host_exam
+        )
+        self.btn_exam_due_badge.pack(side=tk.LEFT, padx=(10, 10))
+
         # Streak Box with 7-day progress dots
         self.streak_box_frame = tk.Frame(
             header_right,
@@ -3643,6 +3663,7 @@ class DesktopApp:
 
         # Give immediate priority focus to Timetable tab on mode switch
         self.notebook.select(self.tab_schedule)
+        self.update_host_exam_due_badge()
 
     def _create_hud_toplevel(self, title, subtitle="", width=850, height=600, min_width=720, min_height=500):
         """
@@ -11329,6 +11350,71 @@ class DesktopApp:
         if self.is_exam_mode:
             self.handle_generate_schedule(silent=True)
             messagebox.showinfo("Exam Subject Updated", f"Exam Eve Sprint regenerated for: {self.selected_exam_subject}!")
+        self.update_host_exam_due_badge()
+
+    def update_host_exam_due_badge(self):
+        """
+        Proactively check if a Host Exam is due:
+        1. Sunday -> Phase 1 Weekly Test
+        2. Pre-Exam Planner mode with Day % 3 == 0 (Days 3, 6, 9, 12, 15, 18, 21) -> Phase 2 3-Day Checkpoint Test
+        3. Exam Eve mode morning (< 12:00 PM) -> Phase 3 Morning Sprint
+        """
+        if not hasattr(self, "btn_exam_due_badge") or not self.btn_exam_due_badge.winfo_exists():
+            return
+
+        today = datetime.now()
+        is_sunday = (today.weekday() == 6)
+
+        if is_sunday:
+            due_text = "🚨 HOST EXAM DUE: SUNDAY TEST"
+            due_bg = "#7f1d1d"
+            due_fg = "#fecaca"
+            due_border = "#ef4444"
+        elif getattr(self, "is_pre_exam_mode", False) and (getattr(self, "pre_exam_day", 1) % 3 == 0):
+            day_num = getattr(self, "pre_exam_day", 3)
+            due_text = f"🎯 DAY {day_num} CHECKPOINT EXAM DUE"
+            due_bg = "#581c87"
+            due_fg = "#f3e8ff"
+            due_border = "#a855f7"
+        elif getattr(self, "is_exam_mode", False) and today.hour < 12:
+            sub = getattr(self, "selected_exam_subject", "Mathematics")
+            due_text = f"🔥 MORNING SPRINT DUE: {sub.upper()}"
+            due_bg = "#064e3b"
+            due_fg = "#d1fae5"
+            due_border = "#10b981"
+        else:
+            due_text = "🎯 HOST EXAM: SUNDAY READY"
+            due_bg = "#1e293b"
+            due_fg = "#94a3b8"
+            due_border = "#334155"
+
+        self.btn_exam_due_badge.configure(
+            text=due_text,
+            bg=due_bg,
+            fg=due_fg,
+            highlightbackground=due_border,
+            activebackground=due_border,
+            activeforeground="#ffffff"
+        )
+        self.btn_exam_due_badge.pack(side=tk.LEFT, padx=(10, 10))
+
+    def open_due_host_exam(self):
+        """Switches immediately to Tab 4 (Host Exam & AI) with the due exam pre-assembled and ready to generate."""
+        if hasattr(self, "notebook") and hasattr(self, "tab_exam"):
+            self.notebook.select(self.tab_exam)
+            if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
+                self.custom_tab_bar.select_tab("tab_exam")
+
+        today = datetime.now()
+        if hasattr(self, "host_exam_controller") and self.host_exam_controller:
+            if today.weekday() == 6:
+                self.host_exam_controller._launch_phase(1, "weekly")
+            elif getattr(self, "is_pre_exam_mode", False) and (getattr(self, "pre_exam_day", 1) % 3 == 0):
+                self.host_exam_controller._launch_phase(2, "3day")
+            elif getattr(self, "is_exam_mode", False):
+                self.host_exam_controller._launch_phase(3, getattr(self, "selected_exam_subject", "Mathematics"))
+            else:
+                self.host_exam_controller._launch_phase(1, "weekly")
 
     def on_start_time_changed(self, event=None):
         val = self.start_time_var.get()

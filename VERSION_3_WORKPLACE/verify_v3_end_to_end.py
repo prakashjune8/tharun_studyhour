@@ -176,9 +176,59 @@ def run_verification():
     assert os.path.getsize(topper_pdf_file) > 1000, "Topper guide PDF should be non-empty!"
     print(f"  ✓ Topper Model Answer PDF generated with Indic fonts: {topper_pdf_file} ({os.path.getsize(topper_pdf_file)} bytes)")
 
+    # -------------------------------------------------------------
+    # STEP 6: 5-CARD SELECTOR STATS, ERROR BANK SYNC & UNIFIED BINDER PDF
+    # -------------------------------------------------------------
+    print("\n[Step 6] Testing 5-Card Phase 1 Selector Stats, Scanned PDF Fallback, Error Bank Sync & Unified Binder PDF...")
+    
+    # 6A. Week stats verification
+    stats_w1 = SubjectStudyLedger.get_week_stats("October", week_number=1)
+    stats_w2 = SubjectStudyLedger.get_week_stats("October", week_number=2)
+    stats_w3 = SubjectStudyLedger.get_week_stats("October", week_number=3)
+    stats_w4 = SubjectStudyLedger.get_week_stats("October", week_number=4)
+    stats_month = SubjectStudyLedger.get_week_stats("October", week_number="monthend")
+    
+    print(f"  ✓ W1 Stats: {stats_w1['count']} entries, {stats_w1['subject_count']} subjects")
+    print(f"  ✓ W2 Stats: {stats_w2['count']} entries, {stats_w2['subject_count']} subjects")
+    print(f"  ✓ W3 Stats: {stats_w3['count']} entries, {stats_w3['subject_count']} subjects")
+    print(f"  ✓ W4 Stats: {stats_w4['count']} entries, {stats_w4['subject_count']} subjects")
+    print(f"  ✓ Month-End Stats: {stats_month['count']} entries, {stats_month['subject_count']} subjects")
+    assert stats_w1['count'] > 0 and stats_w2['count'] > 0 and stats_w3['count'] > 0 and stats_w4['count'] > 0, "All 4 weeks must have entries!"
+    assert stats_month['count'] >= (stats_w1['count'] + stats_w2['count'] + stats_w3['count'] + stats_w4['count']), "Month-end must encompass all weekly entries!"
+
+    # 6B. Scanned Textbook PDF Fallback Check
+    from exam_engine_v3 import extract_text_from_pdf, is_scanned_pdf
+    # Test low-char text extraction fallback
+    mock_scanned_pdf = os.path.join(ANSWER_SHEETS_DIR, "test_scanned_mock.pdf")
+    if not os.path.exists(mock_scanned_pdf):
+        # Create minimal PDF with minimal text to simulate scanned image PDF
+        from reportlab.pdfgen import canvas
+        c = canvas.Canvas(mock_scanned_pdf)
+        c.drawString(100, 100, "Scan")
+        c.save()
+    extracted_text = extract_text_from_pdf(mock_scanned_pdf)
+    scanned_flag = is_scanned_pdf(mock_scanned_pdf)
+    print(f"  ✓ Scanned PDF Detection: is_scanned={scanned_flag} (extracted {len(extracted_text)} chars)")
+    assert scanned_flag, "Mock PDF with < 100 chars should be flagged as scanned!"
+
+    # 6C. Automated Error Bank Sync Check
+    from exam_engine_v3 import sync_eval_errors_to_error_bank, ERROR_BANK_FILE
+    sync_count = sync_eval_errors_to_error_bank(eval_res)
+    print(f"  ✓ Error Bank Sync: Recorded/Updated {sync_count} mistakes into {ERROR_BANK_FILE}")
+    assert os.path.exists(ERROR_BANK_FILE), "student_error_bank.json must exist!"
+
+    # 6D. 1-Click Physical Binder PDF Generation Check
+    from exam_engine_v3 import render_unified_binder_pdf
+    binder_pdf_file = os.path.join(CORRECTED_COPIES_DIR, f"{exam_id}_COMPLETE_PHYSICAL_BINDER.pdf")
+    render_unified_binder_pdf(eval_res, binder_pdf_file)
+    assert os.path.exists(binder_pdf_file), "Unified Binder PDF must exist!"
+    assert os.path.getsize(binder_pdf_file) > 1000, "Unified Binder PDF must be non-empty!"
+    print(f"  ✓ 1-Click Unified Physical Binder PDF: {binder_pdf_file} ({os.path.getsize(binder_pdf_file)} bytes)")
+
     print("\n" + "=" * 80)
-    print("🏆 ALL 5 VERIFICATION PASSES COMPLETED WITH ZERO ERRORS!")
+    print("🏆 ALL 6 VERIFICATION PASSES COMPLETED WITH ZERO ERRORS!")
     print("=" * 80)
 
 if __name__ == "__main__":
     run_verification()
+

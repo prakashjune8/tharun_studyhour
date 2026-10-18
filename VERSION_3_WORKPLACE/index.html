@@ -3265,6 +3265,48 @@
     .btn-phase-launch.p3-sprint { background: #34d399; color: #0f172a; }
     .btn-phase-launch:hover { filter: brightness(1.15); transform: translateY(-1px); }
 
+    /* Phase 1 5-Card Selector Grid */
+    .p1-week-card {
+      background: #161f30;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .p1-week-card:hover {
+      border-color: #f59e0b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+    }
+    .p1-week-card.active {
+      border: 2px solid #f59e0b !important;
+      background: rgba(245, 158, 11, 0.14) !important;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.3) !important;
+    }
+    .p1-card-tag {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #f59e0b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+    .p1-card-name {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 4px;
+    }
+    .p1-card-stats {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      line-height: 1.35;
+    }
+
     .exam-ledger-table-wrap {
       background: #0e172a;
       border: 1px solid #334155;
@@ -3743,6 +3785,12 @@
         </span>
         <div class="streak-dots" id="streakDots" title="Last 7 days of the streak"></div>
       </div>
+          <!-- PROACTIVE HOST EXAM DUE HEADER BADGE -->
+          <button id="btnExamDueBadge" class="btn-exam-due-badge" onclick="openDueHostExam()" style="margin-right: 10px; background: #7f1d1d; color: #fecaca; border: 1px solid #ef4444; border-radius: 6px; padding: 5px 12px; font-weight: 800; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;" title="Click to launch due Host Examination">
+            <span>🚨</span>
+            <span id="btnExamDueText">HOST EXAM DUE: SUNDAY TEST</span>
+          </button>
+
           <!-- SINGLE MONTH TAB BESIDE WILL OF FIRE (SAVES HEADER SPACE) -->
           <!-- Heading dynamically changes with calendar month (e.g., October -> November) -->
           <div class="month-dropdown-wrapper" id="monthDropdownWrapper">
@@ -4563,6 +4611,16 @@
           </div>
         </div>
 
+        <!-- Interactive 5-Card Phase 1 Selector Strip (Weeks 1–4 + Month-End Mega Exam) -->
+        <div class="p1-selector-strip-container" style="background: #0e172a; border: 1px solid #334155; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+          <div style="font-size: 0.82rem; font-weight: 800; color: #f59e0b; margin-bottom: 8px;">
+            📅 PHASE 1 INTERACTIVE CURATION GRID (SELECT SUNDAY TEST TO FILTER LEDGER & PRE-LOAD FACE A):
+          </div>
+          <div class="p1-week-cards-grid" id="p1WeekCardsGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+            <!-- Rendered by renderP1WeekCards() -->
+          </div>
+        </div>
+
         <!-- Interactive Study Ledger -->
         <div class="exam-ledger-table-wrap">
           <div class="exam-ledger-toolbar">
@@ -4789,7 +4847,10 @@
             <h4 class="topper-guide-title">⭐ HOW THARUN ANSWERED VS. HOW TO ANSWER FOR MAXIMUM MARKS</h4>
             <p class="topper-guide-sub">P-E-E-D Protocol: Point • Explain • Evidence/Formula • Diagram/Step  |  Highlights required keywords to underline for 100% marks.</p>
           </div>
-          <button class="btn-preview-tool primary" onclick="printActiveTopperGuide()">🖨️ Print Topper Guide</button>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button class="btn-preview-tool" style="background:#f59e0b; color:#1c1104; font-weight:800; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;" onclick="exportCompleteBinderPdf()">🖨️ Export Complete Exam & Topper Binder PDF</button>
+            <button class="btn-preview-tool primary" onclick="printActiveTopperGuide()">🖨️ Print Topper Guide</button>
+          </div>
         </div>
 
         <div class="topper-comparison-list" id="topperComparisonList">
@@ -10384,6 +10445,7 @@
       generateSchedule();
       renderTimetable();
       selectSlot(getInitialSlotIndex());
+      if (typeof updateHostExamDueBadge === 'function') updateHostExamDueBadge();
     }
 
     function changePreExamDay(day) {
@@ -10399,6 +10461,7 @@
         renderTimetable();
         selectSlot(getInitialSlotIndex());
       }
+      if (typeof updateHostExamDueBadge === 'function') updateHostExamDueBadge();
     }
 
     function changeExamSubject(sub) {
@@ -10409,6 +10472,7 @@
         renderTimetable();
         selectSlot(getInitialSlotIndex());
       }
+      if (typeof updateHostExamDueBadge === 'function') updateHostExamDueBadge();
     }
 
     function changeLevel(lvl) {
@@ -14484,22 +14548,196 @@ let activeEvaluation = null;
 let activeExamId = '';
 let uploadedAnswerFiles = [];
 
-// Built-in initial Study Ledger Entries (seeded from Class 8 Diary & Syllabus)
+// Built-in initial Study Ledger Entries (seeded from Class 8 Diary & Syllabus across Weeks 1–4)
 let studyLedgerEntries = JSON.parse(localStorage.getItem('v3_study_ledger') || 'null');
-if (!studyLedgerEntries || studyLedgerEntries.length === 0) {
+if (!studyLedgerEntries || studyLedgerEntries.length < 15) {
   studyLedgerEntries = [
-    { date: "2026-10-08", subject: "Mathematics", chapter_topic: "Ex 9.1: Mensuration Area Calculations", task_description: "Solve Ex 9.1 Q1-4 in CW. Find area of trapezium & quadrilateral field.", status: "studied", source: "diary" },
-    { date: "2026-10-08", subject: "Physical Science", chapter_topic: "Ch 11: Contact & Non-Contact Forces", task_description: "Read pages 128-132. Write differences between muscular and magnetic forces.", status: "studied", source: "diary" },
-    { date: "2026-10-08", subject: "Social Science", chapter_topic: "Ch 2: Trade to Territory (Battle of Plassey)", task_description: "Answer Q1, Q2 in notes. Reasons for East India Company expansion.", status: "studied", source: "diary" },
-    { date: "2026-10-08", subject: "English", chapter_topic: "The Best Christmas Present in the World", task_description: "Write character sketch of Jim Macpherson. Review 5 vocabulary words.", status: "studied", source: "diary" },
-    { date: "2026-10-07", subject: "Mathematics", chapter_topic: "Ex 9.1: Area of Trapezium", task_description: "Ex 9.1 Q1, 2 step-by-step calculations with formula boxes.", status: "studied", source: "diary" },
-    { date: "2026-10-07", subject: "Biological Science", chapter_topic: "Ch 1: Crop Production & Management", task_description: "Draw and label agricultural implements. Contrast Kharif vs Rabi crops.", status: "studied", source: "diary" },
-    { date: "2026-10-07", subject: "Tamil", chapter_topic: "தமிழ் வரிவடிவ வளர்ச்சி (Tamil Orthography)", task_description: "மனப்பாடப் பாடல் 4 வரிகள் எழுதிப் பார்க்கவும். 1-finger spacing rule.", status: "studied", source: "diary" },
-    { date: "2026-10-06", subject: "Mathematics", chapter_topic: "Algebraic Identities Review", task_description: "Revise (a+b)^2, (a-b)^2, a^2-b^2. Solve 5 textbook practice problems.", status: "studied", source: "diary" },
-    { date: "2026-10-06", subject: "Social Science", chapter_topic: "Ch 2: Land, Soil, Water Resources", task_description: "Draw soil profile diagram with HB pencil and write 4 soil conservation methods.", status: "studied", source: "diary" },
-    { date: "2026-10-06", subject: "Hindi", chapter_topic: "ध्वनि (कविता) - सूर्यकांत त्रिपाठी 'निराला'", task_description: "कवि का परिचय एवं प्रथम दो अंतरे का भावार्थ लिखें।", status: "studied", source: "diary" }
+    // Week 1 (Oct 1 - Oct 7)
+    { date: "2026-10-01", week_number: 1, subject: "Mathematics", chapter_topic: "Rational Numbers & Operations", task_description: "Properties of Rational Numbers & Number Line hand-solving.", status: "studied", source: "diary", study_duration_mins: 30 },
+    { date: "2026-10-02", week_number: 1, subject: "Physical Science", chapter_topic: "Crop Production & Management", task_description: "Agricultural practices & modern irrigation methods (Drip/Sprinkler).", status: "studied", source: "diary", study_duration_mins: 25 },
+    { date: "2026-10-03", week_number: 1, subject: "Social Science", chapter_topic: "Resources & Classification", task_description: "Natural, Human-made, Human resources & conservation principles.", status: "studied", source: "diary", study_duration_mins: 30 },
+    { date: "2026-10-04", week_number: 1, subject: "Tamil", chapter_topic: "தமிழ் வரிவடிவ வளர்ச்சி", task_description: "எழுத்துச் சீர்திருத்தத்தின் தேவை மற்றும் வினா-விடை.", status: "studied", source: "diary", study_duration_mins: 25 },
+    { date: "2026-10-05", week_number: 1, subject: "English", chapter_topic: "The Best Christmas Present in the World", task_description: "Comprehension passage & letter writing format.", status: "studied", source: "diary", study_duration_mins: 25 },
+    { date: "2026-10-06", week_number: 1, subject: "Biological Science", chapter_topic: "Microorganisms: Friend and Foe", task_description: "Bacterial and viral disease transmission tabular summary.", status: "studied", source: "diary", study_duration_mins: 30 },
+
+    // Week 2 (Oct 8 - Oct 14)
+    { date: "2026-10-07", week_number: 2, subject: "Mathematics", chapter_topic: "Understanding Quadrilaterals", task_description: "Angle sum property of polygons & Parallelogram theorems.", status: "studied", source: "diary", study_duration_mins: 35 },
+    { date: "2026-10-08", week_number: 2, subject: "Physical Science", chapter_topic: "Synthetic Fibres and Plastics", task_description: "Thermoplastics vs Thermosetting plastics comparison table.", status: "studied", source: "diary", study_duration_mins: 25 },
+    { date: "2026-10-09", week_number: 2, subject: "Social Science", chapter_topic: "From Trade to Territory", task_description: "Battle of Plassey & Buxar cause-effect flow diagram.", status: "studied", source: "diary", study_duration_mins: 30 },
+    { date: "2026-10-10", week_number: 2, subject: "Hindi", chapter_topic: "ध्वनि कविता एवं शब्दार्थ", task_description: "'अभी न होगा मेरा अंत' - भावार्थ तथा कठिन शब्द।", status: "studied", source: "diary", study_duration_mins: 20 },
+    { date: "2026-10-11", week_number: 2, subject: "Biological Science", chapter_topic: "Conservation of Plants and Animals", task_description: "Biosphere reserves, National Parks & Red Data Book review.", status: "studied", source: "diary", study_duration_mins: 30 },
+    { date: "2026-10-12", week_number: 2, subject: "Tamil", chapter_topic: "திருக்குறள் (அதிகாரம் 1-5)", task_description: "குறள் மனனம், சீர் பிரித்து எழுதுதல் & பொருள் விளக்கம்.", status: "studied", source: "diary", study_duration_mins: 25 },
+
+    // Week 3 (Oct 13 - Oct 18)
+    { date: "2026-10-13", week_number: 3, subject: "Mathematics", chapter_topic: "Algebraic Expressions & Identities", task_description: "Ex 9.1 Q1-4 hand-solving & standard identities check.", status: "studied", source: "diary", study_duration_mins: 30 },
+    { date: "2026-10-14", week_number: 3, subject: "Physical Science", chapter_topic: "Force & Pressure", task_description: "Friction factors & numericals on pressure (P=F/A).", status: "studied", source: "diary", study_duration_mins: 25 },
+    { date: "2026-10-15", week_number: 3, subject: "Social Science", chapter_topic: "When People Rebel: 1857", task_description: "Cause-event-consequence tree of 1857 uprising.", status: "studied", source: "diary", study_duration_mins: 30 },
+    { date: "2026-10-16", week_number: 3, subject: "Tamil", chapter_topic: "இயல் 1 - கவிதைப்பேழை & இலக்கணம்", task_description: "திருக்குறள் மற்றும் மயங்கொலி எழுத்துகள் பயிற்சி.", status: "studied", source: "diary", study_duration_mins: 25 },
+    { date: "2026-10-17", week_number: 3, subject: "Biological Science", chapter_topic: "Cell - Structure and Functions", task_description: "Plant vs Animal cell labeled diagram clinic.", status: "studied", source: "diary", study_duration_mins: 30 },
+    { date: "2026-10-18", week_number: 3, subject: "Mathematics", chapter_topic: "Mensuration (Cylinder & Trapezium)", task_description: "Area of trapezium and surface area of cylinders.", status: "studied", source: "diary", study_duration_mins: 35 },
+
+    // Week 4 (Oct 19 - Oct 25)
+    { date: "2026-10-19", week_number: 4, subject: "Mathematics", chapter_topic: "Squares, Square Roots & Cubes", task_description: "Prime factorization and long division root extraction.", status: "studied", source: "diary", study_duration_mins: 35 },
+    { date: "2026-10-20", week_number: 4, subject: "Physical Science", chapter_topic: "Chemical Effects of Electric Current", task_description: "Electroplating principles & circuit diagrams.", status: "studied", source: "diary", study_duration_mins: 30 },
+    { date: "2026-10-21", week_number: 4, subject: "Social Science", chapter_topic: "Tribals, Dikus and the Golden Age", task_description: "Birsa Munda movement & colonial impact on forest laws.", status: "studied", source: "diary", study_duration_mins: 25 },
+    { date: "2026-10-22", week_number: 4, subject: "Hindi", chapter_topic: "लाख की चूड़ियाँ - कामतानाथ", task_description: "कहानी का सारांश, मशीनी युग का प्रभाव तथा प्रश्नोत्तर।", status: "studied", source: "diary", study_duration_mins: 25 },
+    { date: "2026-10-23", week_number: 4, subject: "Biological Science", chapter_topic: "Microorganisms: Friend and Foe", task_description: "Nitrogen cycle step-by-step diagram & preservation methods.", status: "studied", source: "diary", study_duration_mins: 30 },
+    { date: "2026-10-24", week_number: 4, subject: "Physical Science", chapter_topic: "Combustion and Flame", task_description: "Zones of candle flame & conditions necessary for combustion.", status: "studied", source: "diary", study_duration_mins: 30 }
   ];
   localStorage.setItem('v3_study_ledger', JSON.stringify(studyLedgerEntries));
+}
+
+let activeP1SelectedWeek = null;
+
+function getP1WeekStats(weekNum) {
+  let entries = [];
+  if (weekNum >= 1 && weekNum <= 4) {
+    entries = studyLedgerEntries.filter(e => {
+      if (e.week_number) return e.week_number === weekNum;
+      const day = parseInt((e.date || '2026-10-01').split('-')[2], 10);
+      return Math.min(4, Math.floor((day - 1) / 7) + 1) === weekNum;
+    });
+  } else {
+    // Month-End Mega Exam
+    entries = [...studyLedgerEntries];
+  }
+  const subjects = Array.from(new Set(entries.map(e => e.subject).filter(Boolean)));
+  const totalMins = entries.reduce((acc, e) => acc + (parseInt(e.study_duration_mins || 25, 10)), 0);
+  return {
+    count: entries.length,
+    subjects: subjects,
+    subjectCount: subjects.length,
+    durationMins: totalMins
+  };
+}
+
+function renderP1WeekCards() {
+  const container = document.getElementById('p1WeekCardsGrid');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const cardsData = [
+    { wk: 1, title: '📅 Week 1 Sunday Test', sub: 'Mon–Sat Homework (Week 1)' },
+    { wk: 2, title: '📅 Week 2 Sunday Test', sub: 'Mon–Sat Homework (Week 2)' },
+    { wk: 3, title: '📅 Week 3 Sunday Test', sub: 'Mon–Sat Homework (Week 3)' },
+    { wk: 4, title: '📅 Week 4 Sunday Test', sub: 'Mon–Sat Homework (Week 4)' },
+    { wk: 5, title: '🏆 Month-End Mega Exam', sub: 'Combined Weeks 1+2+3+4' }
+  ];
+
+  cardsData.forEach(c => {
+    const stats = getP1WeekStats(c.wk);
+    const isActive = activeP1SelectedWeek === c.wk;
+    const card = document.createElement('div');
+    card.className = `p1-week-card ${isActive ? 'active' : ''}`;
+    card.onclick = () => selectP1WeekCard(c.wk);
+    card.innerHTML = `
+      <div>
+        <div class="p1-card-tag">${c.wk === 5 ? 'GRAND SYLLABUS' : 'WEEKLY TEST'}</div>
+        <div class="p1-card-name" style="${isActive ? 'color:#f59e0b;' : ''}">${c.title}</div>
+        <div style="font-size:0.7rem; color:#cbd5e1; margin-bottom:4px;">${c.sub}</div>
+      </div>
+      <div class="p1-card-stats">
+        <div><strong style="color:${isActive ? '#f59e0b' : '#38bdf8'}; font-size:0.8rem;">${stats.count}</strong> Logged Entries</div>
+        <div style="color:#94a3b8; font-size:0.68rem; margin-top:2px;">${stats.subjectCount} Subjects (${stats.durationMins}m)</div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function selectP1WeekCard(wk) {
+  activeP1SelectedWeek = wk;
+  renderP1WeekCards();
+  renderExamLedgerTable();
+
+  // Pre-load into Face A (Sub-View 2: Question Paper Architect)
+  const titleInput = document.getElementById('faExamTitle');
+  const marksSelect = document.getElementById('faMaxMarks');
+  const timeSelect = document.getElementById('faTimeAllowed');
+  const subSelect = document.getElementById('faSubject');
+  const stats = getP1WeekStats(wk);
+
+  if (wk <= 4) {
+    if (titleInput) titleInput.value = `Phase 1: Week ${wk} Sunday Comprehensive Examination (Class 8 CBSE)`;
+    if (marksSelect) marksSelect.value = '35';
+    if (timeSelect) timeSelect.value = '1.5 Hours';
+    if (subSelect && stats.subjects.length > 0) subSelect.value = stats.subjects[0];
+  } else {
+    if (titleInput) titleInput.value = 'Phase 1: Month-End Grand Syllabus Examination (Class 8 CBSE)';
+    if (marksSelect) marksSelect.value = '80';
+    if (timeSelect) timeSelect.value = '3 Hours';
+    if (subSelect) subSelect.value = 'Mathematics';
+  }
+
+  const statusMsg = document.getElementById('faStatusMsg');
+  if (statusMsg) {
+    const label = wk <= 4 ? `Week ${wk} Sunday Test` : 'Month-End Mega Exam';
+    statusMsg.innerText = `📋 Pre-loaded dataset from ${label} (${stats.count} entries across ${stats.subjectCount} subjects). Ready to architect question paper!`;
+    statusMsg.style.color = '#f59e0b';
+  }
+}
+
+function updateHostExamDueBadge() {
+  const badge = document.getElementById('btnExamDueBadge');
+  const textSpan = document.getElementById('btnExamDueText');
+  if (!badge || !textSpan) return;
+
+  const now = new Date();
+  const isSunday = (now.getDay() === 0);
+  const pDay = typeof preExamDay !== 'undefined' ? preExamDay : parseInt(localStorage.getItem("tharun_pre_exam_day") || "1", 10);
+  const isPreExam = typeof isPreExamMode !== 'undefined' ? isPreExamMode : (document.getElementById("modeSelect")?.value === "pre_exam");
+  const isExam = typeof isExamMode !== 'undefined' ? isExamMode : (document.getElementById("modeSelect")?.value === "exam");
+  const curSub = typeof selectedExamSubject !== 'undefined' ? selectedExamSubject : (document.getElementById("examSubSelect")?.value || "Mathematics");
+
+  if (isSunday) {
+    textSpan.innerText = "HOST EXAM DUE: SUNDAY TEST";
+    badge.style.background = "#7f1d1d";
+    badge.style.color = "#fecaca";
+    badge.style.borderColor = "#ef4444";
+    badge.style.boxShadow = "0 0 10px rgba(239, 68, 68, 0.4)";
+    badge.style.display = "inline-flex";
+  } else if (isPreExam && (pDay % 3 === 0)) {
+    textSpan.innerText = `DAY ${pDay} CHECKPOINT EXAM DUE`;
+    badge.style.background = "#581c87";
+    badge.style.color = "#f3e8ff";
+    badge.style.borderColor = "#a855f7";
+    badge.style.boxShadow = "0 0 10px rgba(168, 85, 247, 0.4)";
+    badge.style.display = "inline-flex";
+  } else if (isExam && now.getHours() < 12) {
+    textSpan.innerText = `MORNING SPRINT DUE: ${curSub.toUpperCase()}`;
+    badge.style.background = "#064e3b";
+    badge.style.color = "#d1fae5";
+    badge.style.borderColor = "#10b981";
+    badge.style.boxShadow = "0 0 10px rgba(16, 185, 129, 0.4)";
+    badge.style.display = "inline-flex";
+  } else {
+    textSpan.innerText = "HOST EXAM: SUNDAY READY";
+    badge.style.background = "#1e293b";
+    badge.style.color = "#94a3b8";
+    badge.style.borderColor = "#334155";
+    badge.style.boxShadow = "none";
+    badge.style.display = "inline-flex";
+  }
+}
+
+function openDueHostExam() {
+  const tabBtn = document.getElementById('tabBtnExam');
+  if (tabBtn && typeof switchTab === 'function') {
+    switchTab('tab-exam', tabBtn);
+  }
+  const now = new Date();
+  if (now.getDay() === 0) {
+    switchExamSubTab('face_a');
+    launchExamPhase(1, 'weekly');
+  } else {
+    const isPreExam = typeof isPreExamMode !== 'undefined' ? isPreExamMode : (document.getElementById("modeSelect")?.value === "pre_exam");
+    if (isPreExam) {
+      switchExamSubTab('face_a');
+      launchExamPhase(2, '3day');
+    } else {
+      switchExamSubTab('ledger');
+    }
+  }
 }
 
 function renderExamTab() {
@@ -14516,6 +14754,7 @@ function renderExamTab() {
       badge.style.color = '#94a3b8';
     }
   }
+  renderP1WeekCards();
   renderExamLedgerTable();
   if (!activeQuestionPaper) {
     generateExamPaperV3(true);
@@ -14541,14 +14780,20 @@ function renderExamLedgerTable() {
   tbody.innerHTML = '';
   studyLedgerEntries.forEach((entry, idx) => {
     if (filter !== 'all' && !entry.subject.toLowerCase().includes(filter)) return;
+
+    if (activeP1SelectedWeek && activeP1SelectedWeek <= 4) {
+      const entryWk = entry.week_number || Math.min(4, Math.floor((parseInt((entry.date || '2026-10-01').split('-')[2], 10) - 1) / 7) + 1);
+      if (entryWk !== activeP1SelectedWeek) return;
+    }
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${entry.date}</strong></td>
       <td><span style="color:#38bdf8; font-weight:700;">${entry.subject}</span></td>
       <td>${entry.chapter_topic}</td>
       <td>${entry.task_description}</td>
-      <td><span style="color:#10b981; font-weight:700;">✓ ${entry.status}</span></td>
-      <td><span style="color:#94a3b8;">${entry.source}</span></td>
+      <td><span style="color:#10b981; font-weight:700;">✓ ${entry.status || 'studied'}</span></td>
+      <td><span style="color:#94a3b8;">${entry.source || 'diary'}</span></td>
     `;
     tbody.appendChild(tr);
   });
@@ -14903,9 +15148,10 @@ function evaluateExamPaperV3() {
 
     renderEvaluationReport(activeEvaluation);
     renderTopperGuide(activeEvaluation);
+    syncEvalErrorsToErrorBankWeb(activeEvaluation);
 
     if (statusMsg) {
-      statusMsg.innerText = "✓ Evaluation Complete! Scored " + scoredMarks + " / " + totalMarks + " (" + pct + "%)";
+      statusMsg.innerText = "✓ Evaluation Complete! Scored " + scoredMarks + " / " + totalMarks + " (" + pct + "%). Error Bank synced!";
       statusMsg.style.color = "#34d399";
     }
   }, 600);
@@ -14980,6 +15226,228 @@ function renderTopperGuide(ev) {
     `;
     container.appendChild(card);
   });
+function syncEvalErrorsToErrorBankWeb(ev) {
+  if (!ev || !ev.question_evaluations) return;
+  let bank = JSON.parse(localStorage.getItem("tharun_error_bank") || "[]");
+  let nextId = bank.length ? Math.max(...bank.map(b => b.id || 0)) + 1 : 1;
+  let addedCount = 0;
+
+  ev.question_evaluations.forEach(q => {
+    if (q.marks_awarded < q.max_marks) {
+      const sub = ev.subject || activeQuestionPaper?.header_block?.subject || "Mathematics";
+      const trap = (q.topper_comparison?.keywords_to_underline && q.topper_comparison.keywords_to_underline[0]) ? q.topper_comparison.keywords_to_underline[0] : `Q${q.q_num} Key Step`;
+      const slip = q.topper_comparison?.tharun_weakness || q.red_ink_annotations || "Lost marks during exam";
+      const fix = q.topper_comparison?.topper_model_answer ? ("Write step-by-step: " + q.topper_comparison.topper_model_answer.replace(/\n/g, ' ').slice(0, 150)) : "Follow CBSE standard marking steps.";
+      
+      let cat = "Conceptual & Step-Wise Slip";
+      const lower = (slip + " " + q.question_text).toLowerCase();
+      if (lower.includes("unit") || lower.includes("cm") || lower.includes("m²") || lower.includes("symbol") || lower.includes("₹")) {
+        cat = "Calculation / Unit Omission Error";
+      } else if (lower.includes("spelling") || lower.includes("letter") || lower.includes("மாத்திரை") || lower.includes("மயங்கொலி")) {
+        cat = "Spelling / Orthographic Slip";
+      } else if (lower.includes("diagram") || lower.includes("label") || lower.includes("graph")) {
+        cat = "Diagram & Layout Incompleteness";
+      }
+
+      const existing = bank.find(b => b.subject === sub && b.trap_word === trap);
+      if (existing) {
+        existing.occurrences = (existing.occurrences || 1) + 1;
+        existing.last_spotted = new Date().toISOString().split('T')[0];
+      } else {
+        bank.push({
+          id: nextId++,
+          subject: sub,
+          category: cat,
+          trap_word: trap,
+          slip: slip,
+          fix: fix,
+          occurrences: 1,
+          date_added: new Date().toISOString().split('T')[0],
+          exam_id: ev.exam_id || activeExamId
+        });
+        addedCount++;
+      }
+    }
+  });
+
+  localStorage.setItem("tharun_error_bank", JSON.stringify(bank));
+  if (typeof studentErrorBank !== 'undefined') {
+    studentErrorBank = bank;
+  }
+}
+
+function exportCompleteBinderPdf() {
+  const ev = activeEvaluation || {
+    exam_id: activeExamId || "EXAM-DEMO",
+    student_name: "Tharun",
+    class_standard: currentExamClass,
+    marks_scored: 22.0,
+    max_marks: 25.0,
+    percentage: 88.0,
+    cbse_grade: "A2",
+    daydreaming_audit: {
+      verdict: "VERIFIED_ACCURATE",
+      summary: "Workings match logged homework. Zero daydreaming deficit detected."
+    },
+    question_evaluations: [
+      {
+        q_num: "Q1",
+        question_text: "Find the area of a trapezium whose parallel sides are 12 cm and 20 cm, and the distance between them is 8 cm.",
+        max_marks: 3,
+        marks_awarded: 2.5,
+        student_transcription: "Area = 1/2 * (12 + 20) * 8 = 1/2 * 32 * 8 = 128 cm",
+        step_breakdown: ["+1.0M: Formula stated", "+1.0M: Correct substitution", "+0.5M: Arithmetic calculation", "-0.5M: Unit written as cm instead of cm²"],
+        red_ink_annotations: "Unit slip: cm written instead of cm² (-0.5M). Area always has square units.",
+        topper_comparison: {
+          tharun_weakness: "Wrote linear unit 'cm' instead of areal unit 'cm²'.",
+          topper_model_answer: "Given: a = 12 cm, b = 20 cm, h = 8 cm.\nArea of Trapezium = 1/2 × (a + b) × h\n= 1/2 × (12 + 20) × 8 = 1/2 × 32 × 8 = 128 cm².\n[ Area = 128 cm² ]",
+          keywords_to_underline: ["Area = 1/2 × (a + b) × h", "128 cm²"]
+        }
+      }
+    ]
+  };
+
+  const printWin = window.open('', '_blank');
+  if (!printWin) {
+    alert("Please allow popups to view and export the Complete Exam & Topper Binder PDF.");
+    return;
+  }
+
+  let questionsHtml = '';
+  let topperHtml = '';
+  let checklistHtml = '';
+
+  ev.question_evaluations.forEach(q => {
+    questionsHtml += `
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 12px; background: #f8fafc;">
+        <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:6px; color:#0f172a;">
+          <span>${q.q_num}: ${q.question_text}</span>
+          <span style="color:#0284c7;">Marks: ${q.marks_awarded} / ${q.max_marks}</span>
+        </div>
+        <div style="margin-bottom:6px; font-size:13px;"><strong>Tharun's Transcription:</strong> <i>"${q.student_transcription}"</i></div>
+        <div style="color:#dc2626; font-size:13px; font-weight:bold; background:#fee2e2; padding:6px 10px; border-radius:4px; margin-top:6px;">
+          🔴 Red-Ink Teacher Annotation: ${q.red_ink_annotations}
+        </div>
+      </div>
+    `;
+
+    topperHtml += `
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 12px; page-break-inside:avoid;">
+        <div style="font-weight:bold; margin-bottom:8px; color:#1e293b;">${q.q_num}: ${q.question_text} [${q.max_marks}M]</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div style="background:#fef2f2; border:1px solid #fecaca; padding:10px; border-radius:4px;">
+            <div style="font-weight:bold; color:#991b1b; margin-bottom:4px;">⚠️ How Tharun Answered:</div>
+            <div style="font-size:12px; font-style:italic;">"${q.student_transcription}"</div>
+            <div style="margin-top:6px; font-weight:bold; font-size:12px; color:#b91c1c;">Daydreaming / Omission Slip:</div>
+            <div style="font-size:12px; color:#7f1d1d;">${q.topper_comparison?.tharun_weakness || 'Omission'}</div>
+          </div>
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:10px; border-radius:4px;">
+            <div style="font-weight:bold; color:#166534; margin-bottom:4px;">🌟 CBSE 100/100 Topper Model Answer:</div>
+            <div style="font-size:12px; white-space:pre-line; color:#14532d;">${q.topper_comparison?.topper_model_answer || ''}</div>
+            <div style="margin-top:6px; font-weight:bold; font-size:12px; color:#15803d;">Mandatory Keywords to Underline:</div>
+            <div style="font-size:12px; color:#166534;"><u>${(q.topper_comparison?.keywords_to_underline || []).join(', ')}</u></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    checklistHtml += `
+      <tr>
+        <td style="padding:8px; border:1px solid #cbd5e1; font-weight:bold;">${q.q_num}</td>
+        <td style="padding:8px; border:1px solid #cbd5e1;">${q.question_text.slice(0, 70)}...</td>
+        <td style="padding:8px; border:1px solid #cbd5e1; color:#0284c7; font-weight:bold;">${(q.topper_comparison?.keywords_to_underline || []).join(', ')}</td>
+        <td style="padding:8px; border:1px solid #cbd5e1; text-align:center;">[  ]</td>
+      </tr>
+    `;
+  });
+
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>CBSE Unified Physical Binder: Tharun's Evaluated Examination & Topper Benchmark</title>
+      <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; color: #0f172a; line-height: 1.4; }
+        h1, h2, h3 { margin: 0 0 8px 0; }
+        .binder-page { page-break-after: always; padding: 20px 0; }
+        .binder-page:last-child { page-break-after: avoid; }
+        .header-box { border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
+        .part-badge { display: inline-block; background: #0f172a; color: #fff; font-weight: 800; font-size: 12px; padding: 4px 10px; border-radius: 4px; margin-bottom: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+        @media print {
+          body { margin: 0; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="no-print" style="background:#fef3c7; border:1px solid #f59e0b; padding:10px 16px; border-radius:6px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:bold; color:#92400e;">🖨️ Physical Exam & Topper Binder (Print / Save as PDF Ready)</span>
+        <button onclick="window.print()" style="background:#f59e0b; color:#1c1104; font-weight:800; border:none; padding:8px 18px; border-radius:6px; cursor:pointer;">Print / Save as PDF</button>
+      </div>
+
+      <div class="binder-page">
+        <div class="header-box">
+          <div class="part-badge">PART 1 OF 3: EVALUATED SCORECARD & RED-INK SCRIPT</div>
+          <h2>SENTHIL PUBLIC SCHOOL • CBSE EXAMINATION EVALUATION</h2>
+          <div style="font-size:13px; color:#475569; margin-top:4px;">
+            Student: <strong>${ev.student_name || 'Tharun'}</strong> | Class: <strong>${ev.class_standard || currentExamClass}</strong> | Exam ID: <strong>${ev.exam_id}</strong>
+          </div>
+          <div style="display:flex; gap:16px; margin-top:12px; flex-wrap:wrap;">
+            <div style="background:#0284c7; color:#fff; padding:6px 14px; border-radius:6px; font-weight:bold;">
+              SCORE: ${ev.marks_scored} / ${ev.max_marks} (${ev.percentage}%)
+            </div>
+            <div style="background:#059669; color:#fff; padding:6px 14px; border-radius:6px; font-weight:bold;">
+              CBSE GRADE: ${ev.cbse_grade}
+            </div>
+            <div style="background:#475569; color:#fff; padding:6px 14px; border-radius:6px; font-weight:bold;">
+              AUDIT: ${ev.daydreaming_audit?.verdict || 'VERIFIED'}
+            </div>
+          </div>
+        </div>
+        <div>${questionsHtml}</div>
+      </div>
+
+      <div class="binder-page">
+        <div class="header-box">
+          <div class="part-badge">PART 2 OF 3: SIDE-BY-SIDE TOPPER BENCHMARK</div>
+          <h2>HOW THARUN ANSWERED VS. HOW TO ANSWER FOR 100/100 FULL MARKS</h2>
+          <div style="font-size:13px; color:#475569; margin-top:4px;">
+            Benchmarked against CBSE Class 8 Official Marking Scheme & Exemplar Solutions
+          </div>
+        </div>
+        <div>${topperHtml}</div>
+      </div>
+
+      <div class="binder-page">
+        <div class="header-box">
+          <div class="part-badge">PART 3 OF 3: ANSWER STRUCTURE & KEYWORDS CHECKLIST</div>
+          <h2>P-E-E-D 5-POINT PRESENTATION PROTOCOL & KEYWORDS CHECKLIST</h2>
+          <div style="font-size:13px; color:#475569; margin-top:4px;">
+            P: Point • E: Explain • E: Evidence / Formula • D: Diagram / Calculations • S: Final Answer Box
+          </div>
+        </div>
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:12px; border-radius:6px; margin-bottom:16px; font-size:13px; line-height:1.5;">
+          <strong>Examiner's Underline Protocol:</strong> CBSE examiners scan handwritten scripts in 90 seconds. Toppers secure full marks by boxing the final answer and pencil-underlining crucial technical terms. Tharun must verify every box below before handing in his paper.
+        </div>
+        <table>
+          <thead>
+            <tr style="background:#f1f5f9; text-align:left;">
+              <th style="padding:8px; border:1px solid #cbd5e1;">Q#</th>
+              <th style="padding:8px; border:1px solid #cbd5e1;">Concept / Question</th>
+              <th style="padding:8px; border:1px solid #cbd5e1;">Mandatory Keywords to Underline</th>
+              <th style="padding:8px; border:1px solid #cbd5e1; text-align:center;">Underlined?</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${checklistHtml}
+          </tbody>
+        </table>
+      </div>
+    </body>
+    </html>
+  `);
+  printWin.document.close();
 }
 
 function printActiveEvaluation() {
@@ -15043,7 +15511,9 @@ function openAddStudyEntryModalV3() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  renderP1WeekCards();
   renderExamLedgerTable();
+  updateHostExamDueBadge();
 });
 </script>
 

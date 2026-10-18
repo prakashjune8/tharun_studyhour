@@ -251,21 +251,41 @@ class SubjectStudyLedger:
             except Exception as e:
                 print(f"[EXAM ENGINE] Error syncing diary: {e}")
 
-        # Also seed sample Mon-Sat logged entries for October Week 3 if empty
-        if len(ledger["entries"]) < 10:
+        # Seed sample Mon-Sat logged entries for October Weeks 1, 2, 3, and 4 if empty
+        existing_wks = set(e.get("week_number") for e in ledger.get("entries", []))
+        if len(ledger["entries"]) < 24 or not {1, 2, 3, 4}.issubset(existing_wks):
             sample_oct_entries = [
-                ("2026-10-12", "Mathematics", "Algebraic Expressions & Identities", "Ex 9.1 Q1-4 hand-solving & formula check", 30, 3),
-                ("2026-10-12", "Physical Science", "Force & Pressure", "Friction factors & numericals on pressure (P=F/A)", 25, 3),
-                ("2026-10-13", "Social Science", "When People Rebel: 1857", "Cause-event-consequence tree of 1857 uprising", 30, 3),
-                ("2026-10-13", "Tamil", "இயல் 1 - கவிதைப்பேழை & இலக்கணம்", "திருக்குறள் மற்றும் மயங்கொலி எழுத்துகள் பயிற்சி", 25, 3),
-                ("2026-10-14", "Biological Science", "Cell - Structure and Functions", "Plant vs Animal cell labeled diagram clinic", 30, 3),
-                ("2026-10-14", "English", "Honeydew - The Best Christmas Present", "Textual comprehension & formal letter structure", 25, 3),
-                ("2026-10-15", "Mathematics", "Linear Equations in One Variable", "Word problems on age and perimeter solving", 30, 3),
-                ("2026-10-15", "Hindi", "व्याकरण एवं शब्दार्थ", "संज्ञा, सर्वनाम तथा मुहावरे अभ्यास", 20, 3),
-                ("2026-10-16", "Physical Science", "Chemical Effects of Electric Current", "Electroplating principles & circuit diagrams", 30, 3),
-                ("2026-10-16", "Social Science", "Resources & Development", "Soil conservation methods & land degradation causes", 25, 3),
-                ("2026-10-17", "Mathematics", "Mensuration (Cylinder & Trapezium)", "Area of trapezium and surface area of cylinders", 35, 3),
-                ("2026-10-17", "Drawing & Diagram Practice", "NCERT Science Diagrams", "Human ear schematic & Plant cell comparative sketch", 20, 3),
+                # Week 1 (Oct 1 - Oct 6)
+                ("2026-10-01", "Mathematics", "Rational Numbers & Operations", "Properties of Rational Numbers & Number Line hand-solving", 30, 1),
+                ("2026-10-02", "Physical Science", "Crop Production & Management", "Agricultural practices & modern irrigation methods (Drip/Sprinkler)", 25, 1),
+                ("2026-10-03", "Social Science", "Resources & Classification", "Natural, Human-made, Human resources & conservation principles", 30, 1),
+                ("2026-10-04", "Tamil", "தமிழ் வரிவடிவ வளர்ச்சி", "எழுத்துச் சீர்திருத்தத்தின் தேவை மற்றும் வினா-விடை", 25, 1),
+                ("2026-10-05", "English", "The Best Christmas Present in the World", "Comprehension passage & letter writing format", 25, 1),
+                ("2026-10-06", "Biological Science", "Microorganisms: Friend and Foe", "Bacterial and viral disease transmission tabular summary", 30, 1),
+
+                # Week 2 (Oct 7 - Oct 12)
+                ("2026-10-07", "Mathematics", "Understanding Quadrilaterals", "Angle sum property of polygons & Parallelogram theorems", 35, 2),
+                ("2026-10-08", "Physical Science", "Synthetic Fibres and Plastics", "Thermoplastics vs Thermosetting plastics comparison table", 25, 2),
+                ("2026-10-09", "Social Science", "From Trade to Territory", "Battle of Plassey & Buxar cause-effect flow diagram", 30, 2),
+                ("2026-10-10", "Hindi", "ध्वनि कविता एवं शब्दार्थ", "'अभी न होगा मेरा अंत' - भावार्थ तथा कठिन शब्द", 20, 2),
+                ("2026-10-11", "Biological Science", "Conservation of Plants and Animals", "Biosphere reserves, National Parks & Red Data Book review", 30, 2),
+                ("2026-10-12", "Tamil", "திருக்குறள் (அதிகாரம் 1-5)", "குறள் மனனம், சீர் பிரித்து எழுதுதல் & பொருள் விளக்கம்", 25, 2),
+
+                # Week 3 (Oct 13 - Oct 18)
+                ("2026-10-13", "Mathematics", "Algebraic Expressions & Identities", "Ex 9.1 Q1-4 hand-solving & standard identities check", 30, 3),
+                ("2026-10-14", "Physical Science", "Force & Pressure", "Friction factors & numericals on pressure (P=F/A)", 25, 3),
+                ("2026-10-15", "Social Science", "When People Rebel: 1857", "Cause-event-consequence tree of 1857 uprising", 30, 3),
+                ("2026-10-16", "Tamil", "இயல் 1 - கவிதைப்பேழை & இலக்கணம்", "திருக்குறள் மற்றும் மயங்கொலி எழுத்துகள் பயிற்சி", 25, 3),
+                ("2026-10-17", "Biological Science", "Cell - Structure and Functions", "Plant vs Animal cell labeled diagram clinic", 30, 3),
+                ("2026-10-18", "Mathematics", "Mensuration (Cylinder & Trapezium)", "Area of trapezium and surface area of cylinders", 35, 3),
+
+                # Week 4 (Oct 19 - Oct 24)
+                ("2026-10-19", "Mathematics", "Squares, Square Roots & Cubes", "Prime factorization and long division root extraction", 35, 4),
+                ("2026-10-20", "Physical Science", "Chemical Effects of Electric Current", "Electroplating principles & circuit diagrams", 30, 4),
+                ("2026-10-21", "Social Science", "Tribals, Dikus and the Golden Age", "Birsa Munda movement & colonial impact on forest laws", 25, 4),
+                ("2026-10-22", "English", "The Tsunami & Geography Lesson", "Extract-based questions & Poetic devices identification", 25, 4),
+                ("2026-10-23", "Tamil", "வேற்றுமை உருபுகள் (இலக்கணம்)", "முதல் முதல் எட்டாம் வேற்றுமை உருபுகள் அட்டவணை", 25, 4),
+                ("2026-10-24", "Physical Science", "Combustion and Flame", "Zones of candle flame diagram & calorific value problems", 30, 4),
             ]
             for d_str, sub, top, desc, dur, wk in sample_oct_entries:
                 cls.record_entry(
@@ -295,6 +315,38 @@ class SubjectStudyLedger:
             e for e in ledger.get("entries", [])
             if e.get("month", "").lower() == month.lower()
         ]
+
+    @classmethod
+    def get_week_stats(cls, month: str = "October", week_number: Optional[int] = None) -> Dict[str, Any]:
+        """Calculates exact count of logged entries and unique subjects for Weeks 1-4 and Month-End."""
+        ledger = cls.load_ledger()
+        all_entries = [e for e in ledger.get("entries", []) if e.get("month", "").lower() == month.lower()]
+        stats = {}
+        for wk in (1, 2, 3, 4):
+            wk_entries = [e for e in all_entries if e.get("week_number") == wk]
+            subs = sorted(list(set(e["subject"] for e in wk_entries)))
+            stats[wk] = {
+                "count": len(wk_entries),
+                "entries_count": len(wk_entries),
+                "subjects": subs,
+                "subject_count": len(subs),
+                "subjects_count": len(subs),
+                "duration_mins": sum(e.get("study_duration_mins", 30) for e in wk_entries)
+            }
+        all_subs = sorted(list(set(e["subject"] for e in all_entries)))
+        stats["monthend"] = {
+            "count": len(all_entries),
+            "entries_count": len(all_entries),
+            "subjects": all_subs,
+            "subject_count": len(all_subs),
+            "subjects_count": len(all_subs),
+            "duration_mins": sum(e.get("study_duration_mins", 30) for e in all_entries)
+        }
+        if week_number is not None:
+            if week_number in ("monthend", "month_end", 5):
+                return stats["monthend"]
+            return stats.get(week_number, stats.get(1))
+        return stats
 
 
 # Initialize & seed ledger
@@ -518,20 +570,87 @@ class GeminiExamClient:
 
     @classmethod
     def extract_text_from_pdf(cls, pdf_path: str, max_pages: int = 15) -> str:
-        """Extract text from textbook PDF using pypdf."""
-        if not PdfReader or not os.path.exists(pdf_path):
+        """
+        Extract text from textbook PDF using pypdf.
+        If extracted text is < 100 characters per page (scanned image PDF),
+        attempts local winocr / PIL image extraction so scanned chapters never fail with empty text.
+        """
+        if not os.path.exists(pdf_path):
             return ""
+        extracted = []
+        is_scanned = False
+        total_chars = 0
+        pages_checked = 0
+
+        if PdfReader:
+            try:
+                reader = PdfReader(pdf_path)
+                pages_checked = min(len(reader.pages), max_pages)
+                for i, page in enumerate(reader.pages[:max_pages]):
+                    txt = page.extract_text() or ""
+                    total_chars += len(txt.strip())
+                    if txt:
+                        extracted.append(f"--- PAGE {i+1} ---\n{txt}")
+
+                avg_chars = total_chars / max(1, pages_checked)
+                if avg_chars < 100:
+                    is_scanned = True
+                    print(f"[EXAM ENGINE] Scanned PDF detected: avg {avg_chars:.1f} chars/page (<100 threshold). Initiating OCR fallback.")
+            except Exception as e:
+                print(f"[EXAM ENGINE] Error in pypdf extraction: {e}")
+                is_scanned = True
+
+        if is_scanned or total_chars < 100:
+            ocr_text = cls._ocr_scanned_pdf(pdf_path, max_pages=max_pages)
+            if ocr_text.strip():
+                return ocr_text
+
+        return "\n\n".join(extracted)
+
+    @classmethod
+    def is_scanned_pdf(cls, pdf_path: str, max_pages: int = 15) -> bool:
+        """Check if PDF is a camera scan (avg extracted text < 100 characters per page)."""
+        if not os.path.exists(pdf_path) or not PdfReader:
+            return False
         try:
             reader = PdfReader(pdf_path)
-            extracted = []
-            for i, page in enumerate(reader.pages[:max_pages]):
-                txt = page.extract_text()
-                if txt:
-                    extracted.append(f"--- PAGE {i+1} ---\n{txt}")
-            return "\n\n".join(extracted)
+            pages_checked = min(len(reader.pages), max_pages)
+            if pages_checked == 0:
+                return True
+            total_chars = sum(len((p.extract_text() or "").strip()) for p in reader.pages[:pages_checked])
+            avg_chars = total_chars / max(1, pages_checked)
+            return avg_chars < 100
+        except Exception:
+            return True
+
+    @classmethod
+    def _ocr_scanned_pdf(cls, pdf_path: str, max_pages: int = 10) -> str:
+        """Run native Windows OCR on embedded images in scanned PDF pages."""
+        ocr_pages = []
+        try:
+            import winocr
+            from PIL import Image
+            import io
+            if PdfReader:
+                reader = PdfReader(pdf_path)
+                for i, page in enumerate(reader.pages[:max_pages]):
+                    page_text = []
+                    if hasattr(page, "images"):
+                        for img_obj in page.images:
+                            try:
+                                pil_img = Image.open(io.BytesIO(img_obj.data))
+                                res = winocr.recognize_pil_sync(pil_img)
+                                for line in res.get("lines", []):
+                                    line_txt = " ".join(w.get("text", "") for w in line.get("words", [])).strip()
+                                    if line_txt:
+                                        page_text.append(line_txt)
+                            except Exception:
+                                pass
+                    if page_text:
+                        ocr_pages.append(f"--- PAGE {i+1} (OCR) ---\n" + "\n".join(page_text))
         except Exception as e:
-            print(f"[EXAM ENGINE] Error extracting PDF text: {e}")
-            return ""
+            print(f"[EXAM ENGINE] Scanned PDF OCR fallback note: {e}")
+        return "\n\n".join(ocr_pages)
 
     @classmethod
     def load_skill_context(cls, skill_filenames: List[str]) -> str:
@@ -552,6 +671,7 @@ class GeminiExamClient:
         """
         Face A: Generates a complete, authentic CBSE Question Paper matching skill_01 & skill_02.
         - If textbook PDF exists in 02_UPLOADED_TEXTBOOKS_PDF: frames questions strictly from textbook.
+        - Scanned PDF Fallback: If text < 100 chars/page, converts pages / passes raw PDF bytes to Gemini Multimodal.
         - Fallback: Uses CBSE Class 8 NCERT curriculum pattern.
         """
         cfg = cls.load_config()
@@ -559,17 +679,28 @@ class GeminiExamClient:
 
         textbook_text = ""
         source_mode = "general_cbse_pattern"
+        pdf_bytes = None
+        is_scanned_pdf = False
+
         if textbook_pdf_name:
             pdf_path = os.path.join(TEXTBOOKS_PDF_DIR, textbook_pdf_name)
             if os.path.exists(pdf_path):
+                try:
+                    with open(pdf_path, "rb") as f:
+                        pdf_bytes = f.read()
+                except Exception as e:
+                    print(f"[EXAM ENGINE] Could not read raw PDF bytes: {e}")
+
                 textbook_text = cls.extract_text_from_pdf(pdf_path)
-                if textbook_text:
-                    source_mode = "specified_textbook_pdf"
+                if len(textbook_text.strip()) < 100:
+                    is_scanned_pdf = True
+                source_mode = "specified_textbook_pdf"
 
         # Try online generation via Gemini if available
         if api_key:
             try:
                 from google import genai
+                from google.genai import types
                 client = genai.Client(api_key=api_key)
 
                 skills_context = cls.load_skill_context([
@@ -589,7 +720,7 @@ Topics Covered: {', '.join(exam_spec.get('topics', []))}
 Source Mode: {source_mode}
 
 TEXTBOOK EXTRACT (If specified):
-{textbook_text[:6000] if textbook_text else "No textbook PDF uploaded. Use official NCERT Class 8 standard curriculum."}
+{textbook_text[:6000] if textbook_text else "No textbook PDF text extract available. If an attached PDF document is provided, read and formulate questions directly from the document pages."}
 
 REQUIREMENTS:
 1. Divide into standard Sections:
@@ -604,9 +735,21 @@ REQUIREMENTS:
 5. Return strictly valid JSON adhering to the schema specified in skill_05. Do not include markdown code block ticks.
 """
 
+                contents = []
+                # If scanned PDF or low char count, attach raw PDF bytes directly to Gemini Multimodal
+                if pdf_bytes and (is_scanned_pdf or len(textbook_text.strip()) < 100):
+                    try:
+                        pdf_part = types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+                        contents.append(pdf_part)
+                        print("[EXAM ENGINE] Attached raw PDF document bytes to Gemini Multimodal vision input.")
+                    except Exception as pe:
+                        print(f"[EXAM ENGINE] Warning creating PDF multimodal part: {pe}")
+
+                contents.append(prompt)
+
                 response = client.models.generate_content(
                     model=cfg.get("active_model", "gemini-2.5-flash"),
-                    contents=prompt,
+                    contents=contents,
                     config={
                         "system_instruction": skills_context[:8000],
                         "response_mime_type": "application/json"
@@ -1092,38 +1235,117 @@ REQUIREMENTS:
         cls.render_model_answer_guide_pdf(eval_data, m_pdf_path)
 
         # 4. Automatically log mistakes to student_error_bank.json
-        cls._log_mistakes_to_error_bank(eval_data.get("recurring_mistakes_to_log", []))
+        cls.sync_eval_errors_to_error_bank(eval_data)
 
-    @staticmethod
-    def _log_mistakes_to_error_bank(slips: List[Dict[str, Any]]):
-        if not slips or not os.path.exists(ERROR_BANK_FILE):
-            return
-        try:
-            with open(ERROR_BANK_FILE, "r", encoding="utf-8") as f:
-                bank = json.load(f)
-            max_id = max([item.get("id", 0) for item in bank] + [0])
-            for s in slips:
-                # Check if category exists
-                match = next((item for item in bank if item.get("category") == s.get("category")), None)
+    @classmethod
+    def sync_eval_errors_to_error_bank(cls, eval_data: Dict[str, Any]):
+        """
+        Automated Error Bank Sync:
+        Whenever Face B evaluates an answer script, automatically extracts every
+        question where marks were deducted (awarded_marks < max_marks) and appends
+        a structured entry (subject, category, trap_word, slip, fix, date) into
+        student_error_bank.json so Tharun's mistakes appear in his Error Bank modal.
+        """
+        if not os.path.exists(ERROR_BANK_FILE):
+            bank = []
+        else:
+            try:
+                with open(ERROR_BANK_FILE, "r", encoding="utf-8") as f:
+                    bank = json.load(f)
+            except Exception as e:
+                print(f"[EXAM ENGINE] Error reading {ERROR_BANK_FILE}: {e}")
+                bank = []
+
+        sub = eval_data.get("subject") or "Mathematics"
+        exam_id = eval_data.get("exam_id", "EXAM")
+        today_str = datetime.date.today().isoformat()
+        max_id = max([item.get("id", 0) for item in bank] + [0])
+        added_count = 0
+
+        # 1. Process explicit recurring slips if provided
+        for s in eval_data.get("recurring_mistakes_to_log", []):
+            match = next((item for item in bank if item.get("category") == s.get("category") and item.get("subject") == s.get("subject")), None)
+            if match:
+                match["occurrences"] = match.get("occurrences", 1) + 1
+                match["last_spotted"] = today_str
+            else:
+                max_id += 1
+                bank.append({
+                    "id": max_id,
+                    "subject": s.get("subject", sub),
+                    "category": s.get("category", "CBSE Step Slip"),
+                    "trap_word": s.get("trap_word", ""),
+                    "slip": s.get("slip", ""),
+                    "fix": s.get("fix", ""),
+                    "occurrences": 1,
+                    "last_spotted": today_str
+                })
+                added_count += 1
+
+        # 2. Extract every question where marks were deducted (awarded_marks < max_marks)
+        for q in eval_data.get("question_evaluations", []):
+            try:
+                max_m = float(q.get("max_marks", 0))
+                awd_m = float(q.get("marks_awarded", 0))
+            except Exception:
+                continue
+
+            if awd_m < max_m:
+                comp = q.get("topper_comparison", {})
+                slip_text = comp.get("tharun_weakness")
+                if not slip_text and q.get("red_ink_annotations"):
+                    slip_text = " | ".join(q.get("red_ink_annotations"))
+                if not slip_text:
+                    slip_text = f"Step mark deduction on {q.get('q_num')}: scored {awd_m}/{max_m}"
+
+                fix_text = comp.get("topper_model_answer") or "Show all intermediate steps and box final answer."
+                kws = comp.get("keywords_to_underline", [])
+                trap_word = kws[0] if kws else q.get("q_num", "Deduction")
+
+                # Categorize the slip
+                s_lower = (slip_text + " " + q.get("question_text", "")).lower()
+                if "unit" in s_lower or "pa" in s_lower or "cm" in s_lower or "meter" in s_lower or "n/m" in s_lower:
+                    cat = "SI Unit & Boxed Answer Omission"
+                elif "sign" in s_lower or "minus" in s_lower or "negative" in s_lower:
+                    cat = "Algebraic Sign & Expansion Slip"
+                elif "formula" in s_lower or "theorem" in s_lower or "property" in s_lower:
+                    cat = "Formula State & Substitution Slip"
+                elif "diagram" in s_lower or "label" in s_lower:
+                    cat = "Diagram Labeling & Presentation"
+                elif "மயங்கொலி" in s_lower or "எழுத்து" in s_lower or "மாத்திரா" in s_lower or "spelling" in s_lower:
+                    cat = "Indic Language Orthography & Spelling"
+                else:
+                    cat = f"CBSE Step Precision ({q.get('q_num', 'General')})"
+
+                # Check if this trap_word / category already in bank for this subject
+                match = next((item for item in bank if (item.get("trap_word", "").lower() == str(trap_word).lower() or item.get("category") == cat) and item.get("subject", "").lower() == sub.lower()), None)
                 if match:
                     match["occurrences"] = match.get("occurrences", 1) + 1
-                    match["last_spotted"] = datetime.date.today().isoformat()
+                    match["last_spotted"] = today_str
+                    match["last_exam_id"] = exam_id
                 else:
                     max_id += 1
                     bank.append({
                         "id": max_id,
-                        "subject": s.get("subject", "General"),
-                        "category": s.get("category", "Calculation / Slip"),
-                        "trap_word": s.get("trap_word", ""),
-                        "slip": s.get("slip", ""),
-                        "fix": s.get("fix", ""),
+                        "subject": sub,
+                        "category": cat,
+                        "trap_word": str(trap_word),
+                        "slip": slip_text,
+                        "fix": fix_text,
                         "occurrences": 1,
-                        "last_spotted": datetime.date.today().isoformat()
+                        "last_spotted": today_str,
+                        "last_exam_id": exam_id
                     })
+                    added_count += 1
+
+        try:
             with open(ERROR_BANK_FILE, "w", encoding="utf-8") as f:
                 json.dump(bank, f, indent=2, ensure_ascii=False)
+            print(f"[EXAM ENGINE] Error Bank auto-sync: {len(bank)} entries updated in student_error_bank.json")
+            return len(bank)
         except Exception as e:
-            print(f"[EXAM ENGINE] Error logging to student_error_bank: {e}")
+            print(f"[EXAM ENGINE] Error writing {ERROR_BANK_FILE}: {e}")
+            return 0
 
     # ==========================================================================
     # 4. TYPESETTING & EXPORT STUDIO (HTML & REPORTLAB PDF)
@@ -1716,3 +1938,185 @@ REQUIREMENTS:
             story.append(Spacer(1, 8))
 
         doc.build(story)
+
+    @classmethod
+    def render_unified_binder_pdf(cls, eval_data: Dict[str, Any], output_pdf_path: str):
+        """
+        1-Click Combined Physical Binder PDF:
+        Generates a single, unified ReportLab PDF containing:
+          - Part 1: Evaluated Scorecard & Red-Ink Corrected Answer Script
+          - Part 2: Side-by-Side 'How Tharun Answered' vs. 'How a CBSE Topper Answers for Full Marks'
+          - Part 3: 'How to Structure the Answer' (P-E-E-D Protocol) + 'Mandatory Keywords to Underline' Checklist
+        """
+        if not REPORTLAB_AVAILABLE:
+            return
+        reg_font, bold_font = register_indic_unicode_fonts()
+        doc = SimpleDocTemplate(output_pdf_path, pagesize=A4, leftMargin=32, rightMargin=32, topMargin=28, bottomMargin=28)
+        styles = getSampleStyleSheet()
+
+        main_title_style = ParagraphStyle('BinderMainTitle', parent=styles['Heading1'], fontName=bold_font, fontSize=12, alignment=1, spaceAfter=2, textColor=colors.HexColor('#0f172a'))
+        sub_title_style = ParagraphStyle('BinderSubTitle', parent=styles['Normal'], fontName=reg_font, fontSize=8, alignment=1, spaceAfter=6, textColor=colors.HexColor('#475569'))
+        part_head_style = ParagraphStyle('BinderPartHead', parent=styles['Heading2'], fontName=bold_font, fontSize=10.5, spaceBefore=8, spaceAfter=4, textColor=colors.HexColor('#0284c7'))
+        meta_style = ParagraphStyle('BinderMeta', parent=styles['Normal'], fontName=bold_font, fontSize=8, textColor=colors.HexColor('#0f172a'))
+        score_style = ParagraphStyle('BinderScore', parent=styles['Normal'], fontName=bold_font, fontSize=9, textColor=colors.HexColor('#059669'))
+        q_head_style = ParagraphStyle('BinderQHead', parent=styles['Normal'], fontName=bold_font, fontSize=8.5, textColor=colors.HexColor('#0f172a'))
+        trans_style = ParagraphStyle('BinderTrans', parent=styles['Normal'], fontName=reg_font, fontSize=8, textColor=colors.HexColor('#1e293b'))
+        red_style = ParagraphStyle('BinderRed', parent=styles['Normal'], fontName=bold_font, fontSize=7.5, textColor=colors.HexColor('#b91c1c'))
+        col_hdr_red = ParagraphStyle('BinderColHdrRed', parent=styles['Normal'], fontName=bold_font, fontSize=7.5, textColor=colors.HexColor('#b91c1c'))
+        col_hdr_grn = ParagraphStyle('BinderColHdrGrn', parent=styles['Normal'], fontName=bold_font, fontSize=7.5, textColor=colors.HexColor('#047857'))
+        body_style = ParagraphStyle('BinderBody', parent=styles['Normal'], fontName=reg_font, fontSize=7.5, leading=10)
+        rule_style = ParagraphStyle('BinderRule', parent=styles['Normal'], fontName=reg_font, fontSize=8, leading=11, textColor=colors.HexColor('#334155'))
+
+        story = []
+
+        # =========================================================================
+        # PART 1: EVALUATED SCORECARD & RED-INK CORRECTED ANSWER SCRIPT
+        # =========================================================================
+        story.append(Paragraph(eval_data.get("school", "SENTHIL PUBLIC SCHOOL, DHARMAPURI").upper(), main_title_style))
+        story.append(Paragraph("AFFILIATED TO CBSE, NEW DELHI • UNIFIED PHYSICAL BINDER & TOPPER BENCHMARK", sub_title_style))
+        story.append(Spacer(1, 4))
+
+        meta_rows = [
+            [
+                Paragraph(f"<b>STUDENT:</b> {eval_data.get('student_name', 'Tharun')}", meta_style),
+                Paragraph(f"<b>CLASS:</b> {eval_data.get('class_standard', 'Class 8 CBSE')}", meta_style),
+                Paragraph(f"<b>SUBJECT:</b> {eval_data.get('subject', 'Mathematics')}", meta_style),
+            ],
+            [
+                Paragraph(f"<b>EXAM ID:</b> {eval_data.get('exam_id', 'EXAM')}", meta_style),
+                Paragraph(f"<b>DATE:</b> {datetime.date.today().strftime('%d-%m-%Y')}", meta_style),
+                Paragraph(f"<b>SCORE:</b> {eval_data.get('marks_obtained')} / {eval_data.get('max_marks')} ({eval_data.get('percentage')}%) - Grade {eval_data.get('grade')}", score_style),
+            ]
+        ]
+        meta_table = Table(meta_rows, colWidths=[170, 170, 190])
+        meta_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8fafc')),
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+            ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e2e8f0')),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        story.append(meta_table)
+        story.append(Spacer(1, 6))
+
+        story.append(Paragraph("PART 1: EVALUATED SCORECARD & RED-INK CORRECTED ANSWER SCRIPT", part_head_style))
+        story.append(Paragraph(f"🛡️ <i>Active Learning Verdict: {eval_data.get('daydreaming_verdict', 'VERIFIED ACTIVE LEARNING')}</i>", sub_title_style))
+        story.append(Spacer(1, 4))
+
+        for q in eval_data.get("question_evaluations", []):
+            card_rows = [
+                [Paragraph(f"<b>{q.get('q_num')}</b>: {q.get('question_text')}", q_head_style), Paragraph(f"<b>{q.get('marks_awarded')} / {q.get('max_marks')}</b>", score_style)],
+                [Paragraph(f"<b>Tharun's Script:</b> <i>{q.get('student_transcription')}</i>", trans_style), ""],
+                [Paragraph("<b>Evaluator Red-Ink Annotations:</b> " + "<br/>".join(q.get("red_ink_annotations", ["Checked. Correct."])), red_style), ""]
+            ]
+            t = Table(card_rows, colWidths=[450, 80])
+            t.setStyle(TableStyle([
+                ('SPAN', (0, 1), (1, 1)),
+                ('SPAN', (0, 2), (1, 2)),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f1f5f9')),
+                ('LINEBELOW', (0, 2), (-1, 2), 0.5, colors.HexColor('#cbd5e1')),
+                ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#94a3b8')),
+                ('TOPPADDING', (0, 0), (-1, -1), 3),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ]))
+            story.append(t)
+            story.append(Spacer(1, 4))
+
+        # =========================================================================
+        # PART 2: SIDE-BY-SIDE COMPARISON (HOW THARUN ANSWERED VS TOPPER)
+        # =========================================================================
+        story.append(PageBreak())
+        story.append(Paragraph("PART 2: SIDE-BY-SIDE 'HOW THARUN ANSWERED' VS. 'CBSE TOPPER MODEL ANSWER'", part_head_style))
+        story.append(Paragraph("Comparative diagnostic identifying exact presentation gaps, missing keywords, and formula layout.", sub_title_style))
+        story.append(Spacer(1, 6))
+
+        for q in eval_data.get("question_evaluations", []):
+            comp = q.get("topper_comparison", {})
+            kw_str = ", ".join(comp.get("keywords_to_underline", []))
+
+            col_tharun = f"<b>Tharun's Written Answer:</b><br/><i>{q.get('student_transcription')}</i><br/><br/><b>Slip/Gap:</b> {comp.get('tharun_weakness')}"
+            col_topper = f"<b>CBSE Topper Model Answer (100% Marks):</b><br/>{comp.get('topper_model_answer')}<br/><br/><b>Keywords to Underline:</b> <u>{kw_str}</u>"
+
+            table_data = [
+                [Paragraph(f"<b>{q.get('q_num')}</b>: {q.get('question_text')}", q_head_style), ""],
+                [Paragraph("🔴 Tharun's Approach", col_hdr_red), Paragraph("🟢 CBSE Topper Benchmark (Full Marks)", col_hdr_grn)],
+                [Paragraph(col_tharun, body_style), Paragraph(col_topper, body_style)]
+            ]
+            t = Table(table_data, colWidths=[265, 265])
+            t.setStyle(TableStyle([
+                ('SPAN', (0, 0), (1, 0)),
+                ('BACKGROUND', (0, 0), (1, 0), colors.HexColor('#f1f5f9')),
+                ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#94a3b8')),
+                ('LINEBELOW', (0, 1), (-1, 1), 0.5, colors.HexColor('#cbd5e1')),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ]))
+            story.append(t)
+            story.append(Spacer(1, 6))
+
+        # =========================================================================
+        # PART 3: ANSWER STRUCTURING BLUEPRINT & KEYWORDS CHECKLIST
+        # =========================================================================
+        story.append(PageBreak())
+        story.append(Paragraph("PART 3: 'HOW TO STRUCTURE THE ANSWER' (P-E-E-D PROTOCOL) & KEYWORDS CHECKLIST", part_head_style))
+        story.append(Paragraph("CBSE Board Presentation Standards & Mandatory Terminology Verification", sub_title_style))
+        story.append(Spacer(1, 4))
+
+        rules_card = [
+            [Paragraph("<b>CBSE TOPPER 5-POINT PRESENTATION PROTOCOL:</b>", meta_style)],
+            [Paragraph("<b>1. P-E-E-D Layout:</b> <b>P</b>oint (clear statement) ➔ <b>E</b>xplain (concept) ➔ <b>E</b>vidence/Formula (equations with SI units) ➔ <b>D</b>iagram (clean pencil sketch).", rule_style)],
+            [Paragraph("<b>2. Formula Declaration:</b> State formula in standard symbols before substituting numbers (e.g., P = F / A).", rule_style)],
+            [Paragraph("<b>3. Boxed Final Answer:</b> Draw pencil box around every final numerical answer with SI unit: <b>[ Area = 150 cm² ]</b>.", rule_style)],
+            [Paragraph("<b>4. Mandatory Underlining:</b> Underline core scientific/mathematical terminology with pencil on first mention.", rule_style)],
+            [Paragraph("<b>5. Rough Work Column:</b> Maintain a neat 4 cm right margin for rough calculations. Never scribble over it.", rule_style)],
+        ]
+        t_rules = Table(rules_card, colWidths=[530])
+        t_rules.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ecfdf5')),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f8fafc')),
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#10b981')),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        story.append(t_rules)
+        story.append(Spacer(1, 8))
+
+        # Compile Keywords Checklist Table
+        story.append(Paragraph("MANDATORY KEYWORDS CHECKLIST (FOR THARUN'S PHYSICAL REVISION BINDER)", q_head_style))
+        story.append(Spacer(1, 3))
+
+        ck_rows = [
+            [Paragraph("<b>Q.Num</b>", meta_style), Paragraph("<b>Core Topic / Concept</b>", meta_style), Paragraph("<b>Mandatory Keywords to Underline</b>", meta_style), Paragraph("<b>Mastered</b>", meta_style)]
+        ]
+        for q in eval_data.get("question_evaluations", []):
+            comp = q.get("topper_comparison", {})
+            kws = comp.get("keywords_to_underline", [])
+            kw_disp = ", ".join(kws) if kws else "Key concept definition & unit"
+            ck_rows.append([
+                Paragraph(f"<b>{q.get('q_num')}</b>", body_style),
+                Paragraph(q.get("question_text", "")[:45] + "...", body_style),
+                Paragraph(kw_disp, body_style),
+                Paragraph("[  ] Done", body_style)
+            ])
+
+        ck_table = Table(ck_rows, colWidths=[50, 180, 240, 60])
+        ck_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e2e8f0')),
+            ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#94a3b8')),
+            ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e2e8f0')),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ]))
+        story.append(ck_table)
+
+        doc.build(story)
+        print(f"[EXAM ENGINE] Unified Complete Exam & Topper Binder PDF generated successfully: {output_pdf_path}")
+
+
+# Module-level aliases
+extract_text_from_pdf = GeminiExamClient.extract_text_from_pdf
+is_scanned_pdf = GeminiExamClient.is_scanned_pdf
+sync_eval_errors_to_error_bank = GeminiExamClient.sync_eval_errors_to_error_bank
+render_unified_binder_pdf = GeminiExamClient.render_unified_binder_pdf
+
