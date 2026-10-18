@@ -1,0 +1,379 @@
+{
+  "student_name": "Tharun",
+  "school": "Senthil Public School",
+  "version": "1.1",
+  "description": "Tharun's Time Variance, Cognitive Pace & Earned Freedom Ledger",
+  "subject_occurrence_audit": {
+    "description": "Weekly Subject Coverage & Cognitive Gravity Allocation Ledger (7 Official Senthil Public School Subjects)",
+    "rolling_week_cycle": "Current Rolling 7-Day Cycle",
+    "math_daily_rule_verified": true,
+    "total_official_subjects": 7,
+    "active_in_loop": 7,
+    "subjects": [
+      {
+        "subject": "Mathematics",
+        "category": "Core",
+        "gravity_score": 3,
+        "weekly_target_sessions": 7,
+        "actual_sessions_logged": 7,
+        "total_minutes_logged": 245,
+        "occurrence_rate": "100%",
+        "rotation_status": "🟢 Daily Muscle (7/7 Days)",
+        "last_covered": "Today (Daily Hand-Solving)",
+        "pedagogical_focus": "NCERT/State textbook hand-solving, step-by-step proofs & algebraic identities"
+      },
+      {
+        "subject": "Physical Science",
+        "category": "Core",
+        "gravity_score": 3,
+        "weekly_target_sessions": 4,
+        "actual_sessions_logged": 4,
+        "total_minutes_logged": 120,
+        "occurrence_rate": "100%",
+        "rotation_status": "🟢 Optimal Loop (4/4 Sessions)",
+        "last_covered": "Yesterday (Atom & Lenses)",
+        "pedagogical_focus": "Thomson/Rutherford atom models, ray diagrams, lens formula & chemical formulas"
+      },
+      {
+        "subject": "Biological Science",
+        "category": "Core",
+        "gravity_score": 3,
+        "weekly_target_sessions": 4,
+        "actual_sessions_logged": 4,
+        "total_minutes_logged": 115,
+        "occurrence_rate": "100%",
+        "rotation_status": "🟢 Optimal Loop (4/4 Sessions)",
+        "last_covered": "Today (Active Homework)",
+        "pedagogical_focus": "Blind diagrams: Heart, neuron, reflex arc, xylem/phloem & structure-function cards"
+      },
+      {
+        "subject": "Social Science",
+        "category": "Core",
+        "gravity_score": 2,
+        "weekly_target_sessions": 4,
+        "actual_sessions_logged": 3,
+        "total_minutes_logged": 85,
+        "occurrence_rate": "88%",
+        "rotation_status": "🟢 On Track (3/4 Sessions)",
+        "last_covered": "Today (Complementary Evening Slot)",
+        "pedagogical_focus": "1857 cause-event flow-trees, M-C-T-R-S soil mnemonic & India map pinning"
+      },
+      {
+        "subject": "Tamil",
+        "category": "Language",
+        "gravity_score": 2,
+        "weekly_target_sessions": 3,
+        "actual_sessions_logged": 3,
+        "total_minutes_logged": 85,
+        "occurrence_rate": "100%",
+        "rotation_status": "🟢 Target Met (3/3 Sessions)",
+        "last_covered": "Today (Evening Homework)",
+        "pedagogical_focus": "ழ/ள/ல error correction, Thirukkural recitation, self-writing prose answers"
+      },
+      {
+        "subject": "English",
+        "category": "Language",
+        "gravity_score": 2,
+        "weekly_target_sessions": 3,
+        "actual_sessions_logged": 3,
+        "total_minutes_logged": 90,
+        "occurrence_rate": "100%",
+        "rotation_status": "🟢 Target Met (3/3 Sessions)",
+        "last_covered": "Morning Clinic (Complementary Rotation)",
+        "pedagogical_focus": "Grammar (tenses/modals/articles), formal letter format & Error Bank review"
+      },
+      {
+        "subject": "Hindi",
+        "category": "Language",
+        "gravity_score": 2,
+        "weekly_target_sessions": 3,
+        "actual_sessions_logged": 2,
+        "total_minutes_logged": 60,
+        "occurrence_rate": "80%",
+        "rotation_status": "🟡 Next in Loop (2/3 Sessions)",
+        "last_covered": "Scheduled in Weekly Rotation",
+        "pedagogical_focus": "Vigyapan Lekhan box, Chitra Varnan paragraph & Matra error reduction"
+      }
+    ]
+  },
+  "total_variance_records": 3,
+  "total_extensions_recorded": 2,
+  "cumulative_extra_minutes": 25,
+  "total_surplus_events": 1,
+  "cumulative_saved_minutes": 183,
+  "subject_friction_summary": {
+    "Mathematics": {
+      "extension_count": 1,
+      "total_extra_mins": 15,
+      "primary_cause": "Multi-step algebraic problem solving"
+    },
+    "Tamil": {
+      "extension_count": 1,
+      "total_extra_mins": 10,
+      "primary_cause": "Self-writing and spelling verification"
+    }
+  },
+  "subject_velocity_summary": {
+    "Physics": {
+      "surplus_count": 1,
+      "total_saved_mins": 15,
+      "fastest_task": "Concept Review: Physics D.N: 4"
+    }
+  },
+  "audit_records": [
+    {
+      "record_id": "MONTHLY_REPORT_2026-10",
+      "timestamp": "2026-10-13 08:06",
+      "variance_type": "MONTHLY_PARENT_AUDIT_REPORT",
+      "subject": "📅 October",
+      "task_title": "October / 2026 Monthly Effort Report (4/31d active)",
+      "original_planned_mins": 1395,
+      "extended_mins": 0,
+      "saved_mins": 0,
+      "actual_total_mins": 260,
+      "reason": "Streak: 4d | Study: 4.3 hrs (260m) | Rank: CHUNIN",
+      "cascade_impact": "Submitted to Tharun's Audit for Parents Review (MANUAL_PARENT_REVIEW)"
+    },
+    {
+      "id": "EARLY_20261008_230241",
+      "timestamp": "2026-10-08T23:02:41.113020",
+      "date": "2026-10-08",
+      "variance_type": "PROACTIVE_EARLY_START",
+      "phase": "Early Initiative",
+      "slot_title": "Started Early at 17:00",
+      "subject": "Self-Discipline / Initiative",
+      "original_mins": 0,
+      "saved_mins": 168,
+      "extended_mins": 0,
+      "actual_total_mins": 168,
+      "reason": "Tharun took self-initiative to begin studying early at 17:00",
+      "action_taken": "Routine finishes early at 07:15 PM. Earned 2.8 hrs of free evening leisure.",
+      "cascade_action": {
+        "action_choice": "EARNED_FREE_LEISURE",
+        "free_leisure_hours": 2.8,
+        "routine_finish_time": "07:15 PM",
+        "bedtime_impact": "10:00 PM Bedtime 100% Preserved (Zero night-time study pressure)"
+      }
+    },
+    {
+      "id": "SURPLUS_20261007_193500",
+      "timestamp": "2026-10-07T19:35:00",
+      "date": "2026-10-07",
+      "variance_type": "SURPLUS_EARLY_COMPLETION",
+      "phase": "Evening Study",
+      "slot_title": "Concept Review: Physics D.N: 4",
+      "subject": "Physics",
+      "original_mins": 25,
+      "saved_mins": 15,
+      "extended_mins": 0,
+      "actual_total_mins": 10,
+      "reason": "Swift active recall & key points memorized without distraction",
+      "action_taken": "Shifted routine forward ➔ Evening routine completed early at 09:45 PM",
+      "cascade_action": {
+        "action_choice": "Shifted routine forward",
+        "saved_mins": 15,
+        "new_routine_finish_time": "09:45 PM",
+        "bedtime_impact": "Routine finished earlier at 09:45 PM (Earned 15m free time)"
+      }
+    },
+    {
+      "id": "AUDIT_20261006_194510",
+      "timestamp": "2026-10-06T19:45:10",
+      "date": "2026-10-06",
+      "variance_type": "OVERRUN_EXTENSION",
+      "phase": "Evening Study",
+      "slot_title": "School Diary Homework: Mathematics",
+      "subject": "Mathematics",
+      "original_mins": 25,
+      "saved_mins": 0,
+      "extended_mins": 15,
+      "actual_total_mins": 40,
+      "reason": "Required extra step-by-step hand calculation for given geometry questions",
+      "action_taken": "Break & secondary slot compression",
+      "cascade_action": {
+        "compressed_slots": [
+          {
+            "slot": "Chair-Time Relief Break",
+            "original_mins": 12,
+            "new_mins": 7,
+            "delta": -5
+          },
+          {
+            "slot": "Science/Social Diagram Retention",
+            "original_mins": 40,
+            "new_mins": 30,
+            "delta": -10
+          }
+        ],
+        "extinguished_or_deferred_slots": [],
+        "bedtime_preserved": "10:00 PM (Inviolable)",
+        "school_bag_audit_preserved": true
+      }
+    },
+    {
+      "id": "AUDIT_20261007_064500",
+      "timestamp": "2026-10-07T06:45:00",
+      "date": "2026-10-07",
+      "variance_type": "OVERRUN_EXTENSION",
+      "phase": "Morning Revision",
+      "slot_title": "Language Clinic: Tamil Self-Writing",
+      "subject": "Tamil",
+      "original_mins": 35,
+      "saved_mins": 0,
+      "extended_mins": 10,
+      "actual_total_mins": 45,
+      "reason": "Writing answers on his own and correcting spelling mistakes in Error Bank",
+      "action_taken": "Morning buffer compression",
+      "cascade_action": {
+        "compressed_slots": [
+          {
+            "slot": "Morning Hydration Break",
+            "original_mins": 10,
+            "new_mins": 5,
+            "delta": -5
+          },
+          {
+            "slot": "Final School Dispatch Audit",
+            "original_mins": 10,
+            "new_mins": 5,
+            "delta": -5
+          }
+        ],
+        "extinguished_or_deferred_slots": [],
+        "bedtime_preserved": "07:30 AM (Morning Departure Preserved)",
+        "school_bag_audit_preserved": true
+      }
+    }
+  ],
+  "monthly_parent_reports": {
+    "2026-10": {
+      "report_id": "MONTHLY_AUDIT_2026-10",
+      "month_key": "2026-10",
+      "month_label": "October / 2026",
+      "submitted_at": "2026-10-13 08:06",
+      "trigger_source": "MANUAL_PARENT_REVIEW",
+      "parent_review_status": "SUBMITTED_FOR_PARENTS_REVIEW",
+      "streak_days": 4,
+      "best_streak_days": 4,
+      "active_days": 4,
+      "days_in_month": 31,
+      "total_minutes": 260,
+      "total_hours": 4.3,
+      "completed_slots": 9,
+      "effort_rank": "CHUNIN",
+      "week_breakdown": {
+        "W1": {
+          "mins": 0,
+          "active_days": 0,
+          "slots": 0
+        },
+        "W2": {
+          "mins": 220,
+          "active_days": 3,
+          "slots": 8
+        },
+        "W3": {
+          "mins": 40,
+          "active_days": 1,
+          "slots": 1
+        },
+        "W4": {
+          "mins": 0,
+          "active_days": 0,
+          "slots": 0
+        },
+        "W5": {
+          "mins": 0,
+          "active_days": 0,
+          "slots": 0
+        }
+      },
+      "subject_breakdown": {
+        "Mathematics": {
+          "mins": 140,
+          "sessions": 4
+        },
+        "Physical Science": {
+          "mins": 20,
+          "sessions": 1
+        },
+        "Tamil": {
+          "mins": 30,
+          "sessions": 1
+        },
+        "Biological Science": {
+          "mins": 30,
+          "sessions": 1
+        },
+        "Social Science": {
+          "mins": 25,
+          "sessions": 1
+        },
+        "Hindi": {
+          "mins": 15,
+          "sessions": 1
+        }
+      },
+      "feynman_notes_count": 9,
+      "feynman_highlights": [
+        {
+          "date": "2026-10-08",
+          "subject": "Physical Science",
+          "duration_mins": 20,
+          "mastery": "80%",
+          "notes": "Studied Refraction laws and Snell's law formula."
+        },
+        {
+          "date": "2026-10-09",
+          "subject": "Tamil",
+          "duration_mins": 30,
+          "mastery": "100%",
+          "notes": "Memorized Thirukkural 1-5 with flawless seeru and meaning."
+        },
+        {
+          "date": "2026-10-09",
+          "subject": "Biological Science",
+          "duration_mins": 30,
+          "mastery": "100%",
+          "notes": "Drew labeled diagram of Human Heart internal circulation."
+        },
+        {
+          "date": "2026-10-09",
+          "subject": "Mathematics",
+          "duration_mins": 15,
+          "mastery": "80%",
+          "notes": "Squares and square roots long division method revision."
+        },
+        {
+          "date": "2026-10-10",
+          "subject": "Mathematics",
+          "duration_mins": 45,
+          "mastery": "100%",
+          "notes": "Solved Squares & Square Roots Ex 2.2 prime factorization method Q1-10."
+        },
+        {
+          "date": "2026-10-10",
+          "subject": "Social Science",
+          "duration_mins": 25,
+          "mastery": "100%",
+          "notes": "Revised 1857 Revolt causes & leaders (Mangal Pandey, Rani Lakshmibai)."
+        },
+        {
+          "date": "2026-10-10",
+          "subject": "Hindi",
+          "duration_mins": 15,
+          "mastery": "80%",
+          "notes": "Wrote 5 spoken Hindi sentences and vocabulary word meanings."
+        },
+        {
+          "date": "2026-10-11",
+          "subject": "Mathematics",
+          "duration_mins": 40,
+          "mastery": "100%",
+          "notes": "Mastered Cube roots estimation and prime factor grouping."
+        }
+      ]
+    }
+  },
+  "bedtime_rollovers": []
+}

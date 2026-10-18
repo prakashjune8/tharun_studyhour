@@ -1,0 +1,5 @@
+# Version 3 Build & Cache Ignores
+build/
+__pycache__/
+*.pyc
+*.exe
