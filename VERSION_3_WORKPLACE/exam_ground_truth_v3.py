@@ -20,7 +20,22 @@ from datetime import datetime
 def get_base_dir() -> str:
     """Return persistent directory on disk."""
     if getattr(sys, 'frozen', False):
-        return os.path.dirname(os.path.abspath(sys.executable))
+        exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+        if os.path.exists(os.path.join(exe_dir, "EXAM_SYSTEM_V3")):
+            return exe_dir
+        v3_dir = os.path.join(exe_dir, "VERSION_3_WORKPLACE")
+        if os.path.exists(os.path.join(v3_dir, "EXAM_SYSTEM_V3")):
+            return v3_dir
+        meipass_path = getattr(sys, '_MEIPASS', None)
+        if meipass_path:
+            seed_exam = os.path.join(meipass_path, "EXAM_SYSTEM_V3")
+            if os.path.exists(seed_exam):
+                try:
+                    import shutil
+                    shutil.copytree(seed_exam, os.path.join(exe_dir, "EXAM_SYSTEM_V3"), dirs_exist_ok=True)
+                except Exception:
+                    pass
+        return exe_dir
     return os.path.dirname(os.path.abspath(__file__))
 
 BASE_DIR = get_base_dir()

@@ -5,39 +5,39 @@
   "location": "Adhiyamankottai, Dharmapuri - 636807",
   "student_name": "Tharun",
   "academic_year": "2026-2027",
-  "active_term": "Term-II",
+  "active_term": "Term-I",
   "terms": {
     "Term-I": {
-      "title": "Portions for Term-I Examination (Past / Completed)",
+      "title": "Portions for Term-I Examination - Class VIII (2026 - 27) CSK",
       "portions": [
         {
           "id": "sub_tamil",
           "s_no": 1,
           "subject": "Tamil",
-          "exam_date": "",
-          "exam_day": "",
+          "exam_date": "2026-09-09",
+          "exam_day": "Wednesday",
           "gravity": 2,
           "color": "#ea580c",
           "category": "language",
           "high_weightage_focus": "திருக்குறள் 1-10 எழுத்துப்பிழையின்றி எழுதுதல், இலக்கணம் (எழுத்துகளின் பிறப்பு, எச்சம், யாப்பு), உரைநடை வினா-விடை.",
           "components": [
             {
-              "name": "செய்யுள் (Poetry)",
+              "name": "செய்யுள் (இயல் 1, 2, 3)",
               "topics": [
                 "தமிழ்மொழி வாழ்த்து",
                 "தமிழ்மொழி மரபு",
                 "ஓடை",
                 "கோணக்காத்துப் பாட்டு",
                 "நோயும் மருந்தும்",
-                "வருமுன் காப்போம்"
+                "வருமுன் காப்போம் (பாடல் வினா, வினா விடை)"
               ]
             },
             {
-              "name": "உரைநடை (Prose)",
+              "name": "உரைநடை (இயல் 1, 2, 3)",
               "topics": [
                 "தமிழ் வரிவடிவ வளர்ச்சி",
                 "நிலம் பொது",
-                "தமிழர் மருத்துவம்"
+                "தமிழர் மருத்துவம் (வினா-விடை)"
               ]
             },
             {
@@ -47,7 +47,7 @@
               ]
             },
             {
-              "name": "துணைப்பாடம்",
+              "name": "துணைப்பாடம் (இயல் 1, 2, 3)",
               "topics": [
                 "பால் மனம்",
                 "வெட்டுக்கிளியும் சருகுமானும்",
@@ -55,7 +55,7 @@
               ]
             },
             {
-              "name": "இலக்கணம்",
+              "name": "இலக்கணம் (இயல் 1, 2, 3)",
               "topics": [
                 "எழுத்துகளின் பிறப்பு",
                 "வினைமுற்று",
@@ -69,273 +69,127 @@
                 "பத்தி",
                 "படம் பார்த்து எழுது",
                 "கடிதம்",
-                "பொதுக் கட்டுரை"
+                "பொதுக் கட்டுரை (Refer: இ.ப.தாள், பா.ஏடு, க.ப.ஏடு, பாடப் புத்தகம்)"
               ]
             }
           ]
         },
         {
           "id": "sub_math",
+          "s_no": 2,
           "subject": "Mathematics",
-          "exam_date": "",
-          "exam_day": "",
+          "exam_date": "2026-09-11",
+          "exam_day": "Friday",
           "gravity": 3,
           "color": "#2563eb",
           "category": "core_heavy",
+          "high_weightage_focus": "Step-by-step hand calculations, formulas, long division, and exercise proofs.",
           "chapters": [
             {
               "code": "Ch-1",
               "name": "Rational Numbers [Ex.1.4]",
-              "pages": ""
+              "pages": "25-32"
             },
             {
               "code": "Ch-2",
-              "name": "Squares and Square Roots, Cubes and Cube Roots",
-              "pages": ""
+              "name": "Squares and Square Roots, Cubes and Cube Roots [Ex.2.2, Ex.2.5]",
+              "pages": "47, 58-64"
             },
             {
               "code": "Ch-3",
               "name": "Ratio and Proportion",
-              "pages": ""
+              "pages": "67-84"
             },
             {
               "code": "Ch-4",
               "name": "Understanding Shapes",
-              "pages": ""
+              "pages": "87-110"
             },
             {
               "code": "Ch-5",
               "name": "Data Handling",
-              "pages": ""
+              "pages": "113-134"
             },
             {
               "code": "Ch-6",
               "name": "Sets",
-              "pages": ""
+              "pages": "137-157"
             },
             {
               "code": "Ch-7",
               "name": "Functions",
-              "pages": ""
+              "pages": "161-172"
             },
             {
               "code": "Ch-8",
               "name": "Matrices",
-              "pages": ""
+              "pages": "175-189"
             }
-          ],
-          "high_weightage_focus": "Step-by-step hand calculations, formulas, long division, and exercise proofs.",
-          "s_no": 2
+          ]
         },
         {
           "id": "sub_phy_sci",
+          "s_no": 3,
           "subject": "Physical Science",
-          "exam_date": "",
-          "exam_day": "",
+          "exam_date": "2026-09-16",
+          "exam_day": "Wednesday",
           "gravity": 3,
           "color": "#7c3aed",
           "category": "core_heavy",
+          "high_weightage_focus": "Ray diagrams for Lenses, chemical equations, Rutherford/Bohr models, and definitions.",
           "sub_branches": [
             {
               "branch": "Physics",
               "lessons": [
                 {
-                  "code": "Item-79",
-                  "name": "Date &",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-364",
-                  "name": "5ffüCuffLö.",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-635",
-                  "name": "ajrjla.1146).J QUITS], Yi-fi9j",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-130",
-                  "name": "(1-10)",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-594",
-                  "name": "LD6öTLÖ, 616fi)u-4Lb",
-                  "pages": ""
-                },
-                {
                   "code": "Ln-1",
                   "name": "Refraction of Light",
-                  "pages": ""
+                  "pages": "7-24"
                 },
                 {
                   "code": "Ln-2",
                   "name": "Lenses",
-                  "pages": ""
+                  "pages": "35-51"
                 },
                 {
                   "code": "Ln-3",
                   "name": "Static Electricity",
-                  "pages": ""
-                },
+                  "pages": "61-77"
+                }
+              ]
+            },
+            {
+              "branch": "Chemistry",
+              "lessons": [
                 {
                   "code": "Ln-1",
                   "name": "Structure of the Atom I",
-                  "pages": ""
+                  "pages": "7-24"
                 },
                 {
                   "code": "Ln-2",
-                  "name": "Structure of the Atom 11",
-                  "pages": ""
+                  "name": "Structure of the Atom II",
+                  "pages": "36-55"
                 },
                 {
                   "code": "Ln-3",
                   "name": "Periodic Properties of Elements",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-703",
-                  "name": "Social & Political life:",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-624",
-                  "name": "General Writing:",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-228",
-                  "name": "General writing:",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-753",
-                  "name": "73 ¯ 8 7",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-79",
-                  "name": "Date &",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-465",
-                  "name": "Advertise, Paragraph, Picture Description",
-                  "pages": ""
-                },
-                {
-                  "code": "Ln-ay",
-                  "name": ", Greeting words",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-335",
-                  "name": "Mai....Hoon",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-546",
-                  "name": "I......want",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-749",
-                  "name": "This, That",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-41",
-                  "name": "Spoken: 1-25 Sentences",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-473",
-                  "name": "Literature:",
-                  "pages": ""
-                },
-                {
-                  "code": "Ln-8",
-                  "name": "The value",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-154",
-                  "name": "Grammar:",
-                  "pages": ""
-                },
-                {
-                  "code": "Ln-4",
-                  "name": "The Present",
-                  "pages": ""
-                },
-                {
-                  "code": "Ln-5",
-                  "name": "The Past",
-                  "pages": ""
-                },
-                {
-                  "code": "Ln-6",
-                  "name": "The Future",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-464",
-                  "name": "writing",
-                  "pages": ""
-                },
-                {
-                  "code": "Item-536",
-                  "name": "Composition",
-                  "pages": ""
+                  "pages": "66-78"
                 }
               ]
             }
-          ],
-          "high_weightage_focus": "Ray diagrams for Lenses, chemical equations, Rutherford/Bohr models, and definitions.",
-          "s_no": 3
-        },
-        {
-          "id": "sub_bio_sci",
-          "subject": "Biological Science",
-          "exam_date": "",
-          "exam_day": "",
-          "gravity": 3,
-          "color": "#16a34a",
-          "category": "core_heavy",
-          "chapters": [
-            {
-              "code": "Ln-1",
-              "name": "Transportation of food and minerals in Animals",
-              "pages": ""
-            },
-            {
-              "code": "Ln-2",
-              "name": "Transportation of Food and minerals in Plants",
-              "pages": ""
-            },
-            {
-              "code": "Ln-3",
-              "name": "Control and coordination",
-              "pages": ""
-            },
-            {
-              "code": "Ln-4",
-              "name": "Reproduction, Development and Growth in Animals",
-              "pages": ""
-            }
-          ],
-          "high_weightage_focus": "Blind Diagram Protocol (Human Heart, Neuron, Brain, Reflex Arc, Xylem/Phloem).",
-          "s_no": 4
+          ]
         },
         {
           "id": "sub_soc_sci",
+          "s_no": 4,
           "subject": "Social Science",
-          "exam_date": "",
-          "exam_day": "",
+          "exam_date": "2026-09-18",
+          "exam_day": "Friday",
           "gravity": 2,
-          "color": "#d97706",
+          "color": "#0d9488",
           "category": "core_moderate",
+          "high_weightage_focus": "Causes & consequences of 1857, Indian Constitution key features, Map pointing (centers & crops).",
           "sub_branches": [
             {
               "branch": "History",
@@ -343,17 +197,17 @@
                 {
                   "code": "Ln-1",
                   "name": "The Establishment of Company power",
-                  "pages": ""
+                  "pages": "3-19"
                 },
                 {
                   "code": "Ln-2",
                   "name": "Rural life and Society",
-                  "pages": ""
+                  "pages": "20-36"
                 },
                 {
                   "code": "Ln-3",
                   "name": "Revolt of 1857",
-                  "pages": ""
+                  "pages": "37-53"
                 }
               ]
             },
@@ -363,84 +217,154 @@
                 {
                   "code": "Ln-1",
                   "name": "Resources",
-                  "pages": ""
+                  "pages": "3-15"
                 },
                 {
                   "code": "Ln-2",
                   "name": "Land, Soil, Water, Natural Vegetation and Wildlife resources",
-                  "pages": ""
+                  "pages": "16-44"
                 },
                 {
                   "code": "Ln-3",
                   "name": "Agriculture",
-                  "pages": ""
-                },
+                  "pages": "45-65"
+                }
+              ]
+            },
+            {
+              "branch": "Civics",
+              "lessons": [
                 {
                   "code": "Ln-1",
                   "name": "The Indian Constitution",
+                  "pages": "68-79"
+                },
+                {
+                  "code": "Map",
+                  "name": "Map pointing (Centers & Crops)",
                   "pages": ""
                 }
               ]
             }
-          ],
-          "high_weightage_focus": "Causes & consequences of 1857, Indian Constitution key features, Map pointing (centers & crops).",
-          "s_no": 5
+          ]
         },
         {
           "id": "sub_hindi",
+          "s_no": 5,
           "subject": "Hindi",
-          "exam_date": "",
-          "exam_day": "",
+          "exam_date": "2026-09-22",
+          "exam_day": "Tuesday",
           "gravity": 2,
-          "color": "#dc2626",
+          "color": "#d97706",
           "category": "language",
+          "high_weightage_focus": "पाठ्यपुस्तक प्रश्नोत्तर (Ln-1 to Ln-7), व्याकरण, विज्ञापन एवं अनुच्छेद लेखन, स्पोकन 1-25 वाक्य।",
           "components": [
             {
               "name": "पाठ (Lessons)",
               "topics": [
-                "Ln-2 Pariksha",
-                "Ln-3 Himalaya ke ped",
-                "Ln-4 Jal Chakra",
-                "Ln-7 Mann mei Hai vishwas"
+                "Ln-1: Hindusthan Hamara (pp. 8-13)",
+                "Ln-2: Pariksha (pp. 14-21)",
+                "Ln-3: Himalaya ke ped (pp. 22-32)",
+                "Ln-4: Jal Chakra (pp. 33-38)",
+                "Ln-7: Mann mei Hai vishwas (pp. 58-64)"
+              ]
+            },
+            {
+              "name": "General Writing",
+              "topics": [
+                "Advertise, Paragraph, Picture Description",
+                "5"
+              ]
+            },
+            {
+              "name": "Lab & Spoken Hindi",
+              "topics": [
+                "Apna parichay, Greeting words",
+                "Mai....Hoon",
+                "I......want",
+                "This, That",
+                "Spoken: 1-25 Sentences"
               ]
             }
-          ],
-          "high_weightage_focus": "पाठ्यपुस्तक प्रश्नोत्तर, व्याकरण, विज्ञापन एवं अनुच्छेद लेखन, स्पोकन 1-25 वाक्य।",
-          "s_no": 6
+          ]
+        },
+        {
+          "id": "sub_bio_sci",
+          "s_no": 6,
+          "subject": "Biological Science",
+          "exam_date": "2026-09-24",
+          "exam_day": "Thursday",
+          "gravity": 3,
+          "color": "#16a34a",
+          "category": "core_heavy",
+          "high_weightage_focus": "Blind Diagram Protocol (Human Heart, Neuron, Brain, Reflex Arc, Xylem/Phloem).",
+          "chapters": [
+            {
+              "code": "Ln-1",
+              "name": "Transportation of food and minerals in Animals",
+              "pages": "7-20"
+            },
+            {
+              "code": "Ln-2",
+              "name": "Transportation of Food and minerals in Plants",
+              "pages": "30-41"
+            },
+            {
+              "code": "Ln-3",
+              "name": "Control and coordination",
+              "pages": "52-63"
+            },
+            {
+              "code": "Ln-4",
+              "name": "Reproduction, Development and Growth in Animals",
+              "pages": "73¯87"
+            }
+          ]
         },
         {
           "id": "sub_eng",
+          "s_no": 7,
           "subject": "English",
-          "exam_date": "",
-          "exam_day": "",
+          "exam_date": "2026-09-26",
+          "exam_day": "Saturday",
           "gravity": 2,
           "color": "#0284c7",
           "category": "language",
+          "high_weightage_focus": "Grammar accuracy (Tenses, Modals, Gerunds), Formal Letter & Article format, Literature self-writing.",
           "components": [
             {
               "name": "Literature",
               "topics": [
-                "Ch-1 Tales of Historic Delhi",
-                "Ch-2 Entertainment"
+                "Ch-I Tales of Historic Delhi (pp. 12-15)",
+                "Ch-2 Entertainment (pp. 27-28)",
+                "Ch-3 The letter A (pp. 38-42)",
+                "Ch-4 Frosty, The showman (pp. 54-55)",
+                "Ch-7 Kitemaker (pp. 94-98)",
+                "Ch-8 The value (pp. 108-109)"
               ]
             },
             {
-              "name": "Composition & Writing",
+              "name": "Grammar",
               "topics": [
-                "Ch-3 The letter A",
-                "Ch-4 Frosty, The showman",
-                "Ch-7 Kitemaker",
-                "Ch-1 Parts of speech",
-                "Ch-2 Countable and Uncountable",
-                "Ch-3 Articles",
-                "Ch-7 Infinitive, Gerund participle",
-                "Ch-8 Modals",
-                "Comprehension, Formal and Informal Letter, Story writing, Article"
+                "Ch-I Parts of speech (pp. 7-12)",
+                "Ch-2 Countable and Uncountable (pp. 7-12)",
+                "7 (pp. 19-22)",
+                "Ch-3 Articles (pp. 24-31)",
+                "Ch-4 The Present (pp. 32-38)",
+                "Ch-5 The Past (pp. 40-45)",
+                "Ch-6 The Future (pp. 46-51)",
+                "Ch-7 Infinitive, Gerund participle (pp. 46-51)",
+                "Ch-8 Modals (pp. 58-63)"
+              ]
+            },
+            {
+              "name": "General Writing",
+              "topics": [
+                "Comprehension, Formal and Informal Letter, Story writing, Article",
+                "writing"
               ]
             }
-          ],
-          "high_weightage_focus": "Grammar accuracy (Tenses, Modals, Gerunds), Formal Letter & Article format, Literature self-writing.",
-          "s_no": 7
+          ]
         }
       ]
     },
@@ -1998,5 +1922,6 @@
         }
       ]
     }
-  }
+  },
+  "examination": "Portions for Term-I Examination (Past / Completed)"
 }

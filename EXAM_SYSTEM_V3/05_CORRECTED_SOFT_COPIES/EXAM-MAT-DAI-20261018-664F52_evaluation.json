@@ -1,0 +1,220 @@
+{
+  "evaluation_id": "EVAL-EXAM-MAT-DAI-20261018-664F52",
+  "exam_id": "EXAM-MAT-DAI-20261018-664F52",
+  "subject": "Mathematics",
+  "student_name": "Tharun",
+  "school": "Senthil Public School, Dharmapuri",
+  "evaluated_at": "2026-10-18 23:40:28",
+  "total_marks_possible": 17,
+  "total_marks_awarded": 17,
+  "percentage": 100.0,
+  "grade": "A1 • Exemplary CBSE Standard",
+  "mastery_status": "MASTERED • 100/100 BENCHMARK",
+  "total_questions": 7,
+  "step_breakdown": [
+    {
+      "question_number": "Q.1",
+      "question_text": "Evaluate using suitable identity: (103)^2 = (100 + 3)^2.",
+      "max_marks": 1,
+      "awarded_marks": 1,
+      "student_response": "(a) 10,609\nWorking: Using algebraic identity (a + b)^2 = a^2 + 2ab + b^2\n(100 + 3)^2 = 100^2 + 2(100)(3) + 3^2 = 10000 + 600 + 9 = 10,609.\nCorrect option is (a).",
+      "model_answer": "(a) 10,609",
+      "marking_scheme": "1 Mark for identity application",
+      "step_annotations": [
+        {
+          "step": "Identity Application & Working",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Accurate calculation and correct option selected."
+        }
+      ],
+      "evaluator_feedback": "Flawless step execution and correct option.",
+      "is_flawless": true
+    },
+    {
+      "question_number": "Q.2",
+      "question_text": "The product of monomials (-4p) and (7pq) is:",
+      "max_marks": 1,
+      "awarded_marks": 1,
+      "student_response": "(b) -28p^2q\nWorking: Product of monomials = (-4p) * (7pq) = (-4 * 7) * (p * p * q) = -28p^2q.\nCorrect option is (b).",
+      "model_answer": "(b) -28p^2q",
+      "marking_scheme": "1 Mark for correct sign and powers",
+      "step_annotations": [
+        {
+          "step": "Identity Application & Working",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Accurate calculation and correct option selected."
+        }
+      ],
+      "evaluator_feedback": "Flawless step execution and correct option.",
+      "is_flawless": true
+    },
+    {
+      "question_number": "Q.3",
+      "question_text": "Multiply the binomials: (2x + 5) and (4x - 3). Show all steps.",
+      "max_marks": 2,
+      "awarded_marks": 2,
+      "student_response": "Multiply binomials: (2x + 5) and (4x - 3)\nStep 1: Apply distributive property\n= 2x * (4x - 3) + 5 * (4x - 3)\n= (2x * 4x) - (2x * 3) + (5 * 4x) - (5 * 3)\n= 8x^2 - 6x + 20x - 15\nStep 2: Combine like terms (-6x + 20x = 14x)\n= 8x^2 + 14x - 15.\nFinal Answer Box: [8x^2 + 14x - 15]",
+      "model_answer": "8x^2 + 14x - 15",
+      "marking_scheme": "1 Mark for distributive law, 1 Mark for combining like terms",
+      "step_annotations": [
+        {
+          "step": "Step 1: Formula / Distributive Property Setup",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Distributive law applied accurately to both terms."
+        },
+        {
+          "step": "Step 2: Combining Like Terms & Final Value",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Accurate algebraic addition; final answer boxed."
+        }
+      ],
+      "evaluator_feedback": "Clear step separation and accurate algebraic simplification.",
+      "is_flawless": true
+    },
+    {
+      "question_number": "Q.4",
+      "question_text": "Solve the linear equation: 5x + 9 = 5 + 3x.",
+      "max_marks": 2,
+      "awarded_marks": 2,
+      "student_response": "Solve linear equation: 5x + 9 = 5 + 3x\nStep 1: Transposing variables to LHS and constants to RHS\n5x - 3x = 5 - 9\n2x = -4\nStep 2: Dividing by 2\nx = -4 / 2\nx = -2.\nFinal Answer Box: [x = -2]",
+      "model_answer": "x = -2",
+      "marking_scheme": "1 Mark for transposition (5x - 3x = 5 - 9), 1 Mark for final value",
+      "step_annotations": [
+        {
+          "step": "Step 1: Formula / Distributive Property Setup",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Distributive law applied accurately to both terms."
+        },
+        {
+          "step": "Step 2: Combining Like Terms & Final Value",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Accurate algebraic addition; final answer boxed."
+        }
+      ],
+      "evaluator_feedback": "Clear step separation and accurate algebraic simplification.",
+      "is_flawless": true
+    },
+    {
+      "question_number": "Q.5",
+      "question_text": "Find the area of a trapezium whose parallel sides are 12 cm and 20 cm, and the distance between them is 8 cm.",
+      "max_marks": 3,
+      "awarded_marks": 3,
+      "student_response": "Area of Trapezium\nGiven: Parallel sides a = 12 cm, b = 20 cm, height h = 8 cm.\nFormula: Area = 1/2 * (a + b) * h\nStep 1: Substitute values\nArea = 1/2 * (12 + 20) * 8\nArea = 1/2 * 32 * 8\nArea = 16 * 8 = 128 cm^2.\nFinal Answer Box: [128 cm²]",
+      "model_answer": "Area = 1/2 * (12 + 20) * 8 = 128 cm²",
+      "marking_scheme": "1 Mark for formula, 1 Mark for substitution, 1 Mark for answer with cm²",
+      "step_annotations": [
+        {
+          "step": "Step 1: Given Parameters & Formula Statement",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Formula explicitly stated with parameter definitions."
+        },
+        {
+          "step": "Step 2: Substitution & Intermediate Computation",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Clean values substituted without transcription error."
+        },
+        {
+          "step": "Step 3: Final Numeric Result with Units / Final Box",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Final answer boxed with correct dimensional unit."
+        }
+      ],
+      "evaluator_feedback": "Exemplary presentation. Full marks for intermediate steps.",
+      "is_flawless": true
+    },
+    {
+      "question_number": "Q.6",
+      "question_text": "Simplify using algebraic identity: (2a - 7)^2.",
+      "max_marks": 3,
+      "awarded_marks": 3,
+      "student_response": "Simplify using algebraic identity: (2a - 7)^2\nIdentity: (x - y)^2 = x^2 - 2xy + y^2\nHere x = 2a, y = 7.\nStep 1: (2a)^2 - 2(2a)(7) + (7)^2\nStep 2: 4a^2 - 28a + 49.\nFinal Answer Box: [4a^2 - 28a + 49]",
+      "model_answer": "4a^2 - 28a + 49",
+      "marking_scheme": "1 Mark for a^2, 1 Mark for -2ab, 1 Mark for +b^2",
+      "step_annotations": [
+        {
+          "step": "Step 1: Given Parameters & Formula Statement",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Formula explicitly stated with parameter definitions."
+        },
+        {
+          "step": "Step 2: Substitution & Intermediate Computation",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Clean values substituted without transcription error."
+        },
+        {
+          "step": "Step 3: Final Numeric Result with Units / Final Box",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Final answer boxed with correct dimensional unit."
+        }
+      ],
+      "evaluator_feedback": "Exemplary presentation. Full marks for intermediate steps.",
+      "is_flawless": true
+    },
+    {
+      "question_number": "Q.7",
+      "question_text": "A rectangular sheet of paper 44 cm x 20 cm is rolled along its length to form a cylinder. Find the volume of the cylinder. (Take pi = 22/7)",
+      "max_marks": 5,
+      "awarded_marks": 5,
+      "student_response": "Cylinder rolled from rectangular sheet 44 cm x 20 cm\nRolled along length => Length becomes circumference of base, width becomes height.\nCircumference C = 2 * pi * r = 44 cm\n2 * (22/7) * r = 44\n(44/7) * r = 44 => r = 7 cm.\nHeight h = 20 cm.\nFormula for Volume of Cylinder = pi * r^2 * h\nVolume = (22/7) * (7)^2 * 20\nVolume = (22/7) * 49 * 20\nVolume = 22 * 7 * 20 = 154 * 20 = 3080 cm^3.\nFinal Answer Box: [Volume = 3080 cm³]",
+      "model_answer": "Radius r = 7 cm, Height h = 20 cm. Volume = pi * r^2 * h = 3080 cm³",
+      "marking_scheme": "2 Marks for radius, 2 Marks for volume formula, 1 Mark for unit",
+      "step_annotations": [
+        {
+          "step": "Step 1: Geometric Analysis & Circumference Equation",
+          "rubric_mark": 1.5,
+          "awarded": 1.5,
+          "status": "CORRECT",
+          "comment": "Correct identification: Length = 2*pi*r, Width = height h."
+        },
+        {
+          "step": "Step 2: Radius Derivation (r = 7 cm)",
+          "rubric_mark": 1.5,
+          "awarded": 1.5,
+          "status": "CORRECT",
+          "comment": "Accurate fraction cancellation (2 * 22/7 * r = 44 => r = 7 cm)."
+        },
+        {
+          "step": "Step 3: Volume Formula Substitution & Step Layout",
+          "rubric_mark": 1.0,
+          "awarded": 1.0,
+          "status": "CORRECT",
+          "comment": "Volume V = pi * r^2 * h substituted correctly."
+        },
+        {
+          "step": "Step 4: Final Product & Cubic Units (3080 cm³)",
+          "rubric_mark": 1.0,
+          "awarded": 1.0,
+          "status": "CORRECT",
+          "comment": "Final answer boxed with correct unit cm³."
+        }
+      ],
+      "evaluator_feedback": "Outstanding multi-step derivation. Fully adheres to CBSE 100/100 marking criteria.",
+      "is_flawless": true
+    }
+  ],
+  "evaluator_verdict": "Tharun demonstrated exemplary mathematical precision, accurate algebraic identity selection, and flawless step-by-step layout. Full marks awarded across all 7 problems with valid final unit boxes."
+}

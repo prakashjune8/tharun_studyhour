@@ -1,0 +1,174 @@
+{
+  "evaluation_id": "EVAL-EXAM-V3-VERIFY-001",
+  "exam_id": "EXAM-V3-VERIFY-001",
+  "subject": "Mathematics & Indic Languages (Tamil & Hindi)",
+  "student_name": "Tharun",
+  "school": "Senthil Public School, Dharmapuri",
+  "evaluated_at": "2026-10-18 23:53:49",
+  "total_marks_possible": 12,
+  "total_marks_awarded": 12,
+  "marks_scored": 12,
+  "max_marks": 12,
+  "percentage": 100.0,
+  "grade": "A1 • Exemplary CBSE Standard",
+  "cbse_grade": "A1 • Exemplary CBSE Standard",
+  "mastery_status": "MASTERED • 100/100 BENCHMARK",
+  "total_questions": 5,
+  "step_breakdown": [
+    {
+      "question_number": "Q.1",
+      "question_text": "State the primary concept in Mathematics &amp; Indic Languages (Tamil &amp; Hindi) syllabus for Class 8.",
+      "max_marks": 1,
+      "awarded_marks": 1,
+      "student_response": "(a) 1/2 * (a + b) * h",
+      "model_answer": "(a) Option A",
+      "marking_scheme": "1 Mark",
+      "step_annotations": [
+        {
+          "step": "Identity Application & Working",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Accurate calculation and correct option selected."
+        }
+      ],
+      "evaluator_feedback": "Flawless step execution and correct option.",
+      "is_flawless": true
+    },
+    {
+      "question_number": "Q.2",
+      "question_text": "Define the core terminology studied in Mathematics &amp; Indic Languages (Tamil &amp; Hindi) and provide one real-world application.",
+      "max_marks": 2,
+      "awarded_marks": 2,
+      "student_response": "(b) 41 cm2",
+      "model_answer": "Clear 2-line definition with example.",
+      "marking_scheme": "2 Marks",
+      "step_annotations": [
+        {
+          "step": "Step 1: Formula / Distributive Property Setup",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Distributive law applied accurately to both terms."
+        },
+        {
+          "step": "Step 2: Combining Like Terms & Final Value",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Accurate algebraic addition; final answer boxed."
+        }
+      ],
+      "evaluator_feedback": "Clear step separation and accurate algebraic simplification.",
+      "is_flawless": true
+    },
+    {
+      "question_number": "Q.3",
+      "question_text": "Explain the key principles and causes associated with the recent Mathematics &amp; Indic Languages (Tamil &amp; Hindi) chapter.",
+      "max_marks": 3,
+      "awarded_marks": 3,
+      "student_response": "Area = 1/2 * (1 + 1.2) * 0.8 = 1/2 * 2.2 * 0.8 = 0.88",
+      "model_answer": "Detailed 3-point explanation.",
+      "marking_scheme": "3 Marks",
+      "step_annotations": [
+        {
+          "step": "Step 1: Given Parameters & Formula Statement",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Formula explicitly stated with parameter definitions."
+        },
+        {
+          "step": "Step 2: Substitution & Intermediate Computation",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Clean values substituted without transcription error."
+        },
+        {
+          "step": "Step 3: Final Numeric Result with Units / Final Box",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Final answer boxed with correct dimensional unit."
+        }
+      ],
+      "evaluator_feedback": "Exemplary presentation. Full marks for intermediate steps.",
+      "is_flawless": true
+    },
+    {
+      "question_number": "Q.1",
+      "question_text": "தமிழ் வரிவடிவ வளர்ச்சி: எழுத்துச் சீர்திருத்தத்தின் தேவையை விளக்குக. (Explain need for Tamil script reform).",
+      "max_marks": 3,
+      "awarded_marks": 3,
+      "student_response": "(a) 1/2 * (a + b) * h",
+      "model_answer": "",
+      "marking_scheme": "",
+      "step_annotations": [
+        {
+          "step": "Step 1: Given Parameters & Formula Statement",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Formula explicitly stated with parameter definitions."
+        },
+        {
+          "step": "Step 2: Substitution & Intermediate Computation",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Clean values substituted without transcription error."
+        },
+        {
+          "step": "Step 3: Final Numeric Result with Units / Final Box",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Final answer boxed with correct dimensional unit."
+        }
+      ],
+      "evaluator_feedback": "Exemplary presentation. Full marks for intermediate steps.",
+      "is_flawless": true
+    },
+    {
+      "question_number": "Q.1",
+      "question_text": "ध्वनि कविता: 'अभी न होगा मेरा अंत' - कवि सूर्यकांत त्रिपाठी 'निराला' का मुख्य संदेश क्या है?",
+      "max_marks": 3,
+      "awarded_marks": 3,
+      "student_response": "(a) 1/2 * (a + b) * h",
+      "model_answer": "",
+      "marking_scheme": "",
+      "step_annotations": [
+        {
+          "step": "Step 1: Given Parameters & Formula Statement",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Formula explicitly stated with parameter definitions."
+        },
+        {
+          "step": "Step 2: Substitution & Intermediate Computation",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Clean values substituted without transcription error."
+        },
+        {
+          "step": "Step 3: Final Numeric Result with Units / Final Box",
+          "rubric_mark": 1,
+          "awarded": 1,
+          "status": "CORRECT",
+          "comment": "Final answer boxed with correct dimensional unit."
+        }
+      ],
+      "evaluator_feedback": "Exemplary presentation. Full marks for intermediate steps.",
+      "is_flawless": true
+    }
+  ],
+  "evaluator_verdict": "Tharun demonstrated exemplary mathematical precision, accurate algebraic identity selection, and flawless step-by-step layout. Full marks awarded across all 7 problems with valid final unit boxes.",
+  "daydreaming_audit": {
+    "verdict": "Focus: 100% on track. No idle daydreaming or skipped steps detected.",
+    "speed_wpm": 24,
+    "attention_index": "Optimal"
+  }
+}

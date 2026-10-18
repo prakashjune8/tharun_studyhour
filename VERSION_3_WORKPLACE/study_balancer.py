@@ -100,7 +100,10 @@ def get_persistent_data_path(filename):
             if os.path.exists(seed_file):
                 try:
                     import shutil
-                    shutil.copy2(seed_file, target_path)
+                    if os.path.isdir(seed_file):
+                        shutil.copytree(seed_file, target_path, dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(seed_file, target_path)
                 except Exception:
                     pass
         return target_path
@@ -744,6 +747,27 @@ DEFAULT_DIARY_DATA = {
         }
     ]
 }
+
+# Auto-bootstrap complete 12-day diary data if available on disk or bundled
+try:
+    _df_candidates = [
+        DIARY_FILE,
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "tharun_diary_format.json"),
+        os.path.join(os.path.dirname(os.path.abspath(sys.executable)), "tharun_diary_format.json"),
+        os.path.join(os.getcwd(), "tharun_diary_format.json"),
+    ]
+    _meipass_path = getattr(sys, '_MEIPASS', None)
+    if _meipass_path:
+        _df_candidates.append(os.path.join(_meipass_path, "tharun_diary_format.json"))
+    for _dfc in _df_candidates:
+        if _dfc and os.path.exists(_dfc):
+            with open(_dfc, "r", encoding="utf-8") as _f:
+                _loaded_df = json.load(_f)
+                if _loaded_df and len(_loaded_df.get("diary_entries", [])) >= len(DEFAULT_DIARY_DATA.get("diary_entries", [])):
+                    DEFAULT_DIARY_DATA = _loaded_df
+                    break
+except Exception:
+    pass
 
 # =========================================================================
 # CBSE CLASS 8 CANONICAL SUBDIVISIONS & PARENT AUDIT REPRESENTATION SYSTEM
@@ -2566,13 +2590,27 @@ class DesktopApp:
         self.subjects = [dict(s) for s in DEFAULT_SUBJECTS]
 
     def load_diary_data(self):
-        if os.path.exists(DIARY_FILE):
-            try:
-                with open(DIARY_FILE, "r", encoding="utf-8") as f:
-                    self.diary_data = json.load(f)
-                    return
-            except Exception as e:
-                print(f"Error loading {DIARY_FILE}: {e}")
+        candidates = [
+            DIARY_FILE,
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "tharun_diary_format.json"),
+            os.path.join(os.path.dirname(os.path.abspath(sys.executable)), "tharun_diary_format.json"),
+            os.path.join(os.path.dirname(os.path.abspath(sys.executable)), "VERSION_3_WORKPLACE", "tharun_diary_format.json"),
+            os.path.join(os.getcwd(), "tharun_diary_format.json"),
+        ]
+        meipass_path = getattr(sys, '_MEIPASS', None)
+        if meipass_path:
+            candidates.append(os.path.join(meipass_path, "tharun_diary_format.json"))
+
+        for c in candidates:
+            if c and os.path.exists(c):
+                try:
+                    with open(c, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        if data and "diary_entries" in data and len(data["diary_entries"]) > 0:
+                            self.diary_data = data
+                            return
+                except Exception as e:
+                    print(f"Error loading {c}: {e}")
         self.diary_data = json.loads(json.dumps(DEFAULT_DIARY_DATA))
 
     def save_diary_data(self):

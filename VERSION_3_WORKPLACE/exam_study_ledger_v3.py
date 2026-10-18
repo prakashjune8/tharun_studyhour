@@ -147,12 +147,14 @@ class SubjectStudyLedger:
                     diary_data = json.load(f)
                 for day_entry in diary_data.get("diary_entries", []):
                     d_str = day_entry.get("date")
-                    for hw in day_entry.get("homework_tasks", []):
+                    hw_list = day_entry.get("items") or day_entry.get("homework_tasks") or day_entry.get("homework_items") or []
+                    for hw in hw_list:
                         cls.record_entry(
                             date_str=d_str,
                             subject=hw.get("subject", "General"),
-                            chapter_topic=hw.get("chapter", "Homework practice"),
+                            chapter_topic=hw.get("categorization_reason") or hw.get("chapter", "Homework practice"),
                             task_description=hw.get("task", ""),
+                            duration_mins=hw.get("est_mins", 25),
                             source="school_diary"
                         )
             except Exception as e:
@@ -164,6 +166,7 @@ class SubjectStudyLedger:
         """Summarizes homework entries and unique subjects across Weeks 1 to 4 for the given month."""
         ledger = cls.load_ledger()
         week_data = {
+            "all": {"entries_count": 0, "subjects": set()},
             1: {"entries_count": 0, "subjects": set()},
             2: {"entries_count": 0, "subjects": set()},
             3: {"entries_count": 0, "subjects": set()},
@@ -178,19 +181,23 @@ class SubjectStudyLedger:
                 if w in week_data:
                     week_data[w]["entries_count"] += 1
                     week_data[w]["subjects"].add(subj)
+                week_data["all"]["entries_count"] += 1
+                week_data["all"]["subjects"].add(subj)
                 week_data["monthend"]["entries_count"] += 1
                 week_data["monthend"]["subjects"].add(subj)
                 total_entries += 1
 
         if week_number is not None:
             target = week_number
-            if str(target).lower() in ("monthend", "month_end", "all"):
+            if str(target).lower() in ("monthend", "month_end"):
                 target = "monthend"
+            elif str(target).lower() == "all":
+                target = "all"
             else:
                 try:
                     target = int(target)
                 except Exception:
-                    target = "monthend"
+                    target = "all"
             data = week_data.get(target, {"entries_count": 0, "subjects": set()})
             cnt = data["entries_count"]
             scnt = len(data["subjects"])

@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "exam_id": "EXAM-MAT-DAI-20261018-664F52",
+    "exam_title": "Mathematics Examination [Grounded in MATH_CH_09_ALGEBRAIC_EXPRESSIONS_EX_91_CONCEPT_SPRINT.pdf] [🎯 20m Standard]",
+    "subject": "Mathematics",
+    "class_standard": "Class 8 CBSE",
+    "time_allowed_mins": 20,
+    "max_marks": 15,
+    "generation_mode": "DETERMINISTIC_OFFLINE_CBSE_FALLBACK",
+    "generated_at": "2026-10-18T22:55:36.724469",
+    "language": "en"
+  },
+  "sections": [
+    {
+      "section_name": "SECTION A",
+      "allocated_marks": 6,
+      "questions": [
+        {
+          "question_number": "Q.1",
+          "question_text": "Evaluate using suitable identity: (103)^2 = (100 + 3)^2.",
+          "marks": 1,
+          "question_type": "MCQ",
+          "options": [
+            "(a) 10,609",
+            "(b) 10,906",
+            "(c) 10,009",
+            "(d) 10,309"
+          ],
+          "model_answer": "(a) 10,609",
+          "marking_scheme": "1 Mark for identity application"
+        },
+        {
+          "question_number": "Q.2",
+          "question_text": "The product of monomials (-4p) and (7pq) is:",
+          "marks": 1,
+          "question_type": "MCQ",
+          "options": [
+            "(a) 28p^2q",
+            "(b) -28p^2q",
+            "(c) -28pq",
+            "(d) 11p^2q"
+          ],
+          "model_answer": "(b) -28p^2q",
+          "marking_scheme": "1 Mark for correct sign and powers"
+        },
+        {
+          "question_number": "Q.3",
+          "question_text": "Multiply the binomials: (2x + 5) and (4x - 3). Show all steps.",
+          "marks": 2,
+          "question_type": "VSA",
+          "options": [],
+          "model_answer": "8x^2 + 14x - 15",
+          "marking_scheme": "1 Mark for distributive law, 1 Mark for combining like terms"
+        },
+        {
+          "question_number": "Q.4",
+          "question_text": "Solve the linear equation: 5x + 9 = 5 + 3x.",
+          "marks": 2,
+          "question_type": "VSA",
+          "options": [],
+          "model_answer": "x = -2",
+          "marking_scheme": "1 Mark for transposition (5x - 3x = 5 - 9), 1 Mark for final value"
+        }
+      ]
+    },
+    {
+      "section_name": "SECTION B",
+      "allocated_marks": 6,
+      "questions": [
+        {
+          "question_number": "Q.5",
+          "question_text": "Find the area of a trapezium whose parallel sides are 12 cm and 20 cm, and the distance between them is 8 cm.",
+          "marks": 3,
+          "question_type": "SA",
+          "options": [],
+          "model_answer": "Area = 1/2 * (12 + 20) * 8 = 128 cm²",
+          "marking_scheme": "1 Mark for formula, 1 Mark for substitution, 1 Mark for answer with cm²"
+        },
+        {
+          "question_number": "Q.6",
+          "question_text": "Simplify using algebraic identity: (2a - 7)^2.",
+          "marks": 3,
+          "question_type": "SA",
+          "options": [],
+          "model_answer": "4a^2 - 28a + 49",
+          "marking_scheme": "1 Mark for a^2, 1 Mark for -2ab, 1 Mark for +b^2"
+        }
+      ]
+    },
+    {
+      "section_name": "SECTION C",
+      "allocated_marks": 5,
+      "questions": [
+        {
+          "question_number": "Q.7",
+          "question_text": "A rectangular sheet of paper 44 cm x 20 cm is rolled along its length to form a cylinder. Find the volume of the cylinder. (Take pi = 22/7)",
+          "marks": 5,
+          "question_type": "LA",
+          "options": [],
+          "model_answer": "Radius r = 7 cm, Height h = 20 cm. Volume = pi * r^2 * h = 3080 cm³",
+          "marking_scheme": "2 Marks for radius, 2 Marks for volume formula, 1 Mark for unit"
+        }
+      ]
+    }
+  ]
+}

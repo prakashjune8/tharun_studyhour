@@ -457,19 +457,29 @@ class HostExamTabController:
         for w in self.subview_container.winfo_children():
             w.destroy()
 
-        if subview_key in ("sample_q", "sample_questions"):
+        if subview_key in ("sample_q", "sample_questions", "3"):
             self.active_subview = "sample_q"
             self._update_subview_tab_styles()
             self._render_subview_sample_questions(self.subview_container)
-        elif subview_key == "ledger":
+        elif subview_key in ("ledger", "phases", "study_ledger", "1"):
+            self.active_subview = "ledger"
+            self._update_subview_tab_styles()
             self._render_subview_ledger(self.subview_container)
-        elif subview_key == "vault":
+        elif subview_key in ("vault", "2"):
+            self.active_subview = "vault"
+            self._update_subview_tab_styles()
             self._render_subview_vault(self.subview_container)
-        elif subview_key == "face_a":
+        elif subview_key in ("face_a", "4"):
+            self.active_subview = "face_a"
+            self._update_subview_tab_styles()
             self._render_clean_face_a(self.subview_container)
-        elif subview_key == "face_b":
+        elif subview_key in ("face_b", "5"):
+            self.active_subview = "face_b"
+            self._update_subview_tab_styles()
             self._render_subview_face_b(self.subview_container)
-        elif subview_key == "topper":
+        elif subview_key in ("topper", "6"):
+            self.active_subview = "topper"
+            self._update_subview_tab_styles()
             self._render_subview_topper(self.subview_container)
 
     def _render_subview_vault(self, parent):
@@ -598,8 +608,8 @@ class HostExamTabController:
         self.p1_cards_row.pack(fill=tk.X)
 
         self.p1_card_widgets = {}
-        self.active_p1_card = 3
-        self.selected_week_filter = 3
+        self.active_p1_card = "all"
+        self.selected_week_filter = "all"
 
         self._render_p1_week_cards()
 
@@ -769,10 +779,11 @@ class HostExamTabController:
         score_history = GeminiExamClient.load_score_history()
 
         card_configs = [
-            (1, "📅 Week 1 Sunday Test", "Mon–Sat Homework", 35, 60),
-            (2, "📅 Week 2 Sunday Test", "Mon–Sat Homework", 35, 60),
-            (3, "📅 Week 3 Sunday Test", "Mon–Sat Homework", 35, 60),
-            (4, "📅 Week 4 Sunday Test", "Mon–Sat Homework", 35, 60),
+            ("all", "🌐 Full Month Ledger", "Oct 01–24 • All Entries", 80, 180),
+            (1, "📅 Week 1 Sunday Test", "Oct 01–06 Homework", 35, 60),
+            (2, "📅 Week 2 Sunday Test", "Oct 07–13 Homework", 35, 60),
+            (3, "📅 Week 3 Sunday Test", "Oct 14–20 Homework", 35, 60),
+            (4, "📅 Week 4 Sunday Test", "Oct 21–24 Homework", 35, 60),
             ("monthend", "🏆 Month-End Mega Exam", "Weeks 1–4 Combined", 80, 180),
         ]
 
@@ -809,7 +820,7 @@ class HostExamTabController:
                 elif key == 4 and ("week 4" in t_low or "w4" in eid_low):
                     matching_score = rec
                     break
-                elif key == "monthend" and ("month" in t_low or "mega" in t_low or "month" in eid_low):
+                elif (key == "monthend" or key == "all") and ("month" in t_low or "mega" in t_low or "month" in eid_low):
                     matching_score = rec
                     break
 
@@ -832,9 +843,16 @@ class HostExamTabController:
             lbl_t.pack(anchor="w")
             lbl_t.bind("<Button-1>", lambda e, k=key: self._on_p1_card_clicked(k))
 
+            if key == "all":
+                sub_desc = f"{ent_cnt} Entries • {sub_cnt} Subjects\nOct 01–24 Complete Dataset"
+            elif key == "monthend":
+                sub_desc = f"{ent_cnt} Entries • {sub_cnt} Subjects\n{marks}M • {mins}m • Combined Exam"
+            else:
+                sub_desc = f"{ent_cnt} Entries • {sub_cnt} Subjects\n{marks}M • {mins}m • {subtitle}"
+
             lbl_sub = tk.Label(
                 c,
-                text=f"{ent_cnt} Entries • {sub_cnt} Subjects\n{marks}M • {mins}m • {subtitle}",
+                text=sub_desc,
                 font=("Segoe UI", 7),
                 fg="#fde68a" if is_active else "#94a3b8",
                 bg=bg_col,
@@ -879,7 +897,7 @@ class HostExamTabController:
         self._render_ledger_table()
 
         # Pre-load that exact dataset into Sub-View 2 (Face A: Question Paper Architect)
-        if key == "monthend":
+        if key in ("monthend", "all"):
             spec = ExamPhaseAssembler.assemble_phase1_monthend_mega_exam()
         else:
             spec = ExamPhaseAssembler.assemble_phase1_weekly_sunday_test(week_number=int(key))
@@ -904,7 +922,7 @@ class HostExamTabController:
             sub = e.get("subject", "")
             if filter_val != "All Subjects" and filter_val.lower() not in sub.lower():
                 continue
-            if week_filter and week_filter != "monthend":
+            if week_filter and week_filter not in ("monthend", "all"):
                 try:
                     if int(e.get("week_number", 0)) != int(week_filter):
                         continue

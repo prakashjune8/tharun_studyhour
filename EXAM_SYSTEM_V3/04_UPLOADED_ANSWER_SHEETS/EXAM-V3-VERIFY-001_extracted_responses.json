@@ -1,0 +1,79 @@
+{
+  "exam_id": "EXAM-V3-VERIFY-001",
+  "subject": "Mathematics & Indic Languages (Tamil & Hindi)",
+  "source_file": "EXAM-V3-VERIFY-001_sample_answer_sheet.txt",
+  "ingested_at": "2026-10-18 23:53:49",
+  "ocr_mode": "STUDENT_RESPONSE_TRANSCRIPT",
+  "total_questions": 5,
+  "aligned_count": 5,
+  "confidence_percentage": 100.0,
+  "alignment_status": "SUCCESS",
+  "aligned_questions": [
+    {
+      "question_number": "Q.1",
+      "question_text": "State the primary concept in Mathematics &amp; Indic Languages (Tamil &amp; Hindi) syllabus for Class 8.",
+      "marks": 1,
+      "question_type": "MCQ",
+      "options": [
+        "(a) Option A",
+        "(b) Option B",
+        "(c) Option C",
+        "(d) Option D"
+      ],
+      "model_answer": "(a) Option A",
+      "marking_scheme": "1 Mark",
+      "student_response": "(a) 1/2 * (a + b) * h",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    },
+    {
+      "question_number": "Q.2",
+      "question_text": "Define the core terminology studied in Mathematics &amp; Indic Languages (Tamil &amp; Hindi) and provide one real-world application.",
+      "marks": 2,
+      "question_type": "VSA",
+      "options": [],
+      "model_answer": "Clear 2-line definition with example.",
+      "marking_scheme": "2 Marks",
+      "student_response": "(b) 41 cm2",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.95
+    },
+    {
+      "question_number": "Q.3",
+      "question_text": "Explain the key principles and causes associated with the recent Mathematics &amp; Indic Languages (Tamil &amp; Hindi) chapter.",
+      "marks": 3,
+      "question_type": "SA",
+      "options": [],
+      "model_answer": "Detailed 3-point explanation.",
+      "marking_scheme": "3 Marks",
+      "student_response": "Area = 1/2 * (1 + 1.2) * 0.8 = 1/2 * 2.2 * 0.8 = 0.88",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    },
+    {
+      "question_number": "Q.1",
+      "question_text": "தமிழ் வரிவடிவ வளர்ச்சி: எழுத்துச் சீர்திருத்தத்தின் தேவையை விளக்குக. (Explain need for Tamil script reform).",
+      "marks": 3,
+      "question_type": "SA",
+      "options": [],
+      "model_answer": "",
+      "marking_scheme": "",
+      "student_response": "(a) 1/2 * (a + b) * h",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    },
+    {
+      "question_number": "Q.1",
+      "question_text": "ध्वनि कविता: 'अभी न होगा मेरा अंत' - कवि सूर्यकांत त्रिपाठी 'निराला' का मुख्य संदेश क्या है?",
+      "marks": 3,
+      "question_type": "SA",
+      "options": [],
+      "model_answer": "",
+      "marking_scheme": "",
+      "student_response": "(a) 1/2 * (a + b) * h",
+      "alignment_status": "ALIGNED_VERIFIED",
+      "confidence": 0.98
+    }
+  ],
+  "raw_extracted_transcript": "Q1. (a) 1/2 * (a + b) * h\nQ2. (b) 41 cm2\nQ3. Area = 1/2 * (1 + 1.2) * 0.8 = 1/2 * 2.2 * 0.8 = 0.88\nQ4. Rhombus Area = 1/2 * d1 * d2 => 240 = 1/2 * 16 * d2 => d2 = 30 cm\nQ5. Total Cost = 202.5 * 4 = 810\nQ7. தமிழ் வரிவடிவத்தில் ஓலைச்சுவடிகளில் புள்ளியிடாமல் எழுதப்பட்டதால் குழப்பம் ஏற்பட்டது.\nQ8. कवि मानते हैं कि उनके जीवन का अंत अभी नहीं होगा क्योंकि अभी-अभी उनके जीवन में वसंत आया है।"
+}
