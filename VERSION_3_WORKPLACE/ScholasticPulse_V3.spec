@@ -30,7 +30,9 @@ a = Analysis(
         'reportlab.lib.styles',
         'reportlab.platypus',
         'exam_engine_v3',
-        'host_exam_ui'
+        'host_exam_ui',
+        'shinobi_ui',
+        'schedule_engine'
     ],
     excludes=[],
     noarchive=False,

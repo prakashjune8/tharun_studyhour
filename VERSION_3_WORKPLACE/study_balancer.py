@@ -3148,12 +3148,17 @@ class DesktopApp:
 
         # 3. START
         self.start_time_display_map = {
-            "19:00": "7:00 PM",
-            "17:00": "5:00 PM",
-            "10:00": "10:00 AM",
-            "14:00": "2:00 PM"
+            "19:00": "7:00 PM"
         }
-        init_start_disp = self.start_time_display_map.get(self.schedule_start_time, f"{self.schedule_start_time}")
+        if self.schedule_start_time == "19:00":
+            init_start_disp = "7:00 PM"
+        else:
+            try:
+                s_dt = datetime.strptime(self.schedule_start_time, "%H:%M")
+                init_start_disp = f"⚡ Auto-Fetch ({s_dt.strftime('%I:%M %p').lstrip('0')})"
+            except Exception:
+                init_start_disp = "⚡ Auto-Fetch System Time"
+
         self.start_time_var = tk.StringVar(value=init_start_disp)
         def _on_pill_start_selected(v):
             self.start_time_var.set(v)
@@ -3161,7 +3166,7 @@ class DesktopApp:
         self.pill_start = ShinobiPillSelector(
             self.matrix_command_frame,
             title="🕒 START",
-            values=["7:00 PM", "5:00 PM", "10:00 AM", "2:00 PM", "⚡ Start Now", "✏️ Custom Time..."],
+            values=["7:00 PM", "⚡ Auto-Fetch System Time"],
             initial_value=init_start_disp,
             textvariable=self.start_time_var,
             on_select_callback=_on_pill_start_selected
@@ -11325,162 +11330,23 @@ class DesktopApp:
             self.handle_generate_schedule(silent=True)
             messagebox.showinfo("Exam Subject Updated", f"Exam Eve Sprint regenerated for: {self.selected_exam_subject}!")
 
-    def prompt_custom_start_time(self):
-        """
-        Interactive Modal to set custom timetable start time (e.g., 6:30 PM, 18:30, 4:15 PM).
-        Allows quick 1-click preset chips or custom time input.
-        """
-        dlg = tk.Toplevel(self.root)
-        dlg.title("Select Custom Start Time")
-        dlg.transient(self.root)
-        dlg.grab_set()
-        dlg.configure(bg="#0c1322", bd=1, relief=tk.SOLID, highlightbackground="#f59e0b", highlightthickness=1)
-
-        dw, dh = 380, 290
-        rx = self.root.winfo_rootx() + (self.root.winfo_width() - dw) // 2
-        ry = self.root.winfo_rooty() + (self.root.winfo_height() - dh) // 2
-        dlg.geometry(f"{dw}x{dh}+{max(10, rx)}+{max(10, ry)}")
-        dlg.resizable(False, False)
-
-        header = tk.Frame(dlg, bg="#162032", pady=10)
-        header.pack(fill=tk.X)
-        tk.Label(header, text="⏱️ Set Custom Study Start Time", font=("Segoe UI", 10, "bold"), fg="#fbbf24", bg="#162032").pack()
-        tk.Label(header, text="Choose a quick preset or type any custom time", font=("Segoe UI", 7), fg="#94a3b8", bg="#162032").pack(pady=(2, 0))
-
-        body = tk.Frame(dlg, bg="#0c1322", padx=16, pady=12)
-        body.pack(fill=tk.BOTH, expand=True)
-
-        tk.Label(body, text="⚡ Quick Preset Times:", font=("Segoe UI", 8, "bold"), fg="#e2e8f0", bg="#0c1322").pack(anchor="w", pady=(0, 4))
-        presets_frame = tk.Frame(body, bg="#0c1322")
-        presets_frame.pack(fill=tk.X, pady=(0, 8))
-
-        quick_presets = ["4:00 PM", "4:30 PM", "5:30 PM", "6:00 PM", "6:30 PM", "8:00 PM"]
-
-        def _apply_time(time_str):
-            t24, t12 = self._parse_custom_time_input(time_str)
-            if not t24:
-                messagebox.showerror("Invalid Time Format", f"Could not parse '{time_str}'.\nPlease enter a valid time like '6:30 PM' or '18:30'.", parent=dlg)
-                return
-            dlg.destroy()
-            self._set_and_apply_start_time(t24, t12)
-
-        for i, pt in enumerate(quick_presets):
-            row, col = divmod(i, 3)
-            btn = tk.Button(
-                presets_frame,
-                text=pt,
-                font=("Segoe UI", 8, "bold"),
-                bg="#1e293b",
-                fg="#f8fafc",
-                activebackground="#f59e0b",
-                activeforeground="#0f172a",
-                bd=1,
-                relief=tk.SOLID,
-                cursor="hand2",
-                command=lambda t=pt: _apply_time(t)
-            )
-            btn.grid(row=row, column=col, padx=3, pady=3, sticky="nsew")
-        for c in range(3):
-            presets_frame.columnconfigure(c, weight=1)
-
-        tk.Label(body, text="✏️ Or Enter Custom Time (e.g. 6:30 PM or 18:30):", font=("Segoe UI", 8, "bold"), fg="#e2e8f0", bg="#0c1322").pack(anchor="w", pady=(4, 2))
-
-        inp_frame = tk.Frame(body, bg="#0c1322")
-        inp_frame.pack(fill=tk.X, pady=4)
-
-        ent = tk.Entry(inp_frame, font=("Segoe UI", 10), bg="#1e293b", fg="#f8fafc", insertbackground="#fbbf24", bd=1, relief=tk.SOLID)
-        ent.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=3, padx=(0, 6))
-        ent.focus_set()
-
-        def _on_submit():
-            _apply_time(ent.get())
-
-        ent.bind("<Return>", lambda e: _on_submit())
-
-        btn_row = tk.Frame(dlg, bg="#0c1322", padx=16, pady=10)
-        btn_row.pack(fill=tk.X, side=tk.BOTTOM)
-
-        def _on_cancel():
-            dlg.destroy()
-            cur_disp = getattr(self, "start_time_display_map", {}).get(self.schedule_start_time, self.schedule_start_time)
-            self.start_time_var.set(cur_disp)
-            if hasattr(self, "pill_start"):
-                self.pill_start.set(cur_disp)
-
-        dlg.protocol("WM_DELETE_WINDOW", _on_cancel)
-
-        tk.Button(btn_row, text="Cancel", font=("Segoe UI", 8), bg="#1e293b", fg="#94a3b8", bd=0, cursor="hand2", command=_on_cancel).pack(side=tk.LEFT)
-        tk.Button(btn_row, text="✨ Apply Start Time", font=("Segoe UI", 9, "bold"), bg="#f59e0b", fg="#0f172a", activebackground="#fbbf24", bd=0, cursor="hand2", padx=10, pady=4, command=_on_submit).pack(side=tk.RIGHT)
-
-    def _parse_custom_time_input(self, s):
-        s = s.strip().upper()
-        for fmt in ("%I:%M %p", "%I:%M%p", "%I %p", "%I%p", "%H:%M", "%H"):
-            try:
-                t = datetime.strptime(s, fmt)
-                t24 = t.strftime("%H:%M")
-                t12 = t.strftime("%I:%M %p").lstrip("0")
-                return t24, t12
-            except ValueError:
-                pass
-        return None, None
-
-    def _set_and_apply_start_time(self, t24, t12):
-        self.schedule_start_time = t24
-        if hasattr(self, "pill_start"):
-            if t12 not in self.pill_start.values:
-                idx = self.pill_start.values.index("⚡ Start Now") if "⚡ Start Now" in self.pill_start.values else len(self.pill_start.values)
-                self.pill_start.values.insert(idx, t12)
-            self.pill_start.set(t12)
-        self.start_time_var.set(t12)
-        self.save_data()
-        self.handle_generate_schedule(silent=True)
-
-        start_dt = datetime.strptime(self.schedule_start_time, "%H:%M")
-        standard_dt = datetime.strptime("19:00", "%H:%M")
-        bedtime_dt = datetime.strptime("22:00", "%H:%M")
-        lvl = EXECUTION_LEVELS[self.current_level]
-        target_mins = int(lvl["target_hours_eve"] * 60)
-        finish_dt = start_dt + timedelta(minutes=target_mins)
-
-        if start_dt < standard_dt:
-            free_mins = max(0, int((bedtime_dt - finish_dt).total_seconds() / 60))
-            free_h = round(free_mins / 60, 1)
-            self.record_early_start_initiative(self.schedule_start_time, finish_dt.strftime("%I:%M %p"), free_h)
-
-            msg = (
-                f"🌟 PROACTIVE EARLY START INITIATIVE!\n\n"
-                f"Tharun is starting his study early at {start_dt.strftime('%I:%M %p')}!\n\n"
-                f"⏰ Study Finishes By: {finish_dt.strftime('%I:%M %p')}\n"
-                f"🎉 Free Leisure Earned: {free_h} Hours ({free_mins} mins) of 100% guilt-free play, hobbies & family relaxation before bed!\n\n"
-                f"🔒 Golden Rule: Because Tharun started early, he finishes early. No extra work added!"
-            )
-            messagebox.showinfo("Early Start Initiative Activated", msg)
-        else:
-            messagebox.showinfo("Start Time Updated", f"Timetable scheduled from {start_dt.strftime('%I:%M %p')}.")
-
     def on_start_time_changed(self, event=None):
         val = self.start_time_var.get()
-        if "Custom" in val or val.startswith("✏️"):
-            self.prompt_custom_start_time()
-            return
         now_dt = datetime.now()
-        if "Now" in val:
+        if "Fetch" in val or "Now" in val or "System" in val or val.startswith("⚡"):
             minute = (now_dt.minute // 5) * 5
             self.schedule_start_time = f"{now_dt.hour:02d}:{minute:02d}"
-        elif "5:00 PM" in val:
-            self.schedule_start_time = "17:00"
-        elif "10:00 AM" in val:
-            self.schedule_start_time = "10:00"
-        elif "2:00 PM" in val:
-            self.schedule_start_time = "14:00"
-        elif ":" in val and ("PM" in val or "AM" in val):
-            t24, _ = self._parse_custom_time_input(val)
-            if t24:
-                self.schedule_start_time = t24
-            else:
-                self.schedule_start_time = "19:00"
+            start_dt = datetime.strptime(self.schedule_start_time, "%H:%M")
+            time_12h = start_dt.strftime("%I:%M %p").lstrip("0")
+            disp_label = f"⚡ Auto-Fetch ({time_12h})"
+            self.start_time_var.set(disp_label)
+            if hasattr(self, "pill_start"):
+                self.pill_start.lbl_val.configure(text=disp_label)
         else:
             self.schedule_start_time = "19:00"
+            self.start_time_var.set("7:00 PM")
+            if hasattr(self, "pill_start"):
+                self.pill_start.lbl_val.configure(text="7:00 PM")
 
         self.save_data()
         self.handle_generate_schedule(silent=True)

@@ -691,12 +691,8 @@ class ShinobiPillSelector(tk.Frame):
             "Level 2: ⚡ Chunin": ("⚡", "Level 2: Chunin", "30m Standard Slabs • Balanced Daily Study Habit"),
             "Level 3: 🔥 Jonin": ("🔥", "Level 3: Jonin", "45m Deep Work • Peak Cognitive Mastery"),
             "7:00 PM": ("🕒", "7:00 PM Focus", "Standard Evening Focus Routine (Default)"),
-            "5:00 PM": ("🕒", "5:00 PM Focus", "Early Evening Focus Session"),
-            "10:00 AM": ("☀️", "10:00 AM Focus", "Holiday & Weekend Morning Session"),
-            "2:00 PM": ("🌤️", "2:00 PM Focus", "Weekend Afternoon Study Block"),
-            "⚡ Start Now": ("⚡", "Start Right Now", "Align Schedule Start with Live System Clock"),
-            "✏️ Custom Time...": ("✏️", "Custom Start Time", "Set Any Custom Hour & Minute for Routine"),
-            "Custom Time": ("✏️", "Custom Start Time", "Set Any Custom Hour & Minute for Routine"),
+            "⚡ Auto-Fetch System Time": ("⚡", "Auto-Fetch System Time", "Execute Timetable from Live System Clock (Any Hour)"),
+            "⚡ Start Now": ("⚡", "Auto-Fetch System Time", "Execute Timetable from Live System Clock (Any Hour)"),
             "Tamil": ("📖", "Tamil (09.09)", "Grammar, Prose & Thirukkural Memorization"),
             "Mathematics": ("📐", "Mathematics (11.09)", "Ch 1-8 Concepts, Formulas & Hand Solving"),
             "Physical Science": ("🔬", "Physical Science (16.09)", "Physics Laws, Equations & Numerical Practice"),
@@ -851,7 +847,9 @@ class ShinobiPillSelector(tk.Frame):
         popup.focus_set()
 
     def _create_dropdown_item_card(self, container, val, popup):
-        is_selected = (str(val).strip() == str(self.current_value).strip())
+        cur_v = str(self.current_value).strip()
+        val_s = str(val).strip()
+        is_selected = (cur_v == val_s) or (val_s.startswith("⚡") and cur_v.startswith("⚡")) or ("7:00" in val_s and "7:00" in cur_v)
         icon, title, sub = self._parse_dropdown_item_info(val)
 
         item_bg = "#162032" if is_selected else "#0f172a"
