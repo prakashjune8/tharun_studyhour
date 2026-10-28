@@ -26,11 +26,17 @@ if sys.stdout is not None and hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-WORK_DIR = os.path.dirname(os.path.abspath(__file__))
+try:
+    from exam_evaluator_v3 import get_persistent_base_dir
+    WORK_DIR = get_persistent_base_dir()
+except Exception:
+    WORK_DIR = os.path.dirname(os.path.abspath(__file__))
+
 EXAM_SYSTEM_DIR = os.path.join(WORK_DIR, "EXAM_SYSTEM_V3")
 QUESTION_PAPERS_DIR = os.path.join(EXAM_SYSTEM_DIR, "03_GENERATED_QUESTION_PAPERS")
 ANSWER_SHEETS_DIR = os.path.join(EXAM_SYSTEM_DIR, "04_UPLOADED_ANSWER_SHEETS")
 
+os.makedirs(QUESTION_PAPERS_DIR, exist_ok=True)
 os.makedirs(ANSWER_SHEETS_DIR, exist_ok=True)
 
 

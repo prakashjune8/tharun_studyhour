@@ -65,6 +65,19 @@ except ImportError:
     UniversalDiaryImporter = None
 
 try:
+    from glider_help_ui import open_glider_help, show_error_with_glider_link
+except ImportError:
+    def open_glider_help(parent, target_tag=None): pass
+    def show_error_with_glider_link(parent, title, msg, tag): messagebox.showerror(title, msg)
+
+try:
+    from user_guide_ui import open_user_guide
+except ImportError:
+    def open_user_guide(parent, unit_idx=0): pass
+
+
+
+try:
     from exam_portion_parser import ExamPortionParser
 except ImportError:
     ExamPortionParser = None
@@ -2980,6 +2993,46 @@ class DesktopApp:
         )
         self.btn_month_dropdown.pack(side=tk.LEFT)
 
+        # Permanent, direct Glider Help / App Map button right on the main top header
+        self.btn_glider_header = tk.Button(
+            self.header_heatmap_frame,
+            text="🧭 Glider Map",
+            font=("Segoe UI", 9, "bold"),
+            bg="#0c2540",
+            fg="#38bdf8",
+            activebackground="#0284c7",
+            activeforeground="#ffffff",
+            padx=12,
+            pady=5,
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#38bdf8",
+            highlightthickness=1,
+            cursor="hand2",
+            command=lambda: open_glider_help(self.root)
+        )
+        self.btn_glider_header.pack(side=tk.LEFT, padx=(8, 0))
+
+        # Direct User Guide & Manual button right on top header
+        self.btn_user_guide_header = tk.Button(
+            self.header_heatmap_frame,
+            text="📖 User Guide",
+            font=("Segoe UI", 9, "bold"),
+            bg="#14532d",
+            fg="#4ade80",
+            activebackground="#16a34a",
+            activeforeground="#ffffff",
+            padx=12,
+            pady=5,
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#22c55e",
+            highlightthickness=1,
+            cursor="hand2",
+            command=lambda: open_user_guide(self.root)
+        )
+        self.btn_user_guide_header.pack(side=tk.LEFT, padx=(6, 0))
+
         # Proactive "Host Exam Due" Glowing Header Badge (3-Day Checkpoint / Sunday / Exam Eve)
         self.btn_exam_due_badge = tk.Button(
             header_right,
@@ -3419,6 +3472,8 @@ class DesktopApp:
             popup.configure(bg="#0c1322", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground=p_col)
 
             guide_items = [
+                ("🧭", "Glider Help / App Map", "Master Blueprint & Directory: Components [#01] to [#25]", lambda: open_glider_help(self.root)),
+                ("📖", "Official User Guide & Manual", "Exhaustive In-App Documentation: Units 1 to 7", lambda: open_user_guide(self.root)),
                 ("⚖️", "Parent Representation & Subdivision Audit", "7D & 30D Balance: Maths 100%, Science & Social Subdivisions", self.open_parent_representation_audit_modal),
                 ("⚖️", "Core Subject Priorities & Weightage", "CBSE Class 8 Cognitive Load & Study Gravity Matrix", lambda: self.open_guide_modal("gravity")),
                 ("✍️", "Spelling & Diagram Clinic Protocol", "Pen-and-Paper Mistake Log, Blind Diagrams & Science Clinics", lambda: self.open_guide_modal("skills")),
@@ -12386,25 +12441,40 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
         if not Image or not ImageTk:
             return None
 
-        base_dir = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
         img_filename = f"{theme_key}.jpg"
-        img_path = os.path.join(base_dir, "assets", "naruto", img_filename)
+        candidate_dirs = []
 
-        if not os.path.exists(img_path):
-            exe_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else base_dir
-            alt_path = os.path.join(exe_dir, "assets", "naruto", img_filename)
-            if os.path.exists(alt_path):
-                img_path = alt_path
-            else:
-                fallback_path = os.path.join(base_dir, "assets", "naruto", "naruto_sage.jpg")
-                if os.path.exists(fallback_path):
-                    img_path = fallback_path
-                else:
-                    alt_fallback = os.path.join(exe_dir, "assets", "naruto", "naruto_sage.jpg")
-                    if os.path.exists(alt_fallback):
-                        img_path = alt_fallback
-                    else:
-                        return None
+        if getattr(sys, '_MEIPASS', None):
+            candidate_dirs.append(os.path.join(sys._MEIPASS, "assets", "naruto"))
+            candidate_dirs.append(os.path.join(sys._MEIPASS, "naruto"))
+
+        if getattr(sys, 'frozen', False):
+            exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+            candidate_dirs.append(os.path.join(exe_dir, "assets", "naruto"))
+            candidate_dirs.append(os.path.join(os.path.dirname(exe_dir), "assets", "naruto"))
+
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        candidate_dirs.append(os.path.join(script_dir, "assets", "naruto"))
+        candidate_dirs.append(os.path.join(os.path.dirname(script_dir), "assets", "naruto"))
+        candidate_dirs.append(os.path.join(os.getcwd(), "assets", "naruto"))
+
+        img_path = None
+        for cdir in candidate_dirs:
+            p = os.path.join(cdir, img_filename)
+            if os.path.exists(p):
+                img_path = p
+                break
+
+        if not img_path:
+            # Fallback to naruto_sage.jpg across all candidate dirs
+            for cdir in candidate_dirs:
+                fb = os.path.join(cdir, "naruto_sage.jpg")
+                if os.path.exists(fb):
+                    img_path = fb
+                    break
+
+        if not img_path:
+            return None
 
         try:
             pil_img = Image.open(img_path)

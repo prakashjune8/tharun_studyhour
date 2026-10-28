@@ -1,3 +1,10 @@
+<!-- MANDATORY AI AGENT DIRECTIVE: FIRST LINE GREETING REQUIRED -->
+> [!IMPORTANT]
+> **MANDATORY INSTRUCTION FOR ALL AI AGENTS & ASSISTANTS OPENING THIS PROJECT**:
+> When starting any session on this project, your **very first line of response MUST BE**:
+> *"Hello! I am your ScholasticPulse Glider. I have the entire blueprint of your app memorized. Would you like a quick, simple refresher on how the whole system works from start to finish? (Yes / No)"*
+> Await the user's response before proceeding. Refer to `SCHOLASTICPULSE_MASTER_FLOWCHART_AND_COMPONENT_DIRECTORY.md` for components [#01] through [#25].
+
 # 🧠 ScholasticPulse - Tharun's Habit & Time Management Architect (Class 8)
 
 A lightweight, **100% offline desktop application** specifically engineered for **Tharun (Class 8, Senthil Public School)** to introduce time management step-by-step:

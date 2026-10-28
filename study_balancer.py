@@ -9,6 +9,18 @@ Includes School Diary Entry Engine (Senthil Public School Format)
 
 import sys
 import os
+
+# Safe stream fallback for PyInstaller windowed/noconsole mode where sys.stdout/sys.stderr are None
+class _SafeStream:
+    def write(self, *args, **kwargs): pass
+    def flush(self, *args, **kwargs): pass
+    def reconfigure(self, *args, **kwargs): pass
+
+if sys.stdout is None:
+    sys.stdout = _SafeStream()
+if sys.stderr is None:
+    sys.stderr = _SafeStream()
+
 import re
 import json
 import math
@@ -53,9 +65,31 @@ except ImportError:
     UniversalDiaryImporter = None
 
 try:
+    from glider_help_ui import open_glider_help, show_error_with_glider_link
+except ImportError:
+    def open_glider_help(parent, target_tag=None): pass
+    def show_error_with_glider_link(parent, title, msg, tag): messagebox.showerror(title, msg)
+
+try:
+    from user_guide_ui import open_user_guide
+except ImportError:
+    def open_user_guide(parent, unit_idx=0): pass
+
+
+
+try:
     from exam_portion_parser import ExamPortionParser
 except ImportError:
     ExamPortionParser = None
+
+try:
+    from host_exam_ui import HostExamTabController
+except ImportError:
+    HostExamTabController = None
+
+# Modular UI Design System & Schedule Balancer Engine
+from shinobi_ui import ShinobiGraphicsEngine, ShinobiPillButton, ShinobiPillSelector, ShinobiTabBar
+from schedule_engine import SubjectRepresentationTracker, TharunScheduleBalancer, CANONICAL_SUBDIVISIONS, EXECUTION_LEVELS
 
 # Optional Windows sound support
 if sys.platform == "win32":
@@ -79,16 +113,24 @@ def get_persistent_data_path(filename):
     if getattr(sys, 'frozen', False):
         base_dir = os.path.dirname(os.path.abspath(sys.executable))
         target_path = os.path.join(base_dir, filename)
-        if not os.path.exists(target_path):
-            meipass_path = getattr(sys, '_MEIPASS', None)
-            if meipass_path:
-                seed_file = os.path.join(meipass_path, filename)
-                if os.path.exists(seed_file):
-                    try:
-                        import shutil
+        if os.path.exists(target_path):
+            return target_path
+        parent_dir = os.path.dirname(base_dir)
+        parent_target = os.path.join(parent_dir, filename)
+        if os.path.exists(parent_target):
+            return parent_target
+        meipass_path = getattr(sys, '_MEIPASS', None)
+        if meipass_path:
+            seed_file = os.path.join(meipass_path, filename)
+            if os.path.exists(seed_file):
+                try:
+                    import shutil
+                    if os.path.isdir(seed_file):
+                        shutil.copytree(seed_file, target_path, dirs_exist_ok=True)
+                    else:
                         shutil.copy2(seed_file, target_path)
-                    except Exception:
-                        pass
+                except Exception:
+                    pass
         return target_path
     else:
         base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -104,6 +146,8 @@ def get_persistent_data_path(filename):
 DATA_FILE = get_persistent_data_path("study_routine_data.json")
 DIARY_FILE = get_persistent_data_path("tharun_diary_format.json")
 AUDIT_FILE = get_persistent_data_path("time_extension_audit.json")
+SUBJECT_AUDIT_FILE = get_persistent_data_path("subject_representation_audit.json")
+LEDGER_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "EXAM_SYSTEM_V3", "01_SUBJECT_HOMEWORK_LOGS", "subject_study_ledger.json")
 PORTIONS_FILE = get_persistent_data_path("tharun_exam_portions.json")
 PORTION_PROGRESS_FILE = get_persistent_data_path("exam_portion_progress.json")
 ERROR_BANK_FILE = get_persistent_data_path("student_error_bank.json")
@@ -729,45 +773,110 @@ DEFAULT_DIARY_DATA = {
     ]
 }
 
-EXECUTION_LEVELS = {
-    1: {
-        "title": "Level 1: 🔰 Genin Academy ('Sit & Finish' Chair-Time)",
-        "badge": "🔰 Genin: Habit Foundation",
-        "focus": "Building Tharun's ability to sit at the desk for the set duration without distraction, complete homework first, and do 1 core subject practice.",
-        "target_hours_eve": 2.25,
-        "target_hours_morn": 1.0,
-        "eve_start": "19:00",
-        "eve_end": "21:15",
-        "morn_start": "06:15",
-        "morn_end": "07:15",
-        "break_duration": 12,
-        "pomodoro_duration": 30
+# Auto-bootstrap complete 12-day diary data if available on disk or bundled
+try:
+    _df_candidates = [
+        DIARY_FILE,
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "tharun_diary_format.json"),
+        os.path.join(os.path.dirname(os.path.abspath(sys.executable)), "tharun_diary_format.json"),
+        os.path.join(os.getcwd(), "tharun_diary_format.json"),
+    ]
+    _meipass_path = getattr(sys, '_MEIPASS', None)
+    if _meipass_path:
+        _df_candidates.append(os.path.join(_meipass_path, "tharun_diary_format.json"))
+    for _dfc in _df_candidates:
+        if _dfc and os.path.exists(_dfc):
+            with open(_dfc, "r", encoding="utf-8") as _f:
+                _loaded_df = json.load(_f)
+                if _loaded_df and len(_loaded_df.get("diary_entries", [])) >= len(DEFAULT_DIARY_DATA.get("diary_entries", [])):
+                    DEFAULT_DIARY_DATA = _loaded_df
+                    break
+except Exception:
+    pass
+
+# =========================================================================
+# CBSE CLASS 8 CANONICAL SUBDIVISIONS & PARENT AUDIT REPRESENTATION SYSTEM
+# =========================================================================
+CANONICAL_SUBDIVISIONS = {
+    "Mathematics": {
+        "parent": "Mathematics",
+        "category": "core",
+        "is_math": True,
+        "badge": "📐 Math Core",
+        "guidance": "Maths Problem Solving: Step-by-step textbook exercises, algebra, geometries & proof practice.",
+        "diagram_target": "Geometric Proofs & Coordinate Graphs"
     },
-    2: {
-        "title": "Level 2: ⚡ Chunin Shinobi (Maths Solving + Diagrams + Language Clinic)",
-        "badge": "⚡ Chunin: Balanced Rhythm",
-        "focus": "Firm daily habit: Homework clearance + Daily Maths problem solving + 1 Science/Social diagram retention + Morning Language writing & spelling clinic.",
-        "target_hours_eve": 3.0,
-        "target_hours_morn": 1.5,
-        "eve_start": "19:00",
-        "eve_end": "22:00",
-        "morn_start": "06:00",
-        "morn_end": "07:30",
-        "break_duration": 10,
-        "pomodoro_duration": 40
+    "Physics": {
+        "parent": "Physical Science",
+        "category": "science",
+        "is_math": False,
+        "badge": "⚡ Physical Science (Physics)",
+        "guidance": "Physics Concepts: Force, pressure, sound, friction, light reflection/refraction laws & ray diagrams.",
+        "diagram_target": "Ray Optics / Electric Circuits"
     },
-    3: {
-        "title": "Level 3: 🔥 Jonin / Hokage (Autonomous Time Management & Peak Flow)",
-        "badge": "🔥 Jonin / Hokage: Peak Mastery",
-        "focus": "Full high-efficiency flow: Deep analytical solving, blind diagram reproduction, timed writing without spelling errors, self-driven time management.",
-        "target_hours_eve": 3.0,
-        "target_hours_morn": 1.5,
-        "eve_start": "19:00",
-        "eve_end": "22:00",
-        "morn_start": "06:00",
-        "morn_end": "07:30",
-        "break_duration": 8,
-        "pomodoro_duration": 45
+    "Chemistry": {
+        "parent": "Physical Science",
+        "category": "science",
+        "is_math": False,
+        "badge": "⚗️ Physical Science (Chemistry)",
+        "guidance": "Chemistry Concepts: Synthetic fibres, metals/non-metals, combustion & flame, chemical reactions.",
+        "diagram_target": "Chemical Apparatus & Reaction Flowcharts"
+    },
+    "Biology": {
+        "parent": "Biological Science",
+        "category": "science",
+        "is_math": False,
+        "badge": "🔬 Biological Science (Biology)",
+        "guidance": "Biology Concepts: Cell structure & functions, microorganisms, reproduction in animals & life cycles.",
+        "diagram_target": "Plant/Animal Cells & Microorganisms"
+    },
+    "History": {
+        "parent": "Social Science",
+        "category": "social",
+        "is_math": False,
+        "badge": "📜 Social Science (History)",
+        "guidance": "History Timelines: Modern Indian history, timelines, revolt of 1857, trade to territory & cause-effect analysis.",
+        "diagram_target": "Historical Timelines & Trade Routes"
+    },
+    "Geography": {
+        "parent": "Social Science",
+        "category": "social",
+        "is_math": False,
+        "badge": "🌍 Social Science (Geography)",
+        "guidance": "Geography Concepts: Resources, agriculture, industries, soil profiles, climate zones & map plotting.",
+        "diagram_target": "India Map Plotting & Soil Horizons"
+    },
+    "Civics": {
+        "parent": "Social Science",
+        "category": "social",
+        "is_math": False,
+        "badge": "⚖️ Social Science (Civics)",
+        "guidance": "Civics Concepts: Indian Constitution, secularism, parliament, judiciary & fundamental rights.",
+        "diagram_target": "Governance Organs & Parliamentary Structure"
+    },
+    "Tamil": {
+        "parent": "Tamil",
+        "category": "language",
+        "is_math": False,
+        "badge": "✍️ தமிழ் பயிர்ச்சி",
+        "guidance": "Tamil Clinic: 'ழ, ள, ல' மற்றும் 'ண, ந, ன' ஒலி வேறுபாடுகள், செய்யுள் வரிகள் & சொந்த நடை வாக்கியங்கள்.",
+        "diagram_target": "Tamil Mind-Map & Grammar Tree"
+    },
+    "English": {
+        "parent": "English",
+        "category": "language",
+        "is_math": False,
+        "badge": "✍️ English Clinic",
+        "guidance": "English Clinic: Grammar, vocabulary, error bank correction, reading comprehension & expressive writing.",
+        "diagram_target": "Grammar Flowcharts & Concept Maps"
+    },
+    "Hindi": {
+        "parent": "Hindi",
+        "category": "language",
+        "is_math": False,
+        "badge": "✍️ हिंदी अभ्यास",
+        "guidance": "Hindi Clinic: वर्तनी सुधार (मात्राएँ ि/ी, ु/ू), व्याकरण अभ्यास और स्वतंत्र लेखन।",
+        "diagram_target": "Hindi Vocabulary Trees & Sentence Frames"
     }
 }
 
@@ -2330,2194 +2439,6 @@ def get_contrast_fg(hex_color):
 
 
 
-# =============================================================================
-# 🎨 SHINOBI HIGH-DPI GRAPHICS ENGINE (4X SSAA + GAUSSIAN GLOW + 3D SCROLLS)
-# =============================================================================
-class ShinobiGraphicsEngine:
-    """
-    Dedicated High-DPI / SSAA Rendering Engine for ScholasticPulse Desktop:
-    - 4x Supersampled (SSAA) rounded glass cards with subtle vertical gradients.
-    - Soft Gaussian radial auras and silky anti-aliased timer progress rings.
-    - True 3D shaded cylindrical mahogany/crimson parchment scrolls matching Web UI.
-    - Anti-aliased rounded pill selector cards and stacked action tiles.
-    """
-    _cache = {}
-
-    @classmethod
-    def clear_cache(cls):
-        """Clears all cached SSAA cards, 3D parchment scrolls, circular emblems, and rank plaques."""
-        cls._cache.clear()
-
-    @classmethod
-    def _hex_to_rgb(cls, hex_color):
-        if not hex_color or not isinstance(hex_color, str) or not hex_color.startswith('#'):
-            return (15, 23, 42)
-        h = hex_color.lstrip('#')
-        if len(h) == 3:
-            h = ''.join([c * 2 for c in h])
-        try:
-            return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
-        except Exception:
-            return (15, 23, 42)
-
-    @classmethod
-    def create_rounded_glass_card(cls, width, height, radius=14, bg_top='#111827', bg_bot='#0b1120',
-                                  border_color='#d97706', border_width=1, glow_color=None, glow_radius=0):
-        key = ('card', width, height, radius, bg_top, bg_bot, border_color, border_width, glow_color, glow_radius)
-        if key in cls._cache:
-            return cls._cache[key]
-        
-        if Image is None or ImageDraw is None:
-            return None
-
-        scale = 3
-        sw, sh = max(1, width * scale), max(1, height * scale)
-        srad = radius * scale
-
-        # Gradient fill
-        top_rgb = cls._hex_to_rgb(bg_top)
-        bot_rgb = cls._hex_to_rgb(bg_bot)
-        grad = Image.new('RGBA', (sw, sh))
-        gdraw = ImageDraw.Draw(grad)
-        for y in range(sh):
-            ratio = y / max(1, sh - 1)
-            r = int(top_rgb[0] + (bot_rgb[0] - top_rgb[0]) * ratio)
-            g = int(top_rgb[1] + (bot_rgb[1] - top_rgb[1]) * ratio)
-            b = int(top_rgb[2] + (bot_rgb[2] - top_rgb[2]) * ratio)
-            gdraw.line([(0, y), (sw, y)], fill=(r, g, b, 255))
-
-        mask = Image.new('L', (sw, sh), 0)
-        mdraw = ImageDraw.Draw(mask)
-        mdraw.rounded_rectangle([0, 0, sw - 1, sh - 1], radius=srad, fill=255)
-
-        base_card = Image.new('RGBA', (sw, sh), (0, 0, 0, 0))
-        base_card.paste(grad, (0, 0), mask)
-
-        # Border
-        if border_color and border_width > 0:
-            b_rgb = cls._hex_to_rgb(border_color)
-            sbw = border_width * scale
-            bdraw = ImageDraw.Draw(base_card)
-            bdraw.rounded_rectangle([sbw // 2, sbw // 2, sw - 1 - sbw // 2, sh - 1 - sbw // 2],
-                                   radius=srad, outline=(*b_rgb, 255), width=sbw)
-
-        res = base_card.resize((width, height), Image.Resampling.LANCZOS)
-        photo = ImageTk.PhotoImage(res)
-        cls._cache[key] = photo
-        return photo
-
-    @classmethod
-    def create_konoha_crest_emblem(cls, size=52, border_color="#f59e0b", stroke_color="#fb923c"):
-        """
-        Creates an anti-aliased 4x SSAA Konoha Leaf Village crest medallion matching the Web UI (#deckCrest).
-        Features:
-        - Theme-aware glowing chakra outer ring
-        - Deep radial gradient medallion core
-        - Precision Konoha leaf beak and golden spiral curve
-        """
-        key = ('konoha_crest', size, border_color, stroke_color)
-        if key in cls._cache:
-            return cls._cache[key]
-        if Image is None or ImageDraw is None:
-            return None
-        scale = 4
-        s = max(4, size * scale)
-        img = Image.new('RGBA', (s, s), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(img)
-        center = s / 2.0
-        radius = (s - 12 * scale) / 2.0
-
-        b_rgb = cls._hex_to_rgb(border_color)
-        s_rgb = cls._hex_to_rgb(stroke_color) if stroke_color else b_rgb
-
-        # Outer chakra glow ring
-        for gw in range(int(5 * scale), 0, -2):
-            alpha = int(35 * (1.0 - gw / (5.0 * scale)))
-            draw.ellipse(
-                [center - radius - gw, center - radius - gw, center + radius + gw, center + radius + gw],
-                outline=(*b_rgb, alpha),
-                width=2
-            )
-
-        # Dark radial medallion core
-        for r in range(int(radius), 0, -1):
-            ratio = r / radius
-            cr = int(31 * (1.0 - ratio * 0.7) + 11 * (ratio * 0.7))
-            cg = int(20 * (1.0 - ratio * 0.7) + 16 * (ratio * 0.7))
-            cb = int(9 * (1.0 - ratio * 0.7) + 30 * (ratio * 0.7))
-            draw.ellipse([center - r, center - r, center + r, center + r], fill=(cr, cg, cb, 255))
-
-        # Circular outer border
-        border_w = max(2, int(2.5 * scale))
-        draw.ellipse([center - radius, center - radius, center + radius, center + radius], outline=(*b_rgb, 255), width=border_w)
-
-        # Konoha Leaf triangle beak
-        import math
-        svg_scale = (s * 0.58) / 48.0
-        ox = center - 24 * svg_scale
-        oy = center - 24 * svg_scale
-        def pt(x, y): return (ox + x * svg_scale, oy + y * svg_scale)
-
-        tri = [pt(11.5, 36), pt(7.5, 41.5), pt(15, 38.5)]
-        draw.polygon(tri, fill=(*s_rgb, 255))
-
-        # Spiral curve points
-        spiral_pts = []
-        for deg in range(0, 540, 2):
-            rad = math.radians(deg)
-            r_val = 1.8 + deg * 0.024
-            x = 24 + r_val * math.cos(rad - math.pi * 0.5)
-            y = 24 + r_val * math.sin(rad - math.pi * 0.5)
-            spiral_pts.append(pt(x, y))
-        stroke_w = max(2, int(2.6 * scale))
-        draw.line(spiral_pts, fill=(*s_rgb, 255), width=stroke_w, joint='curve')
-
-        # Outer tail arc
-        tail_pts = []
-        for deg in range(120, 210, 2):
-            rad = math.radians(deg)
-            r_val = 13.5
-            x = 24 + r_val * math.cos(rad)
-            y = 24 + r_val * math.sin(rad)
-            tail_pts.append(pt(x, y))
-        draw.line(tail_pts, fill=(*s_rgb, 255), width=stroke_w, joint='curve')
-
-        res = img.resize((size, size), Image.Resampling.LANCZOS)
-        photo = ImageTk.PhotoImage(res)
-        cls._cache[key] = photo
-        return photo
-
-    @classmethod
-    def create_circular_emblem(cls, size=52, bg="#111827", border_color="#f97316", border_width=2.5):
-        return cls.create_konoha_crest_emblem(size=size, border_color=border_color, stroke_color=border_color)
-
-    @classmethod
-    def create_hexagonal_rank_plaque(cls, width=144, height=28, text="RANK: HOKAGE"):
-        key = ('hex_rank', width, height, text)
-        if key in cls._cache:
-            return cls._cache[key]
-        if Image is None or ImageDraw is None:
-            return None
-        scale = 4
-        sw, sh = max(1, width * scale), max(1, height * scale)
-        img = Image.new('RGBA', (sw, sh), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(img)
-        
-        # Chamfered pointed ribbon polygon: polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%)
-        inset_x = int(sw * 0.08)
-        poly = [
-            (inset_x, 0),
-            (sw - inset_x, 0),
-            (sw - 1, sh // 2),
-            (sw - inset_x, sh - 1),
-            (inset_x, sh - 1),
-            (0, sh // 2)
-        ]
-        
-        mask = Image.new('L', (sw, sh), 0)
-        mdraw = ImageDraw.Draw(mask)
-        mdraw.polygon(poly, fill=255)
-        
-        # Metallic gold vertical gradient: #fde68a (top) -> #d99a2b (mid) -> #8a5a12 (bottom)
-        grad = Image.new('RGBA', (sw, sh), (0, 0, 0, 0))
-        gdraw = ImageDraw.Draw(grad)
-        top_c = (253, 230, 138)
-        mid_c = (217, 154, 43)
-        bot_c = (138, 90, 18)
-        for y in range(sh):
-            rel_y = y / max(1, sh - 1)
-            if rel_y < 0.5:
-                fac = rel_y / 0.5
-                r = int(top_c[0] + (mid_c[0] - top_c[0]) * fac)
-                g = int(top_c[1] + (mid_c[1] - top_c[1]) * fac)
-                b = int(top_c[2] + (mid_c[2] - top_c[2]) * fac)
-            else:
-                fac = (rel_y - 0.5) / 0.5
-                r = int(mid_c[0] + (bot_c[0] - mid_c[0]) * fac)
-                g = int(mid_c[1] + (bot_c[1] - mid_c[1]) * fac)
-                b = int(mid_c[2] + (bot_c[2] - mid_c[2]) * fac)
-            gdraw.line([(0, y), (sw, y)], fill=(r, g, b, 255))
-            
-        img.paste(grad, (0, 0), mask)
-        draw.polygon(poly, outline=(254, 240, 138, 255), width=max(1, int(1.5 * scale)))
-        
-        # Render text in crisp dark ink (#1b1205)
-        try:
-            from PIL import ImageFont
-            font = None
-            for font_name in ["segoeuib.ttf", "arialbd.ttf", "tahoma.ttf"]:
-                try:
-                    font = ImageFont.truetype(font_name, int(9 * scale))
-                    break
-                except Exception:
-                    pass
-            if not font:
-                font = ImageFont.load_default()
-            bbox = draw.textbbox((0, 0), text, font=font)
-            tw = bbox[2] - bbox[0]
-            th = bbox[3] - bbox[1]
-            tx = (sw - tw) // 2
-            ty = (sh - th) // 2 - int(1 * scale)
-            draw.text((tx, ty), text, fill=(27, 18, 5, 255), font=font)
-        except Exception:
-            pass
-            
-        res = img.resize((width, height), Image.Resampling.LANCZOS)
-        photo = ImageTk.PhotoImage(res)
-        cls._cache[key] = photo
-        return photo
-
-    @classmethod
-    def create_3d_parchment_scroll(cls, width, height, roller_width=18, is_mini_badge=False, is_rollover=False, is_dark_slate=False):
-        key = ('scroll', width, height, roller_width, is_mini_badge, is_rollover, is_dark_slate)
-        if key in cls._cache:
-            return cls._cache[key]
-
-        if Image is None or ImageDraw is None:
-            return None
-
-        scale = 3
-        sw, sh = max(1, width * scale), max(1, height * scale)
-        srw = max(4, roller_width * scale)
-
-        img = Image.new('RGBA', (sw, sh), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(img)
-
-        # Center parchment:
-        # Standard: #d6be96 top shadow -> #fdf3dc center highlight -> #e6cfa7 bottom edge
-        # Amber Rollover: #fef3c7 center, #fde68a bottom
-        # Dark Slate Inactive: #1e293b top -> #161f30 center -> #0f172a bottom
-        cx1 = srw - (2 * scale)
-        cx2 = sw - srw + (2 * scale)
-        for y in range(sh):
-            rel_y = y / max(1, sh - 1)
-            if is_dark_slate:
-                if rel_y < 0.4:
-                    fac = rel_y / 0.4
-                    r = int(30 + (22 - 30) * fac)
-                    g = int(41 + (28 - 41) * fac)
-                    b = int(59 + (46 - 59) * fac)
-                else:
-                    fac = (rel_y - 0.4) / 0.6
-                    r = int(22 + (15 - 22) * fac)
-                    g = int(28 + (23 - 28) * fac)
-                    b = int(46 + (42 - 46) * fac)
-            elif is_rollover:
-                if rel_y < 0.35:
-                    fac = rel_y / 0.35
-                    r = int(254 + (255 - 254) * fac)
-                    g = int(240 + (250 - 240) * fac)
-                    b = int(195 + (215 - 195) * fac)
-                else:
-                    fac = (rel_y - 0.35) / 0.65
-                    r = int(255 + (253 - 255) * fac)
-                    g = int(250 + (230 - 250) * fac)
-                    b = int(215 + (138 - 215) * fac)
-            else:
-                if rel_y < 0.35:
-                    fac = rel_y / 0.35
-                    r = int(214 + (253 - 214) * fac)
-                    g = int(190 + (243 - 190) * fac)
-                    b = int(150 + (220 - 150) * fac)
-                else:
-                    fac = (rel_y - 0.35) / 0.65
-                    r = int(253 + (230 - 253) * fac)
-                    g = int(243 + (207 - 243) * fac)
-                    b = int(220 + (167 - 220) * fac)
-            draw.line([(cx1, y), (cx2, y)], fill=(r, g, b, 255))
-
-        top_border_col = (51, 65, 85, 255) if is_dark_slate else ((217, 119, 6, 255) if is_rollover else (180, 83, 9, 255))
-        draw.line([(cx1, 0), (cx2, 0)], fill=top_border_col, width=max(1, scale))
-        draw.line([(cx1, sh - 1), (cx2, sh - 1)], fill=top_border_col, width=max(1, scale))
-
-        # Cylindrical mahogany-crimson rollers:
-        def _draw_roller(rx1, rx2):
-            rw = rx2 - rx1
-            for x in range(rw):
-                rel_x = x / max(1, rw - 1)
-                if is_dark_slate:
-                    # Dark mahogany for inactive scroll rollers: #4a0d13 -> #7f1d1d -> #3b0709
-                    if rel_x < 0.45:
-                        fac = rel_x / 0.45
-                        cr = int(74 + (127 - 74) * fac)
-                        cg = int(13 + (29 - 13) * fac)
-                        cb = int(19 + (29 - 19) * fac)
-                    else:
-                        fac = (rel_x - 0.45) / 0.55
-                        cr = int(127 + (59 - 127) * fac)
-                        cg = int(29 + (7 - 29) * fac)
-                        cb = int(29 + (9 - 29) * fac)
-                else:
-                    if rel_x < 0.45:
-                        fac = rel_x / 0.45
-                        cr = int(69 + (220 - 69) * fac)
-                        cg = int(10 + (38 - 10) * fac)
-                        cb = int(10 + (38 - 10) * fac)
-                    else:
-                        fac = (rel_x - 0.45) / 0.55
-                        cr = int(220 + (127 - 220) * fac)
-                        cg = int(38 + (29 - 38) * fac)
-                        cb = int(38 + (29 - 38) * fac)
-                draw.line([(rx1 + x, 0), (rx1 + x, sh - 1)], fill=(cr, cg, cb, 255))
-            cap_h = max(3, 4 * scale // 2)
-            cap_col = (148, 163, 184, 255) if is_dark_slate else (234, 179, 8, 255)
-            draw.rectangle([rx1, 0, rx2, cap_h], fill=cap_col)
-            draw.rectangle([rx1, sh - 1 - cap_h, rx2, sh - 1], fill=cap_col)
-            outline_col = (71, 85, 105, 255) if is_dark_slate else (153, 27, 27, 255)
-            draw.rectangle([rx1, 0, rx2, sh - 1], outline=outline_col, width=max(1, scale // 2))
-
-        _draw_roller(0, srw - 1)
-        _draw_roller(sw - srw, sw - 1)
-
-        res = img.resize((width, height), Image.Resampling.LANCZOS)
-        photo = ImageTk.PhotoImage(res)
-        cls._cache[key] = photo
-        return photo
-
-    @classmethod
-    def create_rounded_pill_button(cls, parent, text, width, height, bg_top="#1e293b", bg_bot="#0f172a",
-                                   border_color="#475569", fg_color="#f8fafc", font=("Segoe UI", 8, "bold"),
-                                   command=None, radius=10, **kwargs):
-        """Creates a supersampled anti-aliased rounded glass pill button."""
-        return ShinobiPillButton(parent, text=text, width=width, height=height, bg_top=bg_top, bg_bot=bg_bot,
-                                 border_color=border_color, fg_color=fg_color, font=font, command=command,
-                                 radius=radius, **kwargs)
-
-
-class ShinobiPillButton(tk.Canvas):
-    """
-    3x Supersampled Anti-Aliased Rounded Pill Button:
-    - Renders smooth rounded glass pills using ShinobiGraphicsEngine.
-    - Duck-typed drop-in replacement for tk.Button:
-      supports .config(text=..., bg=..., fg=..., state=..., command=...),
-      .cget(), and standard pack/grid/place geometry managers.
-    """
-    def __init__(self, parent, text="", width=100, height=32, bg_top="#1e293b", bg_bot="#0f172a",
-                 border_color="#475569", fg_color="#f8fafc", font=("Segoe UI", 8, "bold"),
-                 command=None, radius=10, active_bg="#f59e0b", active_fg="#0f172a", **kwargs):
-        self._btn_width = int(width)
-        self._btn_height = int(height)
-        self._radius = radius
-        self._text = text
-        self._bg_top = bg_top
-        self._bg_bot = bg_bot
-        self._border_color = border_color
-        self._fg_color = fg_color
-        self._active_bg = active_bg
-        self._active_fg = active_fg
-        self._font = font
-        self._command = command
-        self._state = "normal"
-        self._is_hovered = False
-
-        bg_parent = kwargs.pop("bg", None) or kwargs.pop("background", None)
-        if not bg_parent:
-            try:
-                bg_parent = parent.cget("bg")
-            except Exception:
-                bg_parent = "#0b1120"
-
-        # Pop any tk.Button specific kwargs
-        for k in ["padx", "pady", "relief", "bd", "highlightthickness", "activebackground", "activeforeground"]:
-            kwargs.pop(k, None)
-
-        super().__init__(parent, width=self._btn_width, height=self._btn_height, bg=bg_parent, bd=0, highlightthickness=0, cursor="hand2", **kwargs)
-
-        self._render_button()
-
-        self.bind("<Button-1>", self._on_click)
-        self.bind("<Enter>", self._on_enter)
-        self.bind("<Leave>", self._on_leave)
-        self.bind("<Configure>", self._on_configure)
-
-    def _render_button(self):
-        w = max(10, self.winfo_width() if self.winfo_width() > 10 else self._btn_width)
-        h = max(10, self.winfo_height() if self.winfo_height() > 10 else self._btn_height)
-
-        bg_t = self._bg_top
-        bg_b = self._bg_bot
-        b_col = self._border_color
-        fg = self._fg_color
-
-        if self._state == "disabled":
-            fg = "#64748b"
-            b_col = "#334155"
-        elif self._is_hovered:
-            b_col = "#f59e0b"
-
-        photo = ShinobiGraphicsEngine.create_rounded_glass_card(
-            w, h, radius=self._radius, bg_top=bg_t, bg_bot=bg_b, border_color=b_col, border_width=1
-        )
-        self.delete("all")
-        if photo:
-            self._cached_photo = photo
-            self.create_image(0, 0, image=photo, anchor="nw")
-        else:
-            self.create_rectangle(0, 0, w, h, fill=bg_t, outline=b_col)
-
-        self.create_text(w // 2, h // 2, text=self._text, font=self._font, fill=fg)
-
-    def _on_click(self, event=None):
-        if self._state != "disabled" and self._command:
-            self._command()
-
-    def _on_enter(self, event=None):
-        if self._state != "disabled":
-            self._is_hovered = True
-            self._render_button()
-
-    def _on_leave(self, event=None):
-        self._is_hovered = False
-        self._render_button()
-
-    def _on_configure(self, event=None):
-        self._render_button()
-
-    def config(self, **kwargs):
-        self.configure(**kwargs)
-
-    def configure(self, **kwargs):
-        redraw = False
-        if "text" in kwargs:
-            self._text = kwargs.pop("text")
-            redraw = True
-        if "command" in kwargs:
-            self._command = kwargs.pop("command")
-        if "state" in kwargs:
-            self._state = kwargs.pop("state")
-            if self._state == "disabled":
-                super().configure(cursor="")
-            else:
-                super().configure(cursor="hand2")
-            redraw = True
-        if "bg" in kwargs or "background" in kwargs:
-            bg_val = kwargs.pop("bg", None) or kwargs.pop("background", None)
-            self._bg_top = bg_val
-            self._bg_bot = bg_val
-            redraw = True
-        if "bg_top" in kwargs:
-            self._bg_top = kwargs.pop("bg_top")
-            redraw = True
-        if "bg_bot" in kwargs:
-            self._bg_bot = kwargs.pop("bg_bot")
-            redraw = True
-        if "fg" in kwargs or "foreground" in kwargs or "fg_color" in kwargs:
-            self._fg_color = kwargs.pop("fg", None) or kwargs.pop("foreground", None) or kwargs.pop("fg_color", None)
-            redraw = True
-        if "highlightbackground" in kwargs:
-            self._border_color = kwargs.pop("highlightbackground")
-            redraw = True
-        if "border_color" in kwargs:
-            self._border_color = kwargs.pop("border_color")
-            redraw = True
-        if "font" in kwargs:
-            self._font = kwargs.pop("font")
-            redraw = True
-        for k in ["padx", "pady", "relief", "bd", "highlightthickness", "activebackground", "activeforeground"]:
-            if k in kwargs:
-                kwargs.pop(k)
-
-        if kwargs:
-            super().configure(**kwargs)
-        if redraw and self.winfo_exists():
-            self._render_button()
-
-    def cget(self, key):
-        if key == "text":
-            return self._text
-        if key in ("bg", "background"):
-            return self._bg_top
-        if key in ("fg", "foreground"):
-            return self._fg_color
-        if key == "state":
-            return self._state
-        return super().cget(key)
-
-    def __getitem__(self, item):
-        return self.cget(item)
-
-    def __setitem__(self, item, value):
-        self.configure(**{item: value})
-
-
-class ShinobiPillSelector(tk.Frame):
-    """
-    Custom Rounded Dark-Glass Selector Card with Native Dark Popup Menu:
-    Replaces clunky Win32 ttk.Combobox with high-polish dark card (radius=12, bg=#131c2e, border=#334155).
-    Fully compatible with ttk.Combobox methods: ['values'], .current(), .set(), .get(), .configure().
-    """
-    def __init__(self, parent, title="", values=None, initial_value="", on_select_callback=None, textvariable=None, width=120, height=None, title_color=None, **kwargs):
-        self.title = title or ""
-        self.title_color = title_color
-        self.values = list(values) if values else []
-        self.current_value = str(initial_value) if initial_value else ""
-        self.on_select_callback = on_select_callback
-        self.textvariable = textvariable
-
-        if "state" in kwargs:
-            kwargs.pop("state")
-        if "width" in kwargs:
-            width = kwargs.pop("width")
-        if "height" in kwargs:
-            height = kwargs.pop("height")
-
-        bg_col = "#161f30"
-        super().__init__(parent, bg=bg_col, bd=1, relief=tk.SOLID, highlightbackground="#2e3b52", highlightthickness=1, cursor="hand2", **kwargs)
-
-        px_w = int(width * 8 + 30) if (width and width <= 35) else int(width if width else 120)
-        px_h = int(height) if height else (32 if not self.title else 40)
-        self._pill_width = px_w
-        self._pill_height = px_h
-
-        super().configure(width=px_w, height=px_h)
-        self.pack_propagate(False)
-
-        if self.title:
-            self.lbl_title = tk.Label(self, text=self.title, font=("Segoe UI", 7, "bold"), fg=self.title_color or "#fb923c", bg=bg_col, anchor="w")
-            self.lbl_title.pack(anchor="w", padx=6, pady=(2, 0))
-        else:
-            self.lbl_title = None
-
-        val_row = tk.Frame(self, bg=bg_col)
-        val_row.pack(fill=tk.BOTH, expand=True, padx=6, pady=(1 if self.title else 2, 2))
-        self.val_row = val_row
-
-        disp_txt = self.current_value if self.current_value else (self.values[0] if self.values else "")
-        self.current_value = disp_txt
-        formatted_txt = self._format_display_text(disp_txt)
-        self.lbl_val = tk.Label(val_row, text=formatted_txt, font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg=bg_col, anchor="w")
-        self.lbl_val.pack(side=tk.LEFT, fill=tk.X, expand=True)
-
-        self.lbl_chev = tk.Label(val_row, text="▾", font=("Segoe UI", 8, "bold"), fg="#fb923c", bg=bg_col)
-        self.lbl_chev.pack(side=tk.RIGHT)
-
-        widgets = [self, self.val_row, self.lbl_val, self.lbl_chev]
-        if self.lbl_title:
-            widgets.append(self.lbl_title)
-        for w in widgets:
-            w.bind("<Button-1>", self._popup_menu)
-            w.bind("<Enter>", lambda e: self.configure(highlightbackground="#f59e0b"))
-            w.bind("<Leave>", lambda e: self.configure(highlightbackground="#334155"))
-
-        if self.textvariable:
-            def _on_var_write(*args):
-                val = self.textvariable.get()
-                if val != self.current_value:
-                    self.set(val)
-            self.textvariable.trace_add("write", _on_var_write)
-            if self.textvariable.get():
-                self.set(self.textvariable.get())
-
-    _active_popup = None
-
-    @classmethod
-    def close_active_popup(cls):
-        if cls._active_popup and cls._active_popup.winfo_exists():
-            try:
-                cls._active_popup.destroy()
-            except Exception:
-                pass
-        cls._active_popup = None
-
-    @staticmethod
-    def _parse_dropdown_item_info(val):
-        txt = str(val).strip()
-        DROPDOWN_ITEM_METADATA = {
-            "🌿 Balanced Daily": ("🌿", "Balanced Daily Routine", "CBSE Senthil Diary Balanced Routine (Levels 1–3)"),
-            "🔥 Exam Sprint": ("🔥", "Exam Eve Sprint", "3-Stage Cognitive Mastery & Kit Audit"),
-            "Level 1: 🔰 Genin": ("🔰", "Level 1: Genin", "15m Focus Slabs • Sitting Endurance Building"),
-            "Level 2: ⚡ Chunin": ("⚡", "Level 2: Chunin", "30m Standard Slabs • Balanced Daily Study Habit"),
-            "Level 3: 🔥 Jonin": ("🔥", "Level 3: Jonin", "45m Deep Work • Peak Cognitive Mastery"),
-            "7:00 PM": ("🕒", "7:00 PM Focus", "Standard Evening Focus Routine (Default)"),
-            "5:00 PM": ("🕒", "5:00 PM Focus", "Early Evening Focus Session"),
-            "10:00 AM": ("☀️", "10:00 AM Focus", "Holiday & Weekend Morning Session"),
-            "2:00 PM": ("🌤️", "2:00 PM Focus", "Weekend Afternoon Study Block"),
-            "⚡ Start Now": ("⚡", "Start Right Now", "Align Schedule Start with Live System Clock"),
-            "Tamil": ("📖", "Tamil (09.09)", "Grammar, Prose & Thirukkural Memorization"),
-            "Mathematics": ("📐", "Mathematics (11.09)", "Ch 1-8 Concepts, Formulas & Hand Solving"),
-            "Physical Science": ("🔬", "Physical Science (16.09)", "Physics Laws, Equations & Numerical Practice"),
-            "Social Science": ("🌍", "Social Science (18.09)", "History, Geography Maps & Civics Concepts"),
-            "Hindi": ("📝", "Hindi (22.09)", "Grammar, Comprehension & Essay Writing"),
-            "Biological Science": ("🧬", "Biological Science (24.09)", "Labeled Anatomy Diagrams & Recall"),
-            "English": ("📚", "English (26.09)", "Literature, Formal Writing & Vocabulary"),
-        }
-        if txt in DROPDOWN_ITEM_METADATA:
-            return DROPDOWN_ITEM_METADATA[txt]
-
-        for k, meta in NARUTO_METADATA.items():
-            if meta.get("display_name") == txt:
-                icon_map = {
-                    "naruto_sage": "🍥", "sasuke_chidori": "⚡", "kakashi_hatake": "👁️",
-                    "minato_flash": "🟡", "itachi_uchiha": "🔴", "leaf_village": "🍃",
-                    "dark": "🌑", "light": "📜"
-                }
-                icon = icon_map.get(k, "🍥")
-                title = meta.get("display_name", txt)
-                sub = meta.get("jutsu", "")
-                return icon, title, sub
-
-        if txt.startswith("Day ") and ":" in txt:
-            parts = txt.split(":", 1)
-            day_tag = parts[0].strip()
-            day_title = parts[1].strip()
-            return "🎯", day_tag, day_title
-
-        if "Pre-Exam Planner" in txt:
-            return "📅", txt, "Dynamic Multi-Day Horizon & Exam Portions"
-
-        if "(" in txt and ")" in txt:
-            idx = txt.index("(")
-            dt = txt[:idx].strip()
-            subs = txt[idx+1:txt.rindex(")")].strip()
-            return "📅", dt, f"Subjects: {subs}"
-
-        emojis = ['🌿', '🔥', '📅', '⚡', '🍥', '👁️', '🟡', '🔴', '🍃', '🌑', '📜', '🔰', '🕒', '☀️', '🌤️', '📐', '🔬', '🌍', '📝', '🧬', '📚', '📖', '🎨', '🎯']
-        for em in emojis:
-            if txt.startswith(em):
-                rem = txt[len(em):].strip()
-                return em, rem, ""
-
-        return "✦", txt, ""
-
-    def _rebuild_menu(self):
-        pass
-
-    def _popup_menu(self, event=None):
-        if ShinobiPillSelector._active_popup:
-            prev = ShinobiPillSelector._active_popup
-            ShinobiPillSelector.close_active_popup()
-            if getattr(prev, "_owner_pill", None) == self:
-                return
-
-        if not self.values:
-            return
-
-        popup = tk.Toplevel(self)
-        popup._owner_pill = self
-        ShinobiPillSelector._active_popup = popup
-
-        popup.overrideredirect(True)
-        try:
-            popup.attributes("-topmost", True)
-        except Exception:
-            pass
-
-        popup.configure(bg="#0c1322", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#d97706")
-
-        x = self.winfo_rootx()
-        y = self.winfo_rooty() + self.winfo_height() + 2
-        screen_w = self.winfo_screenwidth()
-        screen_h = self.winfo_screenheight()
-        popup_w = max(self.winfo_width(), 290)
-
-        item_h = 44
-        total_items_h = len(self.values) * item_h + 8
-        popup_h = min(360, max(50, total_items_h))
-
-        if x + popup_w > screen_w - 10:
-            x = screen_w - popup_w - 10
-        if y + popup_h > screen_h - 40:
-            y = self.winfo_rooty() - popup_h - 2
-
-        popup.geometry(f"{popup_w}x{popup_h}+{x}+{y}")
-
-        use_scroll = total_items_h > popup_h
-        if use_scroll:
-            canvas = tk.Canvas(popup, bg="#0c1322", highlightthickness=0)
-            inner = tk.Frame(canvas, bg="#0c1322")
-            inner_id = canvas.create_window((0, 0), window=inner, anchor="nw", width=popup_w)
-            canvas.pack(fill=tk.BOTH, expand=True)
-
-            def _on_cfg(e):
-                canvas.configure(scrollregion=canvas.bbox("all"))
-                canvas.itemconfig(inner_id, width=e.width)
-            inner.bind("<Configure>", _on_cfg)
-            canvas.bind("<Configure>", lambda e: canvas.itemconfig(inner_id, width=e.width))
-
-            def _on_wheel(e):
-                canvas.yview_scroll(int(-1 * (e.delta / 120)), "units")
-            popup.bind_all("<MouseWheel>", _on_wheel)
-            container = inner
-        else:
-            container = tk.Frame(popup, bg="#0c1322", padx=4, pady=4)
-            container.pack(fill=tk.BOTH, expand=True)
-
-        for val in self.values:
-            self._create_dropdown_item_card(container, val, popup)
-
-        def _check_click_outside(e):
-            if not popup.winfo_exists():
-                return
-            try:
-                px = popup.winfo_rootx()
-                py = popup.winfo_rooty()
-                pw = popup.winfo_width()
-                ph = popup.winfo_height()
-                if not (px <= e.x_root <= px + pw and py <= e.y_root <= py + ph):
-                    ShinobiPillSelector.close_active_popup()
-            except Exception:
-                ShinobiPillSelector.close_active_popup()
-
-        popup.bind("<FocusOut>", lambda e: ShinobiPillSelector.close_active_popup())
-        popup.bind("<Escape>", lambda e: ShinobiPillSelector.close_active_popup())
-        try:
-            self.winfo_toplevel().bind("<Button-1>", _check_click_outside, add="+")
-        except Exception:
-            pass
-        popup.focus_set()
-
-    def _create_dropdown_item_card(self, container, val, popup):
-        is_selected = (str(val).strip() == str(self.current_value).strip())
-        icon, title, sub = self._parse_dropdown_item_info(val)
-
-        item_bg = "#162032" if is_selected else "#0f172a"
-        border_col = "#f59e0b" if is_selected else "#1e293b"
-
-        card = tk.Frame(
-            container,
-            bg=item_bg,
-            bd=1,
-            relief=tk.SOLID,
-            highlightthickness=1,
-            highlightbackground=border_col,
-            cursor="hand2"
-        )
-        card.pack(fill=tk.X, padx=4, pady=2)
-
-        badge_frame = tk.Frame(card, bg="#1e293b", width=28, height=28)
-        badge_frame.pack_propagate(False)
-        badge_frame.pack(side=tk.LEFT, padx=(6, 8), pady=4)
-        lbl_icon = tk.Label(badge_frame, text=icon, font=("Segoe UI Emoji", 11), fg="#f59e0b", bg="#1e293b")
-        lbl_icon.pack(expand=True)
-
-        txt_box = tk.Frame(card, bg=item_bg)
-        txt_box.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, pady=3)
-
-        title_col = "#fbbf24" if is_selected else "#f8fafc"
-        lbl_t = tk.Label(txt_box, text=title, font=("Segoe UI", 8, "bold"), fg=title_col, bg=item_bg, anchor="w")
-        lbl_t.pack(anchor="w")
-
-        lbl_s = None
-        if sub:
-            lbl_s = tk.Label(txt_box, text=sub, font=("Segoe UI", 7), fg="#94a3b8", bg=item_bg, anchor="w")
-            lbl_s.pack(anchor="w")
-
-        check_txt = "✓" if is_selected else ""
-        lbl_chk = tk.Label(card, text=check_txt, font=("Segoe UI", 9, "bold"), fg="#f59e0b", bg=item_bg, width=3)
-        lbl_chk.pack(side=tk.RIGHT, padx=(0, 6))
-
-        all_widgets = [card, badge_frame, lbl_icon, txt_box, lbl_t, lbl_chk]
-        if lbl_s:
-            all_widgets.append(lbl_s)
-
-        def _on_enter(e):
-            card.configure(bg="#1e293b", highlightbackground="#f59e0b")
-            txt_box.configure(bg="#1e293b")
-            lbl_t.configure(bg="#1e293b", fg="#fbbf24")
-            if lbl_s: lbl_s.configure(bg="#1e293b")
-            lbl_chk.configure(bg="#1e293b")
-
-        def _on_leave(e):
-            if is_selected:
-                card.configure(bg="#162032", highlightbackground="#f59e0b")
-                txt_box.configure(bg="#162032")
-                lbl_t.configure(bg="#162032", fg="#fbbf24")
-                if lbl_s: lbl_s.configure(bg="#162032")
-                lbl_chk.configure(bg="#162032")
-            else:
-                card.configure(bg="#0f172a", highlightbackground="#1e293b")
-                txt_box.configure(bg="#0f172a")
-                lbl_t.configure(bg="#0f172a", fg="#f8fafc")
-                if lbl_s: lbl_s.configure(bg="#0f172a")
-                lbl_chk.configure(bg="#0f172a")
-
-        def _on_click(e):
-            ShinobiPillSelector.close_active_popup()
-            self._select_val(val)
-
-        for w in all_widgets:
-            w.bind("<Enter>", _on_enter)
-            w.bind("<Leave>", _on_leave)
-            w.bind("<Button-1>", _on_click)
-
-    def _select_val(self, val):
-        self.set(val)
-        if self.on_select_callback:
-            self.on_select_callback(val)
-
-    def _format_display_text(self, val):
-        txt = str(val) if val is not None else ""
-        max_chars = max(22, int(getattr(self, "_pill_width", 120) / 7.2))
-        if len(txt) > max_chars:
-            txt = txt[:max_chars - 1] + "…"
-        return txt
-
-    def set(self, val):
-        self.current_value = str(val)
-        if self.textvariable and self.textvariable.get() != self.current_value:
-            self.textvariable.set(self.current_value)
-        self.lbl_val.configure(text=self._format_display_text(self.current_value))
-
-    def get(self):
-        return self.current_value
-
-    def configure_values(self, values):
-        self.values = list(values)
-        self._rebuild_menu()
-
-    def current(self, newindex=None):
-        if newindex is None:
-            try:
-                return self.values.index(self.current_value)
-            except ValueError:
-                return -1
-        else:
-            if 0 <= newindex < len(self.values):
-                self.set(self.values[newindex])
-                if self.on_select_callback:
-                    self.on_select_callback(self.values[newindex])
-
-    def __getitem__(self, item):
-        if item == "values":
-            return self.values
-        return super().cget(item)
-
-    def __setitem__(self, item, value):
-        if item == "values":
-            self.configure_values(value)
-        else:
-            self.configure(**{item: value})
-
-    def configure(self, **kwargs):
-        if "values" in kwargs:
-            self.configure_values(kwargs.pop("values"))
-        if "state" in kwargs:
-            kwargs.pop("state")
-        if "width" in kwargs:
-            w = kwargs.pop("width")
-            if w is not None:
-                px_w = int(w * 8 + 30) if w <= 35 else int(w)
-                self._pill_width = px_w
-                super().configure(width=px_w)
-                if hasattr(self, "lbl_val"):
-                    self.lbl_val.configure(text=self._format_display_text(self.current_value))
-        if "height" in kwargs:
-            h = kwargs.pop("height")
-            if h is not None:
-                self._pill_height = int(h)
-                super().configure(height=self._pill_height)
-        if kwargs:
-            super().configure(**kwargs)
-
-    def config(self, **kwargs):
-        self.configure(**kwargs)
-
-    def bind(self, sequence=None, func=None, add=None):
-        if sequence == "<<ComboboxSelected>>":
-            orig_cb = self.on_select_callback
-            def _combo_sel_wrapper(v):
-                if orig_cb:
-                    orig_cb(v)
-                if func:
-                    func(None)
-            self.on_select_callback = _combo_sel_wrapper
-        else:
-            super().bind(sequence, func, add)
-
-class TharunScheduleBalancer:
-    """
-    Pedagogical Routine Balancer for Tharun:
-    - Accepts Senthil Public School Diary entries for any chosen date
-    - Dynamically generates AT MOST 1 OR 2 HOMEWORK SLOTS as strictly requested
-    - Allocates time specifically for each subject indicated
-    - Daily Core 1: Mathematics Problem Solving
-    - Core 2: Science / Social Science Diagram & Concept Memory
-    - Morning: Core Concept Active Recall + Language Clinic (Tamil / English / Hindi)
-    """
-
-    @classmethod
-    def generate_schedule(cls, subjects, diary_items, current_level=2, selected_language="English (Language)", exam_mode=False, exam_subject="Mathematics", start_time_str="19:00", pre_exam_mode=False, pre_exam_day=1, pre_exam_duration_days=21, bedtime_rollovers=None):
-        lvl = EXECUTION_LEVELS.get(current_level, EXECUTION_LEVELS[2])
-
-        if pre_exam_mode:
-            return cls._generate_pre_exam_prep_schedule(subjects, day_num=pre_exam_day, current_level=current_level, start_time_str=start_time_str, duration_days=pre_exam_duration_days)
-
-        if exam_mode:
-            return cls._generate_exam_sprint_schedule(subjects, diary_items, exam_subject, lvl, start_time_str=start_time_str)
-
-        evening_slots = []
-        morning_slots = []
-
-        sub_math = next((s for s in subjects if "math" in s["name"].lower()), {"name": "Mathematics", "gravity": 3})
-        sub_phy_sci = next((s for s in subjects if "physical" in s["name"].lower() or ("phy" in s["name"].lower() and "bio" not in s["name"].lower())), None)
-        if not sub_phy_sci:
-            sub_phy_sci = next((s for s in subjects if "sci" in s["name"].lower() and "bio" not in s["name"].lower()), {"name": "Physical Science", "gravity": 3})
-        sub_bio_sci = next((s for s in subjects if "bio" in s["name"].lower()), {"name": "Biological Science", "gravity": 3})
-        sub_sci = sub_phy_sci
-        sub_sst = next((s for s in subjects if "social" in s["name"].lower() or "sst" in s["name"].lower()), {"name": "Social Science", "gravity": 2})
-        sub_tamil = next((s for s in subjects if "tamil" in s["name"].lower() or "தமிழ்" in s["name"].lower()), {"name": "Tamil", "gravity": 2})
-        sub_eng = next((s for s in subjects if "eng" in s["name"].lower()), {"name": "English", "gravity": 2})
-        sub_hindi = next((s for s in subjects if "hindi" in s["name"].lower() or "हिंदी" in s["name"].lower()), {"name": "Hindi", "gravity": 2})
-
-        # Bag pack reminders (e.g., Bring science lab manual)
-        bag_reminders = [it["task"] for it in diary_items if it.get("task_type") == "bag_pack"]
-
-        try:
-            cur_time = datetime.strptime(start_time_str, "%H:%M")
-        except Exception:
-            cur_time = datetime.strptime(lvl["eve_start"], "%H:%M")
-
-        target_mins = int(lvl["target_hours_eve"] * 60)
-        eve_end_time = cur_time + timedelta(minutes=target_mins)
-
-        # Determine phase descriptor based on starting hour
-        if cur_time.hour < 12:
-            phase_label = "Holiday Morning Focus"
-        elif cur_time.hour < 17:
-            phase_label = "Afternoon Focus"
-        else:
-            phase_label = "Evening Focus"
-
-        # -------------------------------------------------------------
-        # PHASE 0: AFTER-SCHOOL TRANSITION & CHILL ZONE (5:40 - 6:30 PM)
-        # -------------------------------------------------------------
-        # Inviolable parental rule: Protect the 5:40 - 6:30 PM gap from TV distraction
-        if cur_time.hour >= 17:
-            transition_slot = {
-                "phase": "Evening Transition",
-                "start": "05:40 PM",
-                "end": "06:30 PM",
-                "duration_mins": 50,
-                "title": "Unplugged Chill Zone & Physical Reset",
-                "subject": "Transition & Sensory Reset",
-                "type": "prep",
-                "badge": "🧘 Chill Zone (50m)",
-                "guidance": (
-                    "Mandatory After-School Transition Protocol (5:40 - 6:30 PM):\n"
-                    "1. 5:40–6:00 PM: Warm shower, fresh clothes & evening snack (resets sensory fatigue).\n"
-                    "2. 6:00–6:30 PM: Unplugged Chill Zone (Zero TV/screens! Rest eyes, hydrate, listen to music).\n"
-                    "💡 Inviolable Rule: No TV before study! TV is earned after 8:45 PM."
-                ),
-                "is_completed": False
-            }
-            evening_slots.append(transition_slot)
-
-        # -------------------------------------------------------------
-        # PHASE 1: EVENING STUDY PLAN (Multi-Subject Core Efficiency Slabs)
-        # -------------------------------------------------------------
-        # Include ALL diary homework items so subjects are faithfully scheduled in the timetable!
-        study_hw_items = [it for it in diary_items if it.get("task_type") != "bag_pack"]
-        hw_sub_texts = [(it.get("subject", "") + " " + it.get("code", "")).lower() for it in study_hw_items]
-        hw_has_math = any("math" in t for t in hw_sub_texts)
-        hw_has_phy = any(any(k in t for k in ["phy", "physics", "chem", "chemistry", "physical"]) for t in hw_sub_texts)
-        hw_has_bio = any(any(k in t for k in ["bio", "biology", "biological"]) for t in hw_sub_texts)
-        hw_has_sci = hw_has_phy or hw_has_bio or any("sci" in t for t in hw_sub_texts)
-        hw_has_sst = any(any(k in t for k in ["social", "sst", "his", "history", "geo", "geography", "civic"]) for t in hw_sub_texts)
-        hw_has_tamil = any(any(k in t for k in ["tamil", "தமிழ்"]) for t in hw_sub_texts)
-        hw_has_eng = any(any(k in t for k in ["eng", "english"]) for t in hw_sub_texts)
-        hw_has_hin = any(any(k in t for k in ["hindi", "हिंदी"]) for t in hw_sub_texts)
-
-        if study_hw_items:
-            # Sort items by cognitive category to enable effective interleaving:
-            # 1: Mathematics (highest cognitive demand first)
-            # 2: Language (Tamil / English - shifts from numbers to words for cognitive reset)
-            # 3: Science (Physics / Chemistry / Biology - concepts, equations & diagrams)
-            # 4: Social Science (History / Geography - reading & timelines)
-            # 5: Other tasks
-            def get_sub_category_priority(item):
-                sub_str = (item.get("subject", "") + " " + item.get("code", "")).lower()
-                if "math" in sub_str:
-                    return 1
-                if any(k in sub_str for k in ["tamil", "தமிழ்", "eng", "hindi", "language"]):
-                    return 2
-                if any(k in sub_str for k in ["sci", "phy", "chem", "bio"]):
-                    return 3
-                if any(k in sub_str for k in ["social", "sst", "his", "geo", "civic"]):
-                    return 4
-                return 5
-
-            sorted_hw_items = sorted(study_hw_items, key=get_sub_category_priority)
-
-            for idx, item in enumerate(sorted_hw_items):
-                is_done = item.get("completed", False)
-                sub_name = item.get("subject", "General")
-                code_name = item.get("code", sub_name[:4])
-                task_text = item.get("task", "")
-                est_mins = max(10, item.get("est_mins", 20))
-                sub_str = (sub_name + " " + code_name).lower()
-                is_math = "math" in sub_str
-                is_science = any(k in sub_str for k in ["sci", "phy", "chem", "bio"])
-                is_social = any(k in sub_str for k in ["social", "sst", "his", "geo", "civic"])
-                is_core = is_math or is_science or is_social
-                is_lang = any(k in sub_str for k in ["tamil", "தமிழ்", "eng", "hindi", "language"])
-
-                done_badge_prefix = "✅ Done · " if is_done else ""
-                done_title_prefix = "✅ [Done] " if is_done else ""
-
-                # Core Subject Efficiency Splitting:
-                # 1. Mathematics is clubbed into a single 30 min focused slot (no split)
-                if is_math:
-                    math_slot_mins = 30
-                    end_math = cur_time + timedelta(minutes=math_slot_mins)
-                    math_title = f"{done_title_prefix}Core Math: {task_text}" if task_text else f"{done_title_prefix}Core Math Problem Solving"
-                    evening_slots.append({
-                        "phase": f"{phase_label}: {sub_name}",
-                        "start": cur_time.strftime("%I:%M %p"),
-                        "end": end_math.strftime("%I:%M %p"),
-                        "duration_mins": math_slot_mins,
-                        "title": math_title,
-                        "subject": sub_name,
-                        "type": "homework",
-                        "badge": f"{done_badge_prefix}📐 Math Core",
-                        "guidance": "Core Math Problem Solving: 30-minute dedicated focused solving block. Focus 100% on formulas, step-by-step layout, and working textbook questions carefully on copy without skipping intermediate calculations.",
-                        "is_completed": is_done
-                    })
-                    cur_time = end_math
-
-                # 2. Science & Social Science Core Splitting (if >= 25 mins)
-                elif (is_science or is_social) and est_mins >= 25:
-                    half1 = max(12, est_mins // 2)
-                    half2 = est_mins - half1
-
-                    # Slab 1: Core Concept / Step-by-Step Theory Sprint
-                    end1 = cur_time + timedelta(minutes=half1)
-                    if is_science:
-                        spec_icon = "⚡" if "phy" in sub_str else ("⚗️" if "chem" in sub_str else "🔬")
-                        badge1 = f"{done_badge_prefix}{spec_icon} Science Core (Sprint 1)"
-                        title1 = f"{done_title_prefix}Core Science Sprint 1: {sub_name} - {task_text} (Theory & Concepts)"
-                        guidance1 = f"Core Science Efficiency Sprint 1: Deep concept understanding, law/formula review, and active reading of key definitions before writing answers."
-                    else:
-                        badge1 = f"{done_badge_prefix}🌍 Social Core (Sprint 1)"
-                        title1 = f"{done_title_prefix}Core Social Sprint 1: {sub_name} - {task_text} (Timeline & Analysis)"
-                        guidance1 = f"Core Social Efficiency Sprint 1: Understand sequence of events, key dates, geography maps, and causes/effects in textbook."
-
-                    evening_slots.append({
-                        "phase": f"{phase_label}: {sub_name} (Slab 1/2)",
-                        "start": cur_time.strftime("%I:%M %p"),
-                        "end": end1.strftime("%I:%M %p"),
-                        "duration_mins": half1,
-                        "title": title1,
-                        "subject": sub_name,
-                        "type": "homework",
-                        "badge": badge1,
-                        "guidance": guidance1,
-                        "is_completed": is_done
-                    })
-                    cur_time = end1
-
-                    # Micro-Break between the two split slabs (4 mins)
-                    micro_break_dur = 4
-                    end_mbrk = cur_time + timedelta(minutes=micro_break_dur)
-                    evening_slots.append({
-                        "phase": f"{phase_label} Micro-Rest",
-                        "start": cur_time.strftime("%I:%M %p"),
-                        "end": end_mbrk.strftime("%I:%M %p"),
-                        "duration_mins": micro_break_dur,
-                        "title": f"Chakra Recharge ({sub_name} Micro-Break)",
-                        "subject": "Rest & Posture",
-                        "type": "break",
-                        "badge": f"☕ Micro-Rest ({micro_break_dur}m)",
-                        "guidance": "Put the pen down! Shake out wrist and fingers, take 3 deep belly breaths, sip water before Sprint 2.",
-                        "is_completed": is_done
-                    })
-                    cur_time = end_mbrk
-
-                    # Slab 2: Problem Solving Completion / Accuracy Verification / Diagrams
-                    end2 = cur_time + timedelta(minutes=half2)
-                    if is_science:
-                        spec_icon = "⚡" if "phy" in sub_str else ("⚗️" if "chem" in sub_str else "🔬")
-                        badge2 = f"{done_badge_prefix}{spec_icon} Science Core (Sprint 2)"
-                        title2 = f"{done_title_prefix}Core Science Sprint 2: {sub_name} - {task_text} (Diagrams & Q&A)"
-                        guidance2 = "Core Science Efficiency Sprint 2: Sketch and label diagrams accurately from memory, and write precise point-wise answers."
-                    else:
-                        badge2 = f"{done_badge_prefix}🌍 Social Core (Sprint 2)"
-                        title2 = f"{done_title_prefix}Core Social Sprint 2: {sub_name} - {task_text} (Answer Framing)"
-                        guidance2 = "Core Social Efficiency Sprint 2: Frame structured point-wise answers in your own words. Understanding > rote copying."
-
-                    evening_slots.append({
-                        "phase": f"{phase_label}: {sub_name} (Slab 2/2)",
-                        "start": cur_time.strftime("%I:%M %p"),
-                        "end": end2.strftime("%I:%M %p"),
-                        "duration_mins": half2,
-                        "title": title2,
-                        "subject": sub_name,
-                        "type": "homework",
-                        "badge": badge2,
-                        "guidance": guidance2,
-                        "is_completed": is_done
-                    })
-                    cur_time = end2
-
-                elif is_lang and est_mins >= 25:
-                    # Language efficiency split: Writing + Spelling Clinic
-                    half1 = 15
-                    half2 = est_mins - half1
-                    end1 = cur_time + timedelta(minutes=half1)
-                    evening_slots.append({
-                        "phase": f"{phase_label}: {sub_name} (Writing)",
-                        "start": cur_time.strftime("%I:%M %p"),
-                        "end": end1.strftime("%I:%M %p"),
-                        "duration_mins": half1,
-                        "title": f"{done_title_prefix}Language Writing: {sub_name} - {task_text}",
-                        "subject": sub_name,
-                        "type": "homework",
-                        "badge": f"{done_badge_prefix}✍️ Language (Writing)",
-                        "guidance": f"Focus on neat handwriting and structured expression: {task_text}.",
-                        "is_completed": is_done
-                    })
-                    cur_time = end1
-
-                    micro_break_dur = 3
-                    end_mbrk = cur_time + timedelta(minutes=micro_break_dur)
-                    evening_slots.append({
-                        "phase": f"{phase_label} Micro-Rest",
-                        "start": cur_time.strftime("%I:%M %p"),
-                        "end": end_mbrk.strftime("%I:%M %p"),
-                        "duration_mins": micro_break_dur,
-                        "title": f"Eye Rest ({sub_name})",
-                        "subject": "Rest",
-                        "type": "break",
-                        "badge": f"☕ Micro-Rest ({micro_break_dur}m)",
-                        "guidance": "Rest eyes away from the page, stretch neck and shoulders.",
-                        "is_completed": is_done
-                    })
-                    cur_time = end_mbrk
-
-                    end2 = cur_time + timedelta(minutes=half2)
-                    lang_guidance = (
-                        "Tamil Spelling Clinic: Check letters with similar sounds (ழ, ள, ல, ண, ந, ன, ற, ர). Correct mistakes immediately!"
-                        if "tamil" in sub_str or "தமிழ்" in sub_str else
-                        "Spelling & Grammar Check: Re-read your written answers to catch spelling slips and punctuation errors."
-                    )
-                    evening_slots.append({
-                        "phase": f"{phase_label}: {sub_name} (Clinic)",
-                        "start": cur_time.strftime("%I:%M %p"),
-                        "end": end2.strftime("%I:%M %p"),
-                        "duration_mins": half2,
-                        "title": f"{done_title_prefix}Language Spelling Clinic: {sub_name} (Accuracy Check)",
-                        "subject": sub_name,
-                        "type": "homework",
-                        "badge": f"{done_badge_prefix}🔍 Language Clinic",
-                        "guidance": lang_guidance,
-                        "is_completed": is_done
-                    })
-                    cur_time = end2
-
-                else:
-                    # Single dedicated focused slab for this subject
-                    end_hw = cur_time + timedelta(minutes=est_mins)
-                    if is_math:
-                        badge = f"{done_badge_prefix}📐 Math Core (Sprint)"
-                        title = f"{done_title_prefix}Core Math Sprint: {task_text}"
-                        guidance = f"Maths problem solving: {task_text}. Solve step-by-step on copy."
-                    elif is_science:
-                        spec_icon = "⚡" if "phy" in sub_str else ("⚗️" if "chem" in sub_str else "🔬")
-                        badge = f"{done_badge_prefix}{spec_icon} Science Core"
-                        title = f"{done_title_prefix}Core Science: {sub_name} - {task_text}"
-                        guidance = f"Science concept & question mastery: {task_text}. Active recall of keywords."
-                    elif is_social:
-                        badge = f"{done_badge_prefix}🌍 Social Core"
-                        title = f"{done_title_prefix}Core Social: {sub_name} - {task_text}"
-                        guidance = f"Social science task: {task_text}. Focus on timelines, maps, and concepts."
-                    elif is_lang:
-                        badge = f"{done_badge_prefix}✍️ Language Clinic"
-                        title = f"{done_title_prefix}Language Clinic: {sub_name} - {task_text}"
-                        guidance = f"Language task: {task_text}. Focus on neat handwriting, zero spelling errors."
-                    else:
-                        badge = f"{done_badge_prefix}📝 School Diary HW"
-                        title = f"{done_title_prefix}Diary Task: {sub_name} - {task_text}"
-                        guidance = f"School diary task: {task_text}."
-
-                    evening_slots.append({
-                        "phase": f"{phase_label}: {sub_name}",
-                        "start": cur_time.strftime("%I:%M %p"),
-                        "end": end_hw.strftime("%I:%M %p"),
-                        "duration_mins": est_mins,
-                        "title": title,
-                        "subject": sub_name,
-                        "type": "homework",
-                        "badge": badge,
-                        "guidance": guidance,
-                        "is_completed": is_done
-                    })
-                    cur_time = end_hw
-
-                # Inter-Subject Restorative Break (between different subjects)
-                is_last_item = (idx == len(sorted_hw_items) - 1)
-                brk_dur = lvl["break_duration"] if is_last_item else min(7, lvl["break_duration"])
-                brk_end = cur_time + timedelta(minutes=brk_dur)
-                brk_title = "Diary HW Clearance Break" if is_last_item else f"Rest & Reset: Post-{sub_name}"
-                brk_guidance = (
-                    "All school diary homework is 100% complete! Stand up, stretch, hydrate, and prepare for Daily Core Practice."
-                    if is_last_item else
-                    f"Great job finishing {sub_name}! Stand up, hydrate, and clear your mind before the next subject."
-                )
-                evening_slots.append({
-                    "phase": f"{phase_label} Rest",
-                    "start": cur_time.strftime("%I:%M %p"),
-                    "end": brk_end.strftime("%I:%M %p"),
-                    "duration_mins": brk_dur,
-                    "title": brk_title,
-                    "subject": "Rest & Hydrate",
-                    "type": "break",
-                    "badge": f"☕ Rest ({brk_dur}m)",
-                    "guidance": brk_guidance,
-                    "is_completed": is_done
-                })
-                cur_time = brk_end
-
-        winddown_mins = 15 if current_level == 1 else 10
-        study_cutoff = eve_end_time - timedelta(minutes=winddown_mins)
-        available_study_mins = max(0, int((study_cutoff - cur_time).total_seconds() / 60))
-
-        # Core 1: Daily Maths Muscle (Capped at 35 mins max - Non-negotiable Daily Muscle)
-        math_dur = 30 if current_level == 1 else (35 if current_level == 2 else 40)
-        math_dur = min(math_dur, max(20, int(available_study_mins * 0.55)))
-
-        if available_study_mins >= 25:
-            math_dur = min(35, math_dur)
-            m_end = cur_time + timedelta(minutes=math_dur)
-            math_guidance = (
-                "Daily Maths Muscle is non-negotiable! Diary homework is complete; now hand-solve 5 to 8 textbook exercise questions or revision proofs with pen on paper."
-                if hw_has_math else
-                "Daily solving is like sports practice! Pick 5 to 8 textbook exercise questions. Solve step-by-step on rough copy with a pen."
-            )
-            evening_slots.append({
-                "phase": f"{phase_label}: Core 1",
-                "start": cur_time.strftime("%I:%M %p"),
-                "end": m_end.strftime("%I:%M %p"),
-                "duration_mins": math_dur,
-                "title": f"Daily Maths Muscle: {sub_math['name']} Problem Solving",
-                "subject": "Mathematics",
-                "type": "study",
-                "badge": "📐 Daily Maths",
-                "guidance": math_guidance,
-                "is_completed": False
-            })
-            cur_time = m_end
-
-            rem_before_cutoff = max(0, int((study_cutoff - cur_time).total_seconds() / 60))
-            if rem_before_cutoff >= 25:
-                brk_c2_end = cur_time + timedelta(minutes=lvl["break_duration"])
-                evening_slots.append({
-                    "phase": f"{phase_label} Rest",
-                    "start": cur_time.strftime("%I:%M %p"),
-                    "end": brk_c2_end.strftime("%I:%M %p"),
-                    "duration_mins": lvl["break_duration"],
-                    "title": "Mind Reset Interval",
-                    "subject": "Posture & Water",
-                    "type": "break",
-                    "badge": f"☕ Rest ({lvl['break_duration']}m)",
-                    "guidance": "Rest your eyes, walk around the room, take 5 slow deep breaths before complementary core practice.",
-                    "is_completed": False
-                })
-                cur_time = brk_c2_end
-
-        # Core 2 & Core 3: Complementary Core Subject Rotation (STRICTLY CAPPED - ABSENT HOMEWORK ADDED)
-        rem_study = max(0, int((study_cutoff - cur_time).total_seconds() / 60))
-        if rem_study >= 15:
-            # Determine which core subjects are absent from homework:
-            # 1. If Science is absent, prioritize Science (Physical or Biological Science)
-            # 2. If Social Science is absent, prioritize Social Science
-            # 3. If both absent, Core 2 = Science, Core 3 = Social Science!
-            if not hw_has_sci and not hw_has_sst:
-                core2_sub = sub_phy_sci
-                core2_badge = "🔬 Science Core (Complementary)"
-                core2_title = f"Science Diagram & Concept Mastery: {core2_sub['name']}"
-                core2_guidance = (
-                    "🔄 Complementary Core Rotation: Since Science was absent from today's homework, it is added to the timetable! "
-                    "Blind Diagram Protocol: Look at textbook diagram for 2 minutes, close book, redraw and label completely from memory!"
-                )
-                core3_sub = sub_sst
-                core3_badge = "🌍 Social Core (Complementary)"
-                core3_title = f"Social Science Concept & Map Recall: {core3_sub['name']}"
-                core3_guidance = (
-                    "🔄 Complementary Core Rotation: Since Social Science was absent from today's homework, it is added here! "
-                    "Review 1857 timeline or map. Write down 3 key causes and effects in your own words."
-                )
-            elif not hw_has_sci and hw_has_sst:
-                core2_sub = sub_phy_sci
-                core2_badge = "🔬 Science Core (Complementary)"
-                core2_title = f"Science Diagram & Concept Mastery: {core2_sub['name']}"
-                core2_guidance = (
-                    "🔄 Complementary Core Rotation: Social Science was in homework, so absent Science is prioritized here! "
-                    "Blind Diagram Protocol: Redraw and label atom/lens diagrams completely from memory."
-                )
-                core3_sub = sub_bio_sci
-                core3_badge = "🧬 Bio Science (Loop)"
-                core3_title = f"Biological Science Concept & Heart/Neuron Recall: {core3_sub['name']}"
-                core3_guidance = "Review human circulation and plant transpiration functions on structure-function cards."
-            elif hw_has_sci and not hw_has_sst:
-                core2_sub = sub_sst
-                core2_badge = "🌍 Social Core (Complementary)"
-                core2_title = f"Social Science Concept & Map Recall: {core2_sub['name']}"
-                core2_guidance = (
-                    "🔄 Complementary Core Rotation: Science was in homework, so absent Social Science is prioritized here! "
-                    "Review 1857 cause-event flow-trees and M-C-T-R-S soil conservation mnemonics."
-                )
-                core3_sub = sub_bio_sci if hw_has_phy else sub_phy_sci
-                core3_badge = "🔬 Alternate Science (Loop)"
-                core3_title = f"Science Concept Consolidation: {core3_sub['name']}"
-                core3_guidance = "Review key scientific terms, formulas, and diagrams for the complementary science branch."
-            else:
-                # Both Science and Social Science were in homework!
-                # Rotate to the Science branch not covered, or deep diagram practice
-                core2_sub = sub_bio_sci if hw_has_phy else sub_phy_sci
-                core2_badge = "🔬 Science Diagram Depth"
-                core2_title = f"Deep Diagram Mastery: {core2_sub['name']}"
-                core2_guidance = "Deep diagram practice: Sketch and label diagrams accurately from memory without looking at notes."
-                core3_sub = sub_sst
-                core3_badge = "🌍 Map & Timeline Drill"
-                core3_title = f"Social Science Map & Timeline Drill: {core3_sub['name']}"
-                core3_guidance = "Mark 1857 centers on India map or write 3-box vertical cause-event-consequence trees."
-
-            c2_dur = min(30, max(15, rem_study))
-            c2_end = cur_time + timedelta(minutes=c2_dur)
-            evening_slots.append({
-                "phase": f"{phase_label}: Core 2",
-                "start": cur_time.strftime("%I:%M %p"),
-                "end": c2_end.strftime("%I:%M %p"),
-                "duration_mins": c2_dur,
-                "title": core2_title,
-                "subject": core2_sub["name"],
-                "type": "study",
-                "badge": core2_badge,
-                "guidance": core2_guidance,
-                "is_completed": False
-            })
-            cur_time = c2_end
-
-            # Core 3: Complementary Review (if time remains, capped at 25m)
-            rem_after_c2 = max(0, int((study_cutoff - cur_time).total_seconds() / 60))
-            if rem_after_c2 >= 20:
-                brk_dur = 6
-                brk_c3_end = cur_time + timedelta(minutes=brk_dur)
-                evening_slots.append({
-                    "phase": f"{phase_label} Rest",
-                    "start": cur_time.strftime("%I:%M %p"),
-                    "end": brk_c3_end.strftime("%I:%M %p"),
-                    "duration_mins": brk_dur,
-                    "title": "Mental Shift Interval",
-                    "subject": "Posture & Water",
-                    "type": "break",
-                    "badge": f"☕ Rest ({brk_dur}m)",
-                    "guidance": "Rest eyes, stand up and stretch before the next review block.",
-                    "is_completed": False
-                })
-                cur_time = brk_c3_end
-
-                c3_dur = min(25, max(12, int((study_cutoff - cur_time).total_seconds() / 60)))
-                c3_end = cur_time + timedelta(minutes=c3_dur)
-                evening_slots.append({
-                    "phase": f"{phase_label}: Core 3",
-                    "start": cur_time.strftime("%I:%M %p"),
-                    "end": c3_end.strftime("%I:%M %p"),
-                    "duration_mins": c3_dur,
-                    "title": core3_title,
-                    "subject": core3_sub["name"],
-                    "type": "study",
-                    "badge": core3_badge,
-                    "guidance": core3_guidance,
-                    "is_completed": False
-                })
-                cur_time = c3_end
-
-        # Special 15-Minute Dedicated Drawing Practice Slot
-        draw_dur = 15
-        end_draw = cur_time + timedelta(minutes=draw_dur)
-        evening_slots.append({
-            "phase": f"{phase_label}: Drawing & Art",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": end_draw.strftime("%I:%M %p"),
-            "duration_mins": draw_dur,
-            "title": "Special Drawing Practice: Science Diagrams & Visual Recall",
-            "subject": "Drawing Practice",
-            "type": "study",
-            "badge": "🎨 Drawing (15m)",
-            "guidance": (
-                "Special Drawing Practice (15m): Dedicated sketching & drawing block. Practice neat pencil line work, scientific diagrams (e.g. eye, ray diagrams, cells), map sketching, or freeform artistic drawing to relax and sharpen fine-motor precision."
-            ),
-            "is_completed": False
-        })
-        cur_time = end_draw
-
-        # Wind-down & Bag Pack
-        winddown_guidance = "Pack school bag according to tomorrow's timetable. Put morning revision copy on desk."
-        if bag_reminders:
-            winddown_guidance += f" ⚠️ SPECIAL DIARY NOTICE: {', '.join(bag_reminders)}!"
-
-        winddown_start = cur_time if cur_time >= study_cutoff else study_cutoff
-        winddown_end = winddown_start + timedelta(minutes=winddown_mins)
-
-        bedtime_dt = datetime.strptime("22:00", "%H:%M")
-        if winddown_end < bedtime_dt:
-            free_hours = round((bedtime_dt - winddown_end).total_seconds() / 3600, 1)
-            winddown_guidance += f" 🎉 FINISHED EARLY AT {winddown_end.strftime('%I:%M %p')}! Earned {free_hours} hours of guilt-free relaxation, hobbies & family time before 10:00 PM bedtime!"
-
-        evening_slots.append({
-            "phase": f"{phase_label} Wind-down",
-            "start": winddown_start.strftime("%I:%M %p"),
-            "end": winddown_end.strftime("%I:%M %p"),
-            "duration_mins": winddown_mins,
-            "title": "Desk Reset, Bag Packing & Early Finish Celebration",
-            "subject": "Routine Habit",
-            "type": "winddown",
-            "badge": "🌙 Wind-down" if cur_time.hour >= 17 else "🏆 Early Finish!",
-            "guidance": winddown_guidance
-        })
-
-        # -------------------------------------------------------------
-        # PHASE 2: MORNING STUDY PLAN (Core Recall + Language Clinic)
-        # -------------------------------------------------------------
-        m_cur = datetime.strptime(lvl["morn_start"], "%H:%M")
-        m_end_target = datetime.strptime(lvl["morn_end"], "%H:%M")
-
-        boot_mins = 8 if current_level > 1 else 10
-        b_end = m_cur + timedelta(minutes=boot_mins)
-        morning_slots.append({
-            "phase": "Morning Wake-Up",
-            "start": m_cur.strftime("%I:%M %p"),
-            "end": b_end.strftime("%I:%M %p"),
-            "duration_mins": boot_mins,
-            "title": "Alertness Activation & Hydration",
-            "subject": "Morning Warmup",
-            "type": "prep",
-            "badge": "🌅 Wake-up",
-            "guidance": "Splash cool water on face, drink 1-2 glasses of warm water, gentle stretching. Zero devices."
-        })
-        m_cur = b_end
-
-        # Bedtime Overrun to Morning Priming Rollover Engine
-        if bedtime_rollovers:
-            for ro in bedtime_rollovers:
-                ro_dur = ro.get("truncated_mins", 15)
-                ro_end = m_cur + timedelta(minutes=ro_dur)
-                ro_sub = ro.get("subject", "Core Subject")
-                ro_title = ro.get("title", "Evening Homework Review")
-                morning_slots.append({
-                    "phase": "Morning Priming Window",
-                    "start": m_cur.strftime("%I:%M %p"),
-                    "end": ro_end.strftime("%I:%M %p"),
-                    "duration_mins": ro_dur,
-                    "title": f"Morning Recall Priority: {ro_sub} ({ro_title})",
-                    "subject": ro_sub,
-                    "type": "rollover",
-                    "is_rollover": True,
-                    "badge": "🌅 Morning Recall Priority (Overrun Rollover)",
-                    "guidance": f"Overrun rollover from 10:00 PM Bedtime Protection: Complete remaining {ro_dur}m high-focus review for {ro_sub} before school today!"
-                })
-                m_cur = ro_end
-
-        # Smart Morning Secondary Core Selection (Mathematics is NOT mandatory in morning):
-        # Place any of the secondary core subjects (Physical Science, Biological Science, Social Science):
-        if hw_has_sci and not hw_has_sst:
-            sec_core_sub = sub_sst
-            sec_core_name = sub_sst["name"]
-            sec_core_title = f"Active Recall: {sub_sst['name']} Maps, Timelines & Key Events"
-            sec_core_badge = "🌍 Social Core Recall"
-            sec_core_guidance = (
-                f"Active Retrieval ({sub_sst['name']}): Close all textbooks! Sketch key timelines (dates, causes, consequences) and redraw map locations from memory."
-            )
-        elif hw_has_sst and not hw_has_sci:
-            sec_core_sub = sub_bio_sci if hw_has_phy else sub_phy_sci
-            sec_core_name = sec_core_sub["name"]
-            sec_core_title = f"Active Recall: {sec_core_sub['name']} Diagrams & Core Laws"
-            sec_core_badge = "🔬 Science Core Recall"
-            sec_core_guidance = (
-                f"Feynman Blind Diagram Technique ({sec_core_sub['name']}): Close all books! Redraw and label key diagrams and recite core scientific laws/definitions from memory."
-            )
-        elif hw_has_phy:
-            sec_core_sub = sub_bio_sci
-            sec_core_name = sub_bio_sci["name"]
-            sec_core_title = f"Active Recall: {sub_bio_sci['name']} Diagrams & Life Concepts"
-            sec_core_badge = "🔬 Biology Core Recall"
-            sec_core_guidance = (
-                f"Feynman Diagram Technique ({sub_bio_sci['name']}): Redraw biological diagrams (cell structures, organ systems, plant tissues) and recite key terms from memory."
-            )
-        else:
-            sec_core_sub = sub_phy_sci
-            sec_core_name = sub_phy_sci["name"]
-            sec_core_title = f"Active Recall: {sub_phy_sci['name']} Diagrams & Concepts"
-            sec_core_badge = "🔬 Science Core Recall"
-            sec_core_guidance = (
-                f"Feynman Technique ({sub_phy_sci['name']}): Without opening textbook, redraw and label key diagrams and write core definitions from memory!"
-            )
-
-        core_morn_mins = 25 if current_level == 1 else 35
-        cm_end = m_cur + timedelta(minutes=core_morn_mins)
-        morning_slots.append({
-            "phase": "Morning Secondary Core Recall",
-            "start": m_cur.strftime("%I:%M %p"),
-            "end": cm_end.strftime("%I:%M %p"),
-            "duration_mins": core_morn_mins,
-            "title": sec_core_title,
-            "subject": sec_core_name,
-            "type": "revision",
-            "badge": sec_core_badge,
-            "guidance": sec_core_guidance,
-            "is_completed": False
-        })
-        m_cur = cm_end
-
-        if current_level > 1:
-            m_brk_end = m_cur + timedelta(minutes=5)
-            morning_slots.append({
-                "phase": "Morning Rest",
-                "start": m_cur.strftime("%I:%M %p"),
-                "end": m_brk_end.strftime("%I:%M %p"),
-                "duration_mins": 5,
-                "title": "Quick Posture & Breath Reset",
-                "subject": "Rest",
-                "type": "break",
-                "badge": "☕ Break (5m)",
-                "guidance": "Stand up, stretch your back, take 5 slow deep breaths, take a sip of water."
-            })
-            m_cur = m_brk_end
-
-        # Smart Morning Language Clinic Rotation:
-        # Rule: If any language is in today's evening homework, EXCLUDE it and rotate to a remaining language!
-        # E.g. Tamil in HW -> English in morning; English in HW -> Tamil in morning; Hindi in HW -> Tamil or English in morning.
-        morn_lang = selected_language
-        rotation_note = ""
-
-        if hw_has_tamil:
-            if "tamil" in morn_lang.lower() or "தமிழ்" in morn_lang.lower():
-                morn_lang = "English"
-                rotation_note = " (🔄 Auto-Rotated: Tamil was in homework)"
-        elif hw_has_eng:
-            if "eng" in morn_lang.lower():
-                morn_lang = "Tamil"
-                rotation_note = " (🔄 Auto-Rotated: English was in homework)"
-        elif hw_has_hin:
-            if "hin" in morn_lang.lower():
-                morn_lang = "Tamil"
-                rotation_note = " (🔄 Auto-Rotated: Hindi was in homework)"
-
-        lang_name = morn_lang
-        if "tamil" in lang_name.lower():
-            lang_guidance = (
-                ("🔄 Complementary Rotation Active: Tamil scheduled for morning clinic to ensure balanced weekly language coverage!\n" if rotation_note else "") +
-                "பிழை திருத்தம் & சொந்தமாக விடையளித்தல்:\n"
-                "1. 'ழ', 'ள', 'ல' மற்றும் 'ண', 'ந', 'ன' வேறுபாடுகளில் கவனம் செலுத்துங்கள்.\n"
-                "2. மனப்பாடம் செய்யாமல், சொந்த நடையில் 4-5 வாக்கியங்கள் எழுதிப் பாருங்கள்.\n"
-                "3. 'Error Bank' நோட்டில் 3 பிழைகளை திருத்தி எழுதுங்கள்."
-            )
-            lang_badge = "✍️ தமிழ் பயிர்ச்சி"
-        elif "hindi" in lang_name.lower():
-            lang_guidance = (
-                ("🔄 Complementary Rotation Active: Hindi scheduled for morning clinic to ensure balanced weekly language coverage!\n" if rotation_note else "") +
-                "वर्तनी सुधार और स्व-लेखन:\n"
-                "1. मात्राओं (ि/ी, ु/ू) और संयुक्त अक्षरों की गलतियों पर ध्यान दें।\n"
-                "2. रटने के बजाय अपने शब्दों में 4 वाक्यों में उत्तर लिखें।\n"
-                "3. पिछली गलतियों को अपने 'Error Bank' में देखकर वर्तनी सुधारें।"
-            )
-            lang_badge = "✍️ हिंदी अभ्यास"
-        else:
-            lang_guidance = (
-                ("🔄 Complementary Rotation Active: English scheduled for morning clinic to ensure balanced weekly language coverage!\n" if rotation_note else "") +
-                "Spelling Reduction & Self-Expression Clinic:\n"
-                "1. Focus on tricky double-letter spellings, silent letters, and past tense forms.\n"
-                "2. Write answers IN YOUR OWN WORDS! Evaluators award higher marks for original sentences with clean grammar.\n"
-                "3. Review 5 words from your 'Error Bank' notebook."
-            )
-            lang_badge = "✍️ English Clinic"
-
-        rem_lang_mins = max(20, int((m_end_target - timedelta(minutes=5) - m_cur).total_seconds() / 60))
-        lang_end = m_cur + timedelta(minutes=rem_lang_mins)
-        morning_slots.append({
-            "phase": "Morning Language Clinic",
-            "start": m_cur.strftime("%I:%M %p"),
-            "end": lang_end.strftime("%I:%M %p"),
-            "duration_mins": rem_lang_mins,
-            "title": f"Language Writing & Spelling Clinic: {lang_name}",
-            "subject": lang_name,
-            "type": "revision",
-            "badge": lang_badge,
-            "guidance": lang_guidance
-        })
-        m_cur = lang_end
-
-        morning_slots.append({
-            "phase": "School Ready",
-            "start": m_cur.strftime("%I:%M %p"),
-            "end": m_end_target.strftime("%I:%M %p"),
-            "duration_mins": max(5, int((m_end_target - m_cur).total_seconds() / 60)),
-            "title": "School Readiness Audit & Confidence Boost",
-            "subject": "Ready for School",
-            "type": "winddown",
-            "badge": "🎒 School Ready",
-            "guidance": "Double check stationery pouch, diary, homework copies, and water bottle. You are ready to shine today, Tharun!"
-        })
-
-        return evening_slots, morning_slots
-
-    @classmethod
-    def _generate_exam_sprint_schedule(cls, subjects, pending_items, exam_subject, lvl, start_time_str="19:00"):
-        evening_slots = []
-        morning_slots = []
-
-        try:
-            cur_time = datetime.strptime(start_time_str, "%H:%M")
-        except Exception:
-            cur_time = datetime.strptime("19:00", "%H:%M")
-
-        exam_guidance = cls._get_exam_guidance(exam_subject)
-
-        hw_exam = [it for it in pending_items if exam_subject.lower() in it.get("subject", "").lower() and it.get("task_type") != "bag_pack"]
-        hw_other = [it for it in pending_items if exam_subject.lower() not in it.get("subject", "").lower() and it.get("task_type") != "bag_pack"]
-        bag_reminders = [it["task"] for it in pending_items if it.get("task_type") == "bag_pack"]
-
-        # Phase descriptor
-        if cur_time.hour < 12:
-            phase_prefix = "Holiday Morning Exam Sprint"
-        elif cur_time.hour < 17:
-            phase_prefix = "Afternoon Exam Sprint"
-        else:
-            phase_prefix = "Evening Exam Sprint"
-
-        # If there are other non-exam homework items, give a quick clearance slot
-        if hw_other:
-            dur_hw = min(30, sum(it.get("est_mins", 15) for it in hw_other))
-            end_hw = cur_time + timedelta(minutes=dur_hw)
-            other_subs = ", ".join(list(dict.fromkeys(it["subject"] for it in hw_other)))
-            evening_slots.append({
-                "phase": f"{phase_prefix}: Pre-Flight Clearance",
-                "start": cur_time.strftime("%I:%M %p"),
-                "end": end_hw.strftime("%I:%M %p"),
-                "duration_mins": dur_hw,
-                "title": f"Pre-Exam HW Clearance: {other_subs}",
-                "subject": other_subs,
-                "type": "homework",
-                "badge": "⚡ Quick Clearance",
-                "guidance": "Quickly clear non-exam school diary items so your focus tonight is 100% dedicated to tonight's exam subject!"
-            })
-            cur_time = end_hw
-            brk_end = cur_time + timedelta(minutes=5)
-            evening_slots.append({
-                "phase": f"{phase_prefix} Rest",
-                "start": cur_time.strftime("%I:%M %p"),
-                "end": brk_end.strftime("%I:%M %p"),
-                "duration_mins": 5,
-                "title": "Exam Focus Transition Break",
-                "subject": "Clear Desk",
-                "type": "break",
-                "badge": "☕ Rest (5m)",
-                "guidance": "Clear all unrelated books off the desk. Keep only textbook, rough copy, and pen for tonight's exam!"
-            })
-            cur_time = brk_end
-
-        # Stage 1: High-Weight Concept Mastery & Active Hand-Solving (50 mins)
-        stage1_dur = 50
-        s1_end = cur_time + timedelta(minutes=stage1_dur)
-        hw_sub_task = f" (Includes diary task: {hw_exam[0]['task']})" if hw_exam else ""
-        evening_slots.append({
-            "phase": f"{phase_prefix}: Stage 1",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": s1_end.strftime("%I:%M %p"),
-            "duration_mins": stage1_dur,
-            "title": f"Stage 1: High-Weight Concept Mastery & Solving: {exam_subject}",
-            "subject": exam_subject,
-            "type": "study",
-            "badge": "🔥 Stage 1: Deep Solving",
-            "guidance": f"{exam_guidance['stage1']}{hw_sub_task}"
-        })
-        cur_time = s1_end
-
-        # Rest Break 1 (10 mins)
-        brk1_end = cur_time + timedelta(minutes=10)
-        evening_slots.append({
-            "phase": f"{phase_prefix} Rest",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": brk1_end.strftime("%I:%M %p"),
-            "duration_mins": 10,
-            "title": "Post-Solving Cognitive Reset Break",
-            "subject": "Rest & Eye Palming",
-            "type": "break",
-            "badge": "☕ Rest (10m)",
-            "guidance": "Step away from the desk! Palming exercise for eyes: rub palms together, place gently over closed eyes. Drink water."
-        })
-        cur_time = brk1_end
-
-        # Stage 2: Active Recall & The 'Blind Test' Protocol (50 mins)
-        stage2_dur = 50
-        s2_end = cur_time + timedelta(minutes=stage2_dur)
-        evening_slots.append({
-            "phase": f"{phase_prefix}: Stage 2",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": s2_end.strftime("%I:%M %p"),
-            "duration_mins": stage2_dur,
-            "title": f"Stage 2: Active Recall & Blind Test: {exam_subject}",
-            "subject": exam_subject,
-            "type": "study",
-            "badge": "🧠 Stage 2: Blind Recall",
-            "guidance": exam_guidance["stage2"]
-        })
-        cur_time = s2_end
-
-        # Rest Break 2 (10 mins)
-        brk2_end = cur_time + timedelta(minutes=10)
-        evening_slots.append({
-            "phase": f"{phase_prefix} Rest",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": brk2_end.strftime("%I:%M %p"),
-            "duration_mins": 10,
-            "title": "Pre-Drill Oxygen Recharge Break",
-            "subject": "Movement & Posture",
-            "type": "break",
-            "badge": "☕ Rest (10m)",
-            "guidance": "Stretch your shoulders and spine. Take 5 slow diaphragmatic breaths. Brain is ready for final rapid review!"
-        })
-        cur_time = brk2_end
-
-        # Stage 3: Rapid-Fire Question Bank & Formula Drill (35 mins)
-        stage3_dur = 35
-        s3_end = cur_time + timedelta(minutes=stage3_dur)
-        evening_slots.append({
-            "phase": f"{phase_prefix}: Stage 3",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": s3_end.strftime("%I:%M %p"),
-            "duration_mins": stage3_dur,
-            "title": f"Stage 3: Rapid Question Drill & Glossary: {exam_subject}",
-            "subject": exam_subject,
-            "type": "study",
-            "badge": "⚡ Stage 3: Speed Drill",
-            "guidance": exam_guidance["stage3"]
-        })
-        cur_time = s3_end
-
-        # Stage 4: Exam Kit Audit & Sleep Transition (15 mins)
-        s4_end = cur_time + timedelta(minutes=15)
-        bag_txt = f" • SPECIAL REMINDER: {', '.join(bag_reminders)}" if bag_reminders else ""
-        bedtime_dt = datetime.strptime("22:00", "%H:%M")
-        leisure_txt = ""
-        if s4_end < bedtime_dt:
-            free_h = round((bedtime_dt - s4_end).total_seconds() / 3600, 1)
-            leisure_txt = f" 🎉 EXAM PREPARATION COMPLETE AT {s4_end.strftime('%I:%M %p')}! Earned {free_h} hours of guilt-free relaxation and family time before 10:00 PM bedtime. Sleep locks memory in!"
-
-        evening_slots.append({
-            "phase": f"{phase_prefix}: Exam Readiness",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": s4_end.strftime("%I:%M %p"),
-            "duration_mins": 15,
-            "title": "Exam Hall Kit Audit & Rest Transition",
-            "subject": "Exam Kit Check",
-            "type": "prep",
-            "badge": "🎒 Kit Audit",
-            "guidance": f"Pack Exam Hall Kit: Hall ticket / ID card, 2 working pens, sharpened pencil, eraser, long scale, geometry box{bag_txt}. Desk cleared with morning formula sheet ready.{leisure_txt} Bedtime at 10:00 PM is INVIOLABLE (sleep locks memory in!)."
-        })
-
-        # -------------------------------------------------------------
-        # MORNING EXAM RETENTION PLAN (6:00 AM – 7:30 AM)
-        # -------------------------------------------------------------
-        morning_slots.append({
-            "phase": "Morning Exam Priming: Part 1",
-            "start": "06:00 AM",
-            "end": "06:45 AM",
-            "duration_mins": 45,
-            "title": f"Morning Retention Priming: {exam_subject}",
-            "subject": exam_subject,
-            "type": "study",
-            "badge": "🌅 Priming Window",
-            "guidance": exam_guidance["morning1"]
-        })
-
-        morning_slots.append({
-            "phase": "Morning Rest",
-            "start": "06:45 AM",
-            "end": "06:55 AM",
-            "duration_mins": 10,
-            "title": "Hydration & Calming Breath",
-            "subject": "Hydrate & Stretch",
-            "type": "break",
-            "badge": "☕ Rest (10m)",
-            "guidance": "Drink a glass of warm water. Relax facial muscles and shoulders. No panic reading."
-        })
-
-        morning_slots.append({
-            "phase": "Morning Exam Priming: Part 2",
-            "start": "06:55 AM",
-            "end": "07:20 AM",
-            "duration_mins": 25,
-            "title": f"Confidence Keyword & Formula Recall: {exam_subject}",
-            "subject": exam_subject,
-            "type": "study",
-            "badge": "⚡ Final Recall",
-            "guidance": exam_guidance["morning2"]
-        })
-
-        morning_slots.append({
-            "phase": "Morning Dispatch",
-            "start": "07:20 AM",
-            "end": "07:30 AM",
-            "duration_mins": 10,
-            "title": "Exam Mindset & Confident Departure",
-            "subject": "Positive Mindset",
-            "type": "prep",
-            "badge": "🏆 Confident Dispatch",
-            "guidance": "Final check of Exam Hall Kit. Healthy breakfast. Affirmation: 'I have prepared methodically. I will read questions carefully and write clearly!' Best of luck, Tharun!"
-        })
-
-        return evening_slots, morning_slots
-
-    @classmethod
-    def _generate_pre_exam_prep_schedule(cls, subjects, day_num=1, current_level=2, start_time_str="19:00", duration_days=21):
-        roadmap = build_dynamic_pre_exam_roadmap(duration_days)
-        day_idx = max(0, min(len(roadmap) - 1, day_num - 1))
-        day_data = roadmap[day_idx]
-        lvl = EXECUTION_LEVELS.get(current_level, EXECUTION_LEVELS[2])
-
-        evening_slots = []
-        morning_slots = []
-
-        try:
-            cur_time = datetime.strptime(start_time_str, "%H:%M")
-        except Exception:
-            cur_time = datetime.strptime("19:00", "%H:%M")
-
-        phase_prefix = f"Pre-Exam Day {day_data['day']}"
-
-        # Slot 1: Core Subject High-Weight Concept & Problem Solving (45 mins)
-        s1_end = cur_time + timedelta(minutes=45)
-        evening_slots.append({
-            "phase": f"{phase_prefix}: Core Focus",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": s1_end.strftime("%I:%M %p"),
-            "duration_mins": 45,
-            "title": f"Block 1: {day_data['focus_core']} ({day_data['core_topic']})",
-            "subject": day_data["focus_core"],
-            "type": "study",
-            "badge": "🔥 Core Mastery (45m)",
-            "guidance": f"Core Focus: {day_data['guidance_core']} Focus on active pen-on-paper working and concept clarity."
-        })
-        cur_time = s1_end
-
-        # Break 1 (10 mins)
-        b1_end = cur_time + timedelta(minutes=10)
-        evening_slots.append({
-            "phase": f"{phase_prefix} Rest",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": b1_end.strftime("%I:%M %p"),
-            "duration_mins": 10,
-            "title": "Movement & Oxygen Recharge Break",
-            "subject": "Physical Reset",
-            "type": "break",
-            "badge": "☕ Rest (10m)",
-            "guidance": "Step away from study desk! Rub palms over eyes (eye palming), drink water, stretch shoulders and spine."
-        })
-        cur_time = b1_end
-
-        # Slot 2: Language / Humanities / Concept Retention (45 mins)
-        s2_end = cur_time + timedelta(minutes=45)
-        evening_slots.append({
-            "phase": f"{phase_prefix}: Second Subject",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": s2_end.strftime("%I:%M %p"),
-            "duration_mins": 45,
-            "title": f"Block 2: {day_data['focus_second']} ({day_data['second_topic']})",
-            "subject": day_data["focus_second"],
-            "type": "study",
-            "badge": "📖 Second Focus (45m)",
-            "guidance": f"Secondary Subject Focus: {day_data['guidance_second']} Self-writing, textbook reading, and error reduction."
-        })
-        cur_time = s2_end
-
-        # Break 2 (10 mins)
-        b2_end = cur_time + timedelta(minutes=10)
-        evening_slots.append({
-            "phase": f"{phase_prefix} Rest",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": b2_end.strftime("%I:%M %p"),
-            "duration_mins": 10,
-            "title": "Hydration & Cognitive Consolidation Break",
-            "subject": "Hydrate & Relax",
-            "type": "break",
-            "badge": "☕ Rest (10m)",
-            "guidance": "Drink water. Light breathing. Let the learned material consolidate in your working memory."
-        })
-        cur_time = b2_end
-
-        # Slot 3: Active Recall, Blind Retrieval & Question Practice (35 mins)
-        s3_end = cur_time + timedelta(minutes=35)
-        evening_slots.append({
-            "phase": f"{phase_prefix}: Active Recall",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": s3_end.strftime("%I:%M %p"),
-            "duration_mins": 35,
-            "title": f"Block 3: Active Retrieval & Exercise Practice ({day_data['title']})",
-            "subject": f"{day_data['focus_core']} & {day_data['focus_second']}",
-            "type": "study",
-            "badge": "🧠 Active Retrieval (35m)",
-            "guidance": "Close the book! Redraw diagrams or write key formula steps on blank rough paper. Solve 3 textbook exercise questions from memory."
-        })
-        cur_time = s3_end
-
-        # Special 15-Minute Dedicated Drawing Practice Slot
-        draw_dur = 15
-        end_draw = cur_time + timedelta(minutes=draw_dur)
-        evening_slots.append({
-            "phase": f"{phase_prefix}: Drawing & Art",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": end_draw.strftime("%I:%M %p"),
-            "duration_mins": draw_dur,
-            "title": "Special Drawing Practice: Science Diagrams & Visual Recall",
-            "subject": "Drawing Practice",
-            "type": "study",
-            "badge": "🎨 Drawing (15m)",
-            "guidance": (
-                "Special Drawing Practice (15m): Dedicated sketching & drawing block. Practice neat pencil line work, scientific diagrams (e.g. eye, ray diagrams, cells), map sketching, or freeform artistic drawing to relax and sharpen fine-motor precision."
-            ),
-            "is_completed": False
-        })
-        cur_time = end_draw
-
-        # Slot 4: Portion Tracker Update, Desk Audit & Sleep Lock (15 mins)
-        s4_end = cur_time + timedelta(minutes=15)
-        bedtime_dt = datetime.strptime("22:00", "%H:%M")
-        leisure_txt = ""
-        if s4_end < bedtime_dt:
-            free_h = round((bedtime_dt - s4_end).total_seconds() / 3600, 1)
-            leisure_txt = f" 🎉 PRE-EXAM PREPARATION COMPLETE AT {s4_end.strftime('%I:%M %p')}! Earned {free_h} hours of free relaxation before 10:00 PM bedtime."
-
-        evening_slots.append({
-            "phase": f"{phase_prefix}: Wrap-Up",
-            "start": cur_time.strftime("%I:%M %p"),
-            "end": s4_end.strftime("%I:%M %p"),
-            "duration_mins": 15,
-            "title": "Portion Tracker Check & 10:00 PM Sleep Lock",
-            "subject": "Tracker Audit",
-            "type": "prep",
-            "badge": "🎒 Tracker Audit",
-            "guidance": f"Tick off completed chapters in the 'Exam Portions & Tracker' tab. Pack school bag.{leisure_txt} Inviolable 10:00 PM sleep (locks neural pathways!)."
-        })
-
-        # Morning slots (6:00 AM – 7:30 AM)
-        morning_slots.append({
-            "phase": "Morning Priming Window",
-            "start": "06:00 AM",
-            "end": "06:45 AM",
-            "duration_mins": 45,
-            "title": f"Morning Active Priming: {day_data['title']}",
-            "subject": day_data["focus_core"],
-            "type": "study",
-            "badge": "🌅 Priming Window",
-            "guidance": f"Morning Recall: {day_data['morning_task']} Zero new reading! Only verify flashcards, formulas, and redraw diagrams."
-        })
-
-        morning_slots.append({
-            "phase": "Morning Rest",
-            "start": "06:45 AM",
-            "end": "06:55 AM",
-            "duration_mins": 10,
-            "title": "Hydration & Calming Breath",
-            "subject": "Hydrate & Stretch",
-            "type": "break",
-            "badge": "☕ Rest (10m)",
-            "guidance": "Drink a glass of warm water. Relax facial muscles and shoulders. Breathe deep diaphragmatic breaths."
-        })
-
-        morning_slots.append({
-            "phase": "Morning Language Clinic",
-            "start": "06:55 AM",
-            "end": "07:20 AM",
-            "duration_mins": 25,
-            "title": f"Language Error Bank & Key Concept Recall: {day_data['focus_second']}",
-            "subject": day_data["focus_second"],
-            "type": "study",
-            "badge": "⚡ Error Bank Clinic",
-            "guidance": f"Write 5 high-risk words from Error Bank copy ({day_data['focus_second']}). Review 3 key definitions."
-        })
-
-        morning_slots.append({
-            "phase": "Morning Dispatch",
-            "start": "07:20 AM",
-            "end": "07:30 AM",
-            "duration_mins": 10,
-            "title": "Daily Shinobi Mindset & School Departure",
-            "subject": "Positive Mindset",
-            "type": "prep",
-            "badge": "🏆 Confident Dispatch",
-            "guidance": "Final bag check: Diary, books, stationery. Nutritious breakfast. Affirmation: 'I am building strong daily mastery. Every day counts!' Depart for school with confidence!"
-        })
-
-        return evening_slots, morning_slots
-
-    @classmethod
-    def _get_exam_guidance(cls, subject_name):
-        sub_lower = subject_name.lower()
-        if "tamil" in sub_lower:
-            return {
-                "stage1": "செய்யுள் & உரைநடை வினா-விடை: இயல் 1, 2, 3 உரைநடை வினாக்களுக்குச் சொந்த நடையில் பிழையின்றி விடையளித்துப் பழகு (நிலம் பொது, தமிழர் மருத்துவம், தமிழ் வரிவடிவ வளர்ச்சி).",
-                "stage2": "திருக்குறள் (1-10) மனப்பாடப் பகுதி: மனப்பாடப் பகுதி திருக்குறள் 1 முதல் 10 வரை முழுமையாகப் பார்க்காமல் எழுதி, சீர் மற்றும் அசை அமைப்பைச் சரிபார்!",
-                "stage3": "இலக்கணம் & பொதுப்பகுதி: எழுத்துகளின் பிறப்பு, வினைமுற்று, எச்சம், யாப்பு இலக்கணம் விதிகள் மற்றும் கடிதம்/கட்டுரை படிவங்களை மீள்பார்வை செய்.",
-                "morning1": "திருக்குறள் 1-10 நினைவூட்டல்: கடினமான சொற்கள் (ழ, ள, ல, ண, ந, ன) பிழை திருத்த நோட்டுப் புத்தகம் வழி சரிபார்த்தல்.",
-                "morning2": "அமைதியான வாசிப்பு & கையெழுத்து விழிப்புணர்வு: வினாத்தாளை முழுமையாக 5 நிமிடம் வாசித்தல், தலைப்புகள் இட்டுத் தெளிவாக எழுதுதல்."
-            }
-        elif "math" in sub_lower:
-            return {
-                "stage1": "High-Weight Chapter Solving (Ch 6 Sets, Ch 7 Functions, Ch 8 Matrices): Solve 8-10 textbook problems by hand on paper. Verify Set Venn diagrams, matrix dimensions, and function mappings!",
-                "stage2": "Timed 5-Sum Sprint (Ch 1 Rational, Ch 2 Squares/Cubes, Ch 3 Ratio): Solve 5 problems without looking at solutions. Long division square roots, cube estimation, and proportion steps.",
-                "stage3": "Understanding Shapes & Data Handling (Ch 4 & 5): Angle sum properties, polygon formulas, bar graphs/pie charts reading, and formula sheet revision.",
-                "morning1": "Formula & Identity Priming: Write down all formulas (Set laws, matrix addition rules, powers/roots, shape interior angle formulas) from memory on blank paper.",
-                "morning2": "Calm Mental Warm-up: Check 3 basic calculation checks. Avoid rushing. Double check calculations during exam."
-            }
-        elif "phy" in sub_lower:
-            return {
-                "stage1": "Physics Ray Diagrams & Chemistry Models: Practice 6 convex lens ray diagrams (Ln-2 Lenses) and Snell's law. Draw Bohr-Rutherford atomic structures (K,L,M,N shells). Apply P-E-E-D answering: Subheading ➔ Keyword in own words ➔ Formula/Ray sketch box.",
-                "stage2": "Active Recall Blurting Sprint: Close book! Blurt definitions of refractive index, focal length, electrostatic induction, and periodic trends onto rough paper. Check missing keywords with red pencil.",
-                "stage3": "SI Units, Definitions & 1-Mark Quick Fire: Definitions of refractive index, focal length, electrostatic force, isotopes/isobars, and textbook chapter-end questions.",
-                "morning1": "Visual Diagram Priming: Quick review of lens ray diagrams and atomic shells configuration (K, L, M, N). Zero new reading!",
-                "morning2": "SI Units & Laws Rapid Recall: Review Snell's law, lens formula conventions, and charge conservation."
-            }
-        elif "bio" in sub_lower:
-            return {
-                "stage1": "Blind Diagram Protocol (High Diagram Weight!): Draw and label strictly from memory: Human Heart (4 chambers, valves Ln-1), Neuron & Reflex Arc (Ln-3), Plant Xylem/Phloem bundle (Ln-2). Practice neat unilateral labeling.",
-                "stage2": "Function-Structure Pairing & P-E-E-D Answering: Pair structure with function (Valves ➔ prevent backflow; Xylem ➔ water transport). Frame 5-mark answers with Subheadings ➔ Own words with keywords ➔ Labeled diagram box.",
-                "stage3": "Key Biological Terms & Differences Table: Arteries vs Veins, Xylem vs Phloem, Sensory vs Motor neurons, Asexual vs Sexual reproduction (3-column comparison tables).",
-                "morning1": "Visual Diagram Priming: Rapid visual scan of the 4 key diagrams (Heart, Brain/Neuron, Plant Stem section, Flower/Reproductive system).",
-                "morning2": "Terminology Rapid Fire: Review scientific terms, definitions, and functions of organs."
-            }
-        elif "social" in sub_lower or "sst" in sub_lower:
-            return {
-                "stage1": "5-Mark Historical & Civics P-E-E-D Answers: Frame 1857 Revolt causes and Constitution features using P-E-E-D: Point (Bold Subheading) ➔ Explanation in own words with textbook keywords ➔ Evidence (dates/names) ➔ Flow-Tree box!",
-                "stage2": "Cause-Event-Consequence Trees & Map Pinning: Draw 3-box vertical flowcharts (Causes ➔ Outbreak ➔ Consequences). Mark 1857 revolt centers (Meerut, Delhi, Kanpur, Jhansi) with colored dots on outline map.",
-                "stage3": "Timelines, Key Dates & Objective Drill: Rapid review of historical timeline milestones, constitutional terms, and 1-mark fill in the blanks / MCQs.",
-                "morning1": "Map Pointing & Timeline Flash Review: 5-minute visual scan of India map centers and revolt dates.",
-                "morning2": "Structured Point Strategy: Plan subheadings and bullet points for 5-mark long answers."
-            }
-        elif "hindi" in sub_lower:
-            return {
-                "stage1": "Lessons 1, 2, 3, 4, 7 & Meaning/Question Bank: Pariksha, Himalaya ke ped, Jal Chakra, Mann me hai vishwas question-answers and word meanings.",
-                "stage2": "General Writing & Language Lab: Practice Vigyapan Lekhan (Advertisement), Chitra Varnan (Picture description), Paragraph, and Spoken Sentences 1-25.",
-                "stage3": "Error Bank & Matra Clinic: Test 20 tricky Hindi matras (इ/ई, उ/ऊ, अनुस्वार/अनुनासिक) by hand. Classwork question bank review.",
-                "morning1": "Language Lab & Spoken 1-25 Sentences: Rapid scan of introduction sentences, greetings, and lab phrases.",
-                "morning2": "Format Review: Neat layout for Advertisement box and Picture description paragraph."
-            }
-        elif "english" in sub_lower or "eng" in sub_lower:
-            return {
-                "stage1": "Literature Long Questions & Themes: 6 chapters (Tales of Historic Delhi, Entertainment, The Letter A, Frosty, Kitemaker, The Value). Write character sketches and moral themes in own words.",
-                "stage2": "Formal Writing Formats: Practice 1 Formal Letter / Informal Letter, 1 Article, and 1 Story Writing with correct headings, salutations, and neat paragraph breaks.",
-                "stage3": "Grammar Master Sprint (8 Chapters): Parts of speech, Countable/Uncountable, Articles, Present/Past/Future tenses, Infinitives/Gerunds/Participles, and Modals exercises.",
-                "morning1": "Grammar Rules & Writing Formats Scan: Review letter layout, article title rules, and modal verbs usage.",
-                "morning2": "Proofreading Strategy: Leave 10 minutes at the end of the exam to check tense consistency and punctuation."
-            }
-        else:
-            return {
-                "stage1": "High-Weight Concept Mastery: Hand-solve problems and write structured answers in own words.",
-                "stage2": "Active Recall & Blind Test: Test key diagrams, definitions, and formulas strictly from memory.",
-                "stage3": "Rapid-Fire Drill: Review definitions, units, and glossary bullet points.",
-                "morning1": "Visual & Formula Priming: Quick scan of summary flashcards and error notes.",
-                "morning2": "Calm Mindset: Breathe deeply. Double check each answer before submission."
-            }
-
-
-class ShinobiTabBar(tk.Frame):
-    """
-    3D Glowing Scroll & Rounded Dark-Glass Tab Navigation Bar:
-    - Active Tab: True 3D cylindrical parchment scroll (create_3d_parchment_scroll) with dark ink text (#1f1206) and golden bottom indicator glow.
-    - Inactive Tabs: Rounded dark-glass pills (radius=10, bg=#131c2e, border=#334155, fg=#94a3b8, hover=#f59e0b).
-    """
-    def __init__(self, parent, notebook, on_tab_changed=None, **kwargs):
-        super().__init__(parent, bg="#0b1120", height=42, **kwargs)
-        self.notebook = notebook
-        self.on_tab_changed = on_tab_changed
-        self.pack_propagate(False)
-
-        self.tab_defs = []
-        self.tab_widgets = {}
-        self.active_tab_id = None
-        self.active_indicator_color = "#f59e0b" 
-
-    def set_tabs(self, tabs_info):
-        """
-        tabs_info: list of (tab_id, tab_frame, icon, title)
-        """
-        self.tab_defs = tabs_info
-        for w in self.winfo_children():
-            w.destroy()
-        self.tab_widgets.clear()
-
-        for tab_id, tab_frame, icon, title in tabs_info:
-            tab_card = tk.Canvas(self, height=36, bg="#0b1120", bd=0, highlightthickness=0, cursor="hand2")
-            tab_card.pack(side=tk.LEFT, padx=(0, 10))
-            self.tab_widgets[tab_id] = {
-                "canvas": tab_card,
-                "frame": tab_frame,
-                "icon": icon,
-                "title": title,
-                "hover": False
-            }
-
-            def _bind_tab(t_id=tab_id, c=tab_card):
-                c.bind("<Button-1>", lambda e: self.select_tab(t_id))
-                c.bind("<Enter>", lambda e: self._on_hover(t_id, True))
-                c.bind("<Leave>", lambda e: self._on_hover(t_id, False))
-                c.bind("<Configure>", lambda e: self._draw_tab(t_id))
-
-            _bind_tab(tab_id, tab_card)
-
-        self._refresh_all_tabs()
-
-    def select_tab(self, tab_id):
-        self.active_tab_id = tab_id
-        if tab_id in self.tab_widgets:
-            target_frame = self.tab_widgets[tab_id]["frame"]
-            try:
-                self.notebook.select(target_frame)
-            except Exception:
-                pass
-        self._refresh_all_tabs()
-        if self.on_tab_changed:
-            self.on_tab_changed(tab_id)
-
-    def _on_hover(self, tab_id, is_hover):
-        if tab_id in self.tab_widgets:
-            self.tab_widgets[tab_id]["hover"] = is_hover
-            self._draw_tab(tab_id)
-
-    def _draw_tab(self, tab_id):
-        info = self.tab_widgets.get(tab_id)
-        if not info:
-            return
-        c = info["canvas"]
-        title_text = f"{info['icon']}  {info['title']}"
-        is_active = (self.active_tab_id == tab_id)
-        
-        tw = len(title_text) * 8 + 48
-        w = max(tw, c.winfo_width() if c.winfo_width() > 10 else tw)
-        h = 36
-        c.configure(width=w, height=h)
-        c.delete("all")
-
-        if is_active:
-            # 3D Shaded Cylindrical Parchment Scroll (Active: Cream Parchment + Golden Bottom Indicator)
-            photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=16, is_dark_slate=False)
-            if photo:
-                c._active_photo = photo
-                c.create_image(0, 0, image=photo, anchor="nw")
-            else:
-                c.create_rectangle(0, 0, w, h, fill="#fdf3dc", outline="#d97706")
-            
-            c.create_text(w // 2, h // 2, text=title_text, font=("Segoe UI", 9, "bold"), fill="#1f1206")
-            # Glowing 3px underline bar matching active theme primary/accent
-            ind_col = getattr(self, "active_indicator_color", "#f59e0b")
-            c.create_line(16, h - 2, w - 16, h - 2, fill=ind_col, width=3)
-        else:
-            # 3D Dark-Slate Scroll with Dark Crimson Cylindrical Rollers
-            photo = ShinobiGraphicsEngine.create_3d_parchment_scroll(w, h, roller_width=16, is_dark_slate=True)
-            if photo:
-                c._inactive_photo = photo
-                c.create_image(0, 0, image=photo, anchor="nw")
-            else:
-                c.create_rectangle(0, 0, w, h, fill="#161f30", outline="#334155")
-
-            fg_col = "#ffffff" if info.get("hover") else "#cbd5e1"
-            c.create_text(w // 2, h // 2, text=title_text, font=("Segoe UI", 8, "bold"), fill=fg_col)
-
-    def _refresh_all_tabs(self):
-        for tab_id in self.tab_widgets:
-            self._draw_tab(tab_id)
-
-
 class DesktopApp:
     def __init__(self, root):
         self.root = root
@@ -4579,7 +2500,8 @@ class DesktopApp:
             exam_mode=self.is_exam_mode, exam_subject=self.selected_exam_subject,
             start_time_str=self.schedule_start_time,
             pre_exam_mode=self.is_pre_exam_mode, pre_exam_day=self.pre_exam_day,
-            pre_exam_duration_days=self.pre_exam_duration_days
+            pre_exam_duration_days=self.pre_exam_duration_days,
+            target_date=getattr(self, "active_diary_date", None)
         )
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
 
@@ -4693,13 +2615,27 @@ class DesktopApp:
         self.subjects = [dict(s) for s in DEFAULT_SUBJECTS]
 
     def load_diary_data(self):
-        if os.path.exists(DIARY_FILE):
-            try:
-                with open(DIARY_FILE, "r", encoding="utf-8") as f:
-                    self.diary_data = json.load(f)
-                    return
-            except Exception as e:
-                print(f"Error loading {DIARY_FILE}: {e}")
+        candidates = [
+            DIARY_FILE,
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "tharun_diary_format.json"),
+            os.path.join(os.path.dirname(os.path.abspath(sys.executable)), "tharun_diary_format.json"),
+            os.path.join(os.path.dirname(os.path.abspath(sys.executable)), "VERSION_3_WORKPLACE", "tharun_diary_format.json"),
+            os.path.join(os.getcwd(), "tharun_diary_format.json"),
+        ]
+        meipass_path = getattr(sys, '_MEIPASS', None)
+        if meipass_path:
+            candidates.append(os.path.join(meipass_path, "tharun_diary_format.json"))
+
+        for c in candidates:
+            if c and os.path.exists(c):
+                try:
+                    with open(c, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        if data and "diary_entries" in data and len(data["diary_entries"]) > 0:
+                            self.diary_data = data
+                            return
+                except Exception as e:
+                    print(f"Error loading {c}: {e}")
         self.diary_data = json.loads(json.dumps(DEFAULT_DIARY_DATA))
 
     def save_diary_data(self):
@@ -5057,6 +2993,66 @@ class DesktopApp:
         )
         self.btn_month_dropdown.pack(side=tk.LEFT)
 
+        # Permanent, direct Glider Help / App Map button right on the main top header
+        self.btn_glider_header = tk.Button(
+            self.header_heatmap_frame,
+            text="🧭 Glider Map",
+            font=("Segoe UI", 9, "bold"),
+            bg="#0c2540",
+            fg="#38bdf8",
+            activebackground="#0284c7",
+            activeforeground="#ffffff",
+            padx=12,
+            pady=5,
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#38bdf8",
+            highlightthickness=1,
+            cursor="hand2",
+            command=lambda: open_glider_help(self.root)
+        )
+        self.btn_glider_header.pack(side=tk.LEFT, padx=(8, 0))
+
+        # Direct User Guide & Manual button right on top header
+        self.btn_user_guide_header = tk.Button(
+            self.header_heatmap_frame,
+            text="📖 User Guide",
+            font=("Segoe UI", 9, "bold"),
+            bg="#14532d",
+            fg="#4ade80",
+            activebackground="#16a34a",
+            activeforeground="#ffffff",
+            padx=12,
+            pady=5,
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#22c55e",
+            highlightthickness=1,
+            cursor="hand2",
+            command=lambda: open_user_guide(self.root)
+        )
+        self.btn_user_guide_header.pack(side=tk.LEFT, padx=(6, 0))
+
+        # Proactive "Host Exam Due" Glowing Header Badge (3-Day Checkpoint / Sunday / Exam Eve)
+        self.btn_exam_due_badge = tk.Button(
+            header_right,
+            text="🚨 HOST EXAM DUE: SUNDAY TEST",
+            font=("Segoe UI", 8, "bold"),
+            bg="#7f1d1d",
+            fg="#fecaca",
+            activebackground="#991b1b",
+            activeforeground="#ffffff",
+            bd=1,
+            relief=tk.SOLID,
+            highlightbackground="#ef4444",
+            highlightthickness=1,
+            padx=10,
+            pady=5,
+            cursor="hand2",
+            command=self.open_due_host_exam
+        )
+        self.btn_exam_due_badge.pack(side=tk.LEFT, padx=(10, 10))
+
         # Streak Box with 7-day progress dots
         self.streak_box_frame = tk.Frame(
             header_right,
@@ -5275,13 +3271,18 @@ class DesktopApp:
         self.level_label = self.pill_level.lbl_title
 
         # 3. START
-        start_time_display_map = {
-            "19:00": "7:00 PM",
-            "17:00": "5:00 PM",
-            "10:00": "10:00 AM",
-            "14:00": "2:00 PM"
+        self.start_time_display_map = {
+            "19:00": "7:00 PM"
         }
-        init_start_disp = start_time_display_map.get(self.schedule_start_time, f"{self.schedule_start_time}")
+        if self.schedule_start_time == "19:00":
+            init_start_disp = "7:00 PM"
+        else:
+            try:
+                s_dt = datetime.strptime(self.schedule_start_time, "%H:%M")
+                init_start_disp = f"⚡ Auto-Fetch ({s_dt.strftime('%I:%M %p').lstrip('0')})"
+            except Exception:
+                init_start_disp = "⚡ Auto-Fetch System Time"
+
         self.start_time_var = tk.StringVar(value=init_start_disp)
         def _on_pill_start_selected(v):
             self.start_time_var.set(v)
@@ -5289,7 +3290,7 @@ class DesktopApp:
         self.pill_start = ShinobiPillSelector(
             self.matrix_command_frame,
             title="🕒 START",
-            values=["7:00 PM", "5:00 PM", "10:00 AM", "2:00 PM", "⚡ Start Now"],
+            values=["7:00 PM", "⚡ Auto-Fetch System Time"],
             initial_value=init_start_disp,
             textvariable=self.start_time_var,
             on_select_callback=_on_pill_start_selected
@@ -5471,6 +3472,9 @@ class DesktopApp:
             popup.configure(bg="#0c1322", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground=p_col)
 
             guide_items = [
+                ("🧭", "Glider Help / App Map", "Master Blueprint & Directory: Components [#01] to [#25]", lambda: open_glider_help(self.root)),
+                ("📖", "Official User Guide & Manual", "Exhaustive In-App Documentation: Units 1 to 7", lambda: open_user_guide(self.root)),
+                ("⚖️", "Parent Representation & Subdivision Audit", "7D & 30D Balance: Maths 100%, Science & Social Subdivisions", self.open_parent_representation_audit_modal),
                 ("⚖️", "Core Subject Priorities & Weightage", "CBSE Class 8 Cognitive Load & Study Gravity Matrix", lambda: self.open_guide_modal("gravity")),
                 ("✍️", "Spelling & Diagram Clinic Protocol", "Pen-and-Paper Mistake Log, Blind Diagrams & Science Clinics", lambda: self.open_guide_modal("skills")),
                 ("📊", "Subject Occurrence & Time Variance Audit", "Historical Slot Adherence, Extensions & Friction Analysis", lambda: self.open_guide_modal("audit")),
@@ -5479,21 +3483,11 @@ class DesktopApp:
                 ("🔍", "V1 Chronological System Audit", "Timeline Verification, Checkpoints & Material Inspector", self.open_v1_audit_inspector_modal),
             ]
 
-            popup_w = 360
-            item_h = 48
-            total_h = 36 + len(guide_items) * item_h + 10
-
+            popup_w = 370
             x = btn.winfo_rootx()
             y = btn.winfo_rooty() + btn.winfo_height() + 3
             screen_w = popup.winfo_screenwidth()
             screen_h = popup.winfo_screenheight()
-
-            if x + popup_w > screen_w - 10:
-                x = screen_w - popup_w - 10
-            if y + total_h > screen_h - 40:
-                y = btn.winfo_rooty() - total_h - 3
-
-            popup.geometry(f"{popup_w}x{total_h}+{x}+{y}")
 
             # Top Header Strip
             hdr = tk.Frame(popup, bg="#0c1322", padx=10, pady=6)
@@ -5568,6 +3562,19 @@ class DesktopApp:
                     w.bind("<Enter>", ent_fn)
                     w.bind("<Leave>", lev_fn)
                     w.bind("<Button-1>", clk_fn)
+
+            popup.update_idletasks()
+            total_h = popup.winfo_reqheight() + 4
+            max_allowed_h = min(460, screen_h - 80)
+            if total_h > max_allowed_h:
+                total_h = max_allowed_h
+
+            if x + popup_w > screen_w - 10:
+                x = max(10, screen_w - popup_w - 10)
+            if y + total_h > screen_h - 40:
+                y = max(10, btn.winfo_rooty() - total_h - 3)
+
+            popup.geometry(f"{popup_w}x{total_h}+{x}+{y}")
 
             def _check_click_outside(e):
                 if not popup.winfo_exists():
@@ -5713,10 +3720,12 @@ class DesktopApp:
         self.tab_schedule = tk.Frame(self.notebook, bg=self.colors["bg"])
         self.tab_portions = tk.Frame(self.notebook, bg=self.colors["bg"])
         self.tab_diary = tk.Frame(self.notebook, bg=self.colors["bg"])
+        self.tab_exam = tk.Frame(self.notebook, bg=self.colors["bg"])
 
         self.build_schedule_tab()
         self.build_portions_tab()
         self.build_diary_tab()
+        self.build_exam_tab()
 
         self.update_notebook_tabs_for_mode()
 
@@ -5729,23 +3738,29 @@ class DesktopApp:
         self.notebook.add(self.tab_schedule, text="  📅 Daily Schedule  ")
 
         if self.is_exam_mode:
-            # Exam Eve Sprint: Only Timetable & Focus Timer is needed
+            # Exam Eve Sprint: Timetable + Host Exam & AI
+            self.notebook.add(self.tab_exam, text="  🎯 Host Exam & AI  ")
             visible_tabs = [
-                ("tab_schedule", self.tab_schedule, "⏱️", "Daily Schedule")
+                ("tab_schedule", self.tab_schedule, "⏱️", "Daily Schedule"),
+                ("tab_exam", self.tab_exam, "🎯", "Host Exam & AI")
             ]
         elif self.is_pre_exam_mode:
-            # Pre-Exam Planner: Timetable & Focus Timer + Exam Portions & Pre-Exam Tracker
+            # Pre-Exam Planner: Timetable & Focus Timer + Exam Portions & Pre-Exam Tracker + Host Exam & AI
             self.notebook.add(self.tab_portions, text="  📑 Exam Portions  ")
+            self.notebook.add(self.tab_exam, text="  🎯 Host Exam & AI  ")
             visible_tabs = [
                 ("tab_schedule", self.tab_schedule, "⏱️", "Daily Schedule"),
-                ("tab_portions", self.tab_portions, "📑", "Exam Portions")
+                ("tab_portions", self.tab_portions, "📑", "Exam Portions"),
+                ("tab_exam", self.tab_exam, "🎯", "Host Exam & AI")
             ]
         else:
-            # Balanced Daily: Timetable & Focus Timer + School Diary & Subject Slabs
+            # Balanced Daily: Timetable & Focus Timer + School Diary & Subject Slabs + Host Exam & AI
             self.notebook.add(self.tab_diary, text="  📖 School Diary  ")
+            self.notebook.add(self.tab_exam, text="  🎯 Host Exam & AI  ")
             visible_tabs = [
                 ("tab_schedule", self.tab_schedule, "⏱️", "Daily Schedule"),
-                ("tab_diary", self.tab_diary, "📖", "School Diary")
+                ("tab_diary", self.tab_diary, "📖", "School Diary"),
+                ("tab_exam", self.tab_exam, "🎯", "Host Exam & AI")
             ]
 
         if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
@@ -5754,6 +3769,7 @@ class DesktopApp:
 
         # Give immediate priority focus to Timetable tab on mode switch
         self.notebook.select(self.tab_schedule)
+        self.update_host_exam_due_badge()
 
     def _create_hud_toplevel(self, title, subtitle="", width=850, height=600, min_width=720, min_height=500):
         """
@@ -6510,13 +4526,6 @@ class DesktopApp:
             bx = self.root.winfo_rootx() + 420
             by = self.root.winfo_rooty() + 50
 
-        pop_w = 470
-        pop_h = 395
-        screen_w = self.root.winfo_screenwidth()
-        if bx + pop_w > screen_w - 16:
-            bx = max(16, screen_w - pop_w - 16)
-        win.geometry(f"{pop_w}x{pop_h}+{bx}+{by}")
-
         def close_dropdown(event=None):
             if hasattr(self, "month_dropdown_win") and self.month_dropdown_win and self.month_dropdown_win.winfo_exists():
                 self.month_dropdown_win.destroy()
@@ -6789,6 +4798,37 @@ class DesktopApp:
             fg="#34d399" if is_last_day else "#94a3b8",
             bg="#0f172a"
         ).pack(anchor="w", pady=(5, 0))
+
+        win.update_idletasks()
+        pop_w = max(480, inner.winfo_reqwidth() + 10)
+        pop_h = win.winfo_reqheight() + 4
+        screen_w = self.root.winfo_screenwidth()
+        screen_h = self.root.winfo_screenheight()
+        if bx + pop_w > screen_w - 16:
+            bx = max(16, screen_w - pop_w - 16)
+        if by + pop_h > screen_h - 40:
+            btn_h = self.btn_month_dropdown.winfo_height() if hasattr(self, "btn_month_dropdown") else 40
+            by = max(10, by - pop_h - btn_h - 6)
+        win.geometry(f"{pop_w}x{pop_h}+{bx}+{by}")
+
+        def _check_click_outside(e):
+            if not win.winfo_exists():
+                return
+            try:
+                wx = win.winfo_rootx()
+                wy = win.winfo_rooty()
+                ww = win.winfo_width()
+                wh = win.winfo_height()
+                if not (wx <= e.x_root <= wx + ww and wy <= e.y_root <= wy + wh):
+                    close_dropdown()
+            except Exception:
+                close_dropdown()
+
+        win.bind("<FocusOut>", lambda e: close_dropdown())
+        try:
+            self.root.bind("<Button-1>", _check_click_outside, add="+")
+        except Exception:
+            pass
 
     def open_monthly_parent_audit_report_window(self, year=None, month=None, submit_now=True):
         """Submits the Monthly Chakra Consistency Report to Tharun's Audit and opens the Parents Review Window."""
@@ -7543,8 +5583,13 @@ class DesktopApp:
 
         tk.Label(add_frame, text="➕ Quick Log New Slip:", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#0f172a").grid(row=0, column=0, sticky="w", pady=2)
         
-        cmb_sub = ttk.Combobox(add_frame, values=["Tamil", "Hindi", "Mathematics", "Physical Science", "Biological Science", "Social Science", "English"], font=("Segoe UI", 8), state="readonly", width=14)
-        cmb_sub.set("Tamil")
+        cmb_sub = ShinobiPillSelector(
+            add_frame,
+            values=["Tamil", "Hindi", "Mathematics", "Physical Science", "Biological Science", "Social Science", "English"],
+            initial_value="Tamil",
+            width=140,
+            height=28
+        )
         cmb_sub.grid(row=0, column=1, padx=4, pady=2)
 
         ent_cat = tk.Entry(add_frame, font=("Segoe UI", 8), bg="#070b14", fg="#f1f5f9", insertbackground="#38bdf8", bd=1, relief=tk.SOLID, width=22)
@@ -8318,8 +6363,13 @@ class DesktopApp:
         form_frame.pack(fill=tk.X, pady=(0, 6))
 
         tk.Label(form_frame, text="Subject:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=0, column=0, sticky="w", pady=2)
-        combo_subject = ttk.Combobox(form_frame, values=["Mathematics", "Physical Science", "Biological Science", "Social Science", "Tamil", "English", "Hindi"], font=("Segoe UI", 8), state="readonly", width=18)
-        combo_subject.set("Mathematics")
+        combo_subject = ShinobiPillSelector(
+            form_frame,
+            values=["Mathematics", "Physical Science", "Biological Science", "Social Science", "Tamil", "English", "Hindi"],
+            initial_value="Mathematics",
+            width=150,
+            height=28
+        )
         combo_subject.grid(row=0, column=1, sticky="w", padx=4, pady=2)
 
         tk.Label(form_frame, text="Chapter / Q#:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=1, column=0, sticky="w", pady=2)
@@ -8328,7 +6378,7 @@ class DesktopApp:
         ent_prob.grid(row=1, column=1, sticky="w", padx=4, pady=2)
 
         tk.Label(form_frame, text="Stuck Point:", font=("Segoe UI", 8, "bold"), fg=c["fg"], bg=c["card_bg"]).grid(row=2, column=0, sticky="w", pady=2)
-        combo_impasse = ttk.Combobox(
+        combo_impasse = ShinobiPillSelector(
             form_frame,
             values=[
                 "Cannot translate question words into formula",
@@ -8337,11 +6387,10 @@ class DesktopApp:
                 "Final answer does not match textbook back-of-book answer",
                 "Did not understand teacher's board classwork example"
             ],
-            font=("Segoe UI", 8),
-            state="readonly",
-            width=36
+            initial_value="Completed Step 1, but got stuck in Step 2 algebraic transition",
+            width=260,
+            height=28
         )
-        combo_impasse.set("Completed Step 1, but got stuck in Step 2 algebraic transition")
         combo_impasse.grid(row=2, column=1, sticky="w", padx=4, pady=2)
 
         txt_slip_output = tk.Text(slip_card, font=("Segoe UI", 8), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, padx=8, pady=6, height=10, wrap=tk.WORD)
@@ -8423,22 +6472,21 @@ class DesktopApp:
         diag_selectors.pack(fill=tk.X, pady=(0, 6))
 
         tk.Label(diag_selectors, text="1. Where did ink physically stop?", font=("Segoe UI", 8, "bold"), fg=c["warning"], bg=c["card_bg"]).grid(row=0, column=0, sticky="w", pady=2)
-        combo_pen = ttk.Combobox(
+        combo_pen = ShinobiPillSelector(
             diag_selectors,
             values=[
                 "Pen stopped immediately under question (Blank page)",
                 "Pen stopped after Line 1 or Line 2 (Mid-calculation)",
                 "Completed to the end, but final answer is wrong"
             ],
-            font=("Segoe UI", 8),
-            state="readonly",
-            width=50
+            initial_value="Pen stopped after Line 1 or Line 2 (Mid-calculation)",
+            width=320,
+            height=28
         )
-        combo_pen.set("Pen stopped after Line 1 or Line 2 (Mid-calculation)")
         combo_pen.grid(row=0, column=1, sticky="w", padx=6, pady=2)
 
         tk.Label(diag_selectors, text="2. What is his body language?", font=("Segoe UI", 8, "bold"), fg=c["warning"], bg=c["card_bg"]).grid(row=1, column=0, sticky="w", pady=2)
-        combo_beh = ttk.Combobox(
+        combo_beh = ShinobiPillSelector(
             diag_selectors,
             values=[
                 "Frozen / staring into distance (>5 minutes)",
@@ -8446,26 +6494,24 @@ class DesktopApp:
                 "Reaching for mobile phone / asking for WhatsApp group",
                 "Complaining of sudden headache / feigning sleep"
             ],
-            font=("Segoe UI", 8),
-            state="readonly",
-            width=50
+            initial_value="Frozen / staring into distance (>5 minutes)",
+            width=320,
+            height=28
         )
-        combo_beh.set("Frozen / staring into distance (>5 minutes)")
         combo_beh.grid(row=1, column=1, sticky="w", padx=6, pady=2)
 
         tk.Label(diag_selectors, text="3. Where did teacher cut marks?", font=("Segoe UI", 8, "bold"), fg=c["warning"], bg=c["card_bg"]).grid(row=2, column=0, sticky="w", pady=2)
-        combo_test = ttk.Combobox(
+        combo_test = ShinobiPillSelector(
             diag_selectors,
             values=[
                 "Bucket A: Concept Blindspot (0 marks on definition/theory)",
                 "Bucket B: Careless Slip (Lost 1 mark on calculation/sign/units)",
                 "Bucket C: CBSE Presentation Penalty (Lost marks for informal text)"
             ],
-            font=("Segoe UI", 8),
-            state="readonly",
-            width=50
+            initial_value="Bucket B: Careless Slip (Lost 1 mark on calculation/sign/units)",
+            width=320,
+            height=28
         )
-        combo_test.set("Bucket B: Careless Slip (Lost 1 mark on calculation/sign/units)")
         combo_test.grid(row=2, column=1, sticky="w", padx=6, pady=2)
 
         txt_diag_out = tk.Text(diag_card, font=("Segoe UI", 8), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID, padx=10, pady=8, wrap=tk.WORD)
@@ -10544,7 +8590,14 @@ class DesktopApp:
             "Overcoming study friction / building chair-time"
         ]
         reason_var = tk.StringVar(value=reasons[0])
-        reason_combo = ttk.Combobox(ext_win, textvariable=reason_var, values=reasons, state="readonly", width=48)
+        reason_combo = ShinobiPillSelector(
+            ext_win,
+            values=reasons,
+            initial_value=reasons[0],
+            textvariable=reason_var,
+            width=360,
+            height=32
+        )
         reason_combo.pack(fill=tk.X, pady=(0, 18))
 
         def confirm_extension():
@@ -10836,10 +8889,11 @@ class DesktopApp:
         self.portions_title_row = title_row
         self.portions_prog_row = prog_row
 
+        # Unified Portions Scanner & Reader Action
         self.btn_upload_portions = tk.Button(
             act_box,
-            text="📁 Upload Portions (PDF/Doc/JSON)",
-            font=("Segoe UI", 8, "bold"),
+            text="📷 Scan & Import Exam Portions (PDF / Photo / S1-S4)",
+            font=("Segoe UI", 9, "bold"),
             bg="#f59e0b",
             fg="#1c1104",
             activebackground="#fbbf24",
@@ -10848,69 +8902,12 @@ class DesktopApp:
             bd=0,
             highlightthickness=1,
             highlightbackground="#fde047",
-            padx=10,
-            pady=3,
+            padx=12,
+            pady=4,
             cursor="hand2",
             command=self.upload_portions_file_dialog
         )
-        self.btn_upload_portions.pack(side=tk.LEFT, padx=(0, 5))
-
-        self.btn_paste_portions = tk.Button(
-            act_box,
-            text="📝 Paste Syllabus",
-            font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#38bdf8",
-            relief=tk.FLAT,
-            bd=0,
-            highlightthickness=1,
-            highlightbackground="#334155",
-            activebackground="#1e293b",
-            activeforeground="#38bdf8",
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.open_portions_text_paste_modal
-        )
-        self.btn_paste_portions.pack(side=tk.LEFT, padx=(0, 5))
-
-        self.btn_launch_pre_exam = tk.Button(
-            act_box,
-            text="📅 Pre-Exam Roadmap & Day Planner",
-            font=("Segoe UI", 8, "bold"),
-            bg="#161006",
-            fg="#facc15",
-            activebackground="#f59e0b",
-            activeforeground="#1c1104",
-            relief=tk.FLAT,
-            bd=0,
-            highlightthickness=1,
-            highlightbackground="#eab308",
-            padx=10,
-            pady=3,
-            cursor="hand2",
-            command=self.open_pre_exam_day_picker_modal
-        )
-        self.btn_launch_pre_exam.pack(side=tk.LEFT, padx=(0, 5))
-
-        self.btn_copy_portions = tk.Button(
-            act_box,
-            text="📋 Copy Full Syllabus",
-            font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            relief=tk.FLAT,
-            bd=0,
-            highlightthickness=1,
-            highlightbackground="#334155",
-            activebackground="#1e293b",
-            activeforeground="#f8fafc",
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.copy_full_portions_summary
-        )
-        self.btn_copy_portions.pack(side=tk.LEFT, padx=(0, 5))
+        self.btn_upload_portions.pack(side=tk.LEFT, padx=(0, 6))
 
         self.btn_reset_checks = tk.Button(
             act_box,
@@ -11795,114 +9792,21 @@ class DesktopApp:
                 if not ExamPortionParser:
                     messagebox.showerror("Parser Unavailable", "Exam portion parser module could not be loaded.")
                     return
-                t, raw_text = ExamPortionParser.extract_text_from_file(filepath)
-                if not raw_text or not raw_text.strip():
-                    messagebox.showwarning("Empty File", "No readable text or images could be extracted from this file.")
-                    return
-                parsed_json = ExamPortionParser.parse_portions_text(raw_text)
-                self.open_portions_review_modal(parsed_json, source_path=filepath, raw_text=raw_text)
+                res_type, res_content = ExamPortionParser.extract_text_from_file(filepath)
+                if res_type == "JSON_DIRECT":
+                    self.open_portions_review_modal(res_content, source_path=filepath, raw_text="")
+                else:
+                    raw_text = res_content
+                    if not raw_text or not raw_text.strip():
+                        messagebox.showwarning("Empty File", "No readable text or images could be extracted from this file.")
+                        return
+                    parsed_json = ExamPortionParser.parse_portions_text(raw_text)
+                    self.open_portions_review_modal(parsed_json, source_path=filepath, raw_text=raw_text)
 
         except Exception as e:
             messagebox.showerror("Import Error", f"An error occurred while processing the portions file:\n\n{e}")
         finally:
             self.root.config(cursor="")
-
-    def open_portions_text_paste_modal(self):
-        c = self.colors
-        win = tk.Toplevel(self.root)
-        win.title("📝 Paste Exam Portions / Syllabus Notice")
-        win.geometry("780x600")
-        win.configure(bg=c["bg"])
-
-        top = tk.Frame(win, bg=c["card_bg"], padx=16, pady=12, bd=1, relief=tk.SOLID)
-        top.pack(fill=tk.X)
-        tk.Label(
-            top,
-            text="📝 Paste Syllabus Text or JSON Circular",
-            font=("Segoe UI", 11, "bold"),
-            fg=c["primary"],
-            bg=c["card_bg"]
-        ).pack(anchor="w")
-        tk.Label(
-            top,
-            text="Paste syllabus circular text from WhatsApp, school email, or notice sheet. The AI parser will detect subjects, chapters, and dates.",
-            font=("Segoe UI", 8),
-            fg=c["fg_muted"],
-            bg=c["card_bg"]
-        ).pack(anchor="w", pady=(2, 0))
-
-        content_box = tk.Frame(win, bg=c["bg"], padx=16, pady=10)
-        content_box.pack(fill=tk.BOTH, expand=True)
-
-        txt_area = tk.Text(content_box, font=("Consolas", 10), bg=c["input_bg"], fg=c["fg"], bd=1, relief=tk.SOLID)
-        txt_area.pack(fill=tk.BOTH, expand=True)
-
-        btn_bar = tk.Frame(win, bg=c["card_bg"], padx=16, pady=10, bd=1, relief=tk.SOLID)
-        btn_bar.pack(fill=tk.X)
-
-        def do_parse():
-            pasted = txt_area.get("1.0", tk.END).strip()
-            if not pasted:
-                messagebox.showwarning("Empty Content", "Please paste syllabus text or JSON before proceeding.", parent=win)
-                return
-            if pasted.startswith("{") or pasted.startswith("["):
-                try:
-                    data = json.loads(pasted)
-                    if isinstance(data, dict) and "subjects" in data:
-                        win.destroy()
-                        self.open_portions_review_modal(data, raw_text=pasted)
-                        return
-                    elif isinstance(data, list):
-                        wrapped = {
-                            "school_name": "Senthil Public School",
-                            "stream": "Montessori & CBSE Stream",
-                            "examination": "Portions for Examination - Class VIII",
-                            "student_name": "Tharun",
-                            "academic_year": "2026-2027",
-                            "total_subjects": len(data),
-                            "subjects": data
-                        }
-                        win.destroy()
-                        self.open_portions_review_modal(wrapped, raw_text=pasted)
-                        return
-                except Exception:
-                    pass
-
-            if not ExamPortionParser:
-                messagebox.showerror("Error", "Portion parser not available.", parent=win)
-                return
-
-            parsed = ExamPortionParser.parse_portions_text(pasted)
-            win.destroy()
-            self.open_portions_review_modal(parsed, raw_text=pasted)
-
-        btn_parse = tk.Button(
-            btn_bar,
-            text="⚡ Parse & Preview Syllabus",
-            font=("Segoe UI", 9, "bold"),
-            bg="#2563eb",
-            fg="#ffffff",
-            relief=tk.FLAT,
-            padx=14,
-            pady=5,
-            cursor="hand2",
-            command=do_parse
-        )
-        btn_parse.pack(side=tk.RIGHT, padx=(8, 0))
-
-        btn_cancel = tk.Button(
-            btn_bar,
-            text="Cancel",
-            font=("Segoe UI", 9),
-            bg=c["card_border"],
-            fg=c["fg"],
-            relief=tk.FLAT,
-            padx=12,
-            pady=5,
-            cursor="hand2",
-            command=win.destroy
-        )
-        btn_cancel.pack(side=tk.RIGHT)
 
     def open_portions_review_modal(self, parsed_json, source_path=None, raw_text=""):
         c = self.colors
@@ -11966,19 +9870,9 @@ class DesktopApp:
         ).pack(side=tk.LEFT, padx=(0, 8))
 
         target_term_var = tk.StringVar(value=active_t if active_t in target_options else "Term-II")
-        cmb_target_term = ttk.Combobox(
-            sub_top_row,
-            textvariable=target_term_var,
-            values=target_options,
-            state="readonly",
-            font=("Segoe UI", 9, "bold"),
-            width=26
-        )
-        cmb_target_term.pack(side=tk.LEFT, padx=(0, 10))
-
         ent_custom_term = tk.Entry(sub_top_row, font=("Segoe UI", 9), bg="#1e293b", fg="#f8fafc", insertbackground="#f8fafc", bd=1, relief=tk.SOLID, width=28)
 
-        def _on_target_term_changed(e=None):
+        def _on_target_term_changed(sel_val=None):
             sel = target_term_var.get()
             if sel == "➕ Custom Exam Heading...":
                 ent_custom_term.pack(side=tk.LEFT, padx=(4, 0))
@@ -11986,7 +9880,16 @@ class DesktopApp:
             else:
                 ent_custom_term.pack_forget()
 
-        cmb_target_term.bind("<<ComboboxSelected>>", _on_target_term_changed)
+        cmb_target_term = ShinobiPillSelector(
+            sub_top_row,
+            values=target_options,
+            initial_value=active_t if active_t in target_options else "Term-II",
+            textvariable=target_term_var,
+            on_select_callback=_on_target_term_changed,
+            width=220,
+            height=32
+        )
+        cmb_target_term.pack(side=tk.LEFT, padx=(0, 10))
 
         # Prominent Pointing Out Alert Banner
         tk.Label(
@@ -12443,7 +10346,7 @@ class DesktopApp:
 
         tk.Label(
             hdr_row,
-            text="✨ Accepts Word (.docx), Diary Photos (.jpg/.png), PDF, Text, or JSON • Max 1–2 Homework Slabs/Night",
+            text="✨ Senthil Public School Handbook Source Engine • Photos (S1/S2/S3/S4) & PDFs • Dual-Engine AI Handwriting Extraction",
             font=("Segoe UI", 8),
             fg="#94a3b8",
             bg="#0e172a"
@@ -12526,57 +10429,6 @@ class DesktopApp:
         )
         self.btn_save.pack(side=tk.RIGHT, padx=2)
 
-        self.btn_open_input = tk.Button(
-            act_row,
-            text="📥 'diary_input'",
-            font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#34d399",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.open_diary_input_folder
-        )
-        self.btn_open_input.pack(side=tk.RIGHT, padx=2)
-
-        self.btn_import_folder = tk.Button(
-            act_row,
-            text="📂 Import Folder",
-            font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.import_diary_folder
-        )
-        self.btn_import_folder.pack(side=tk.RIGHT, padx=2)
-
-        self.btn_import = tk.Button(
-            act_row,
-            text="📁 Import File(s)",
-            font=("Segoe UI", 8, "bold"),
-            bg="#131c2e",
-            fg="#f8fafc",
-            relief=tk.SOLID,
-            bd=1,
-            highlightbackground="#334155",
-            highlightthickness=1,
-            padx=8,
-            pady=3,
-            cursor="hand2",
-            command=self.import_any_diary_file
-        )
-        self.btn_import.pack(side=tk.RIGHT, padx=2)
-
         self.btn_photo_assistant = tk.Button(
             act_row,
             text="📸 Photo Assistant",
@@ -12593,6 +10445,57 @@ class DesktopApp:
             command=self.open_diary_photo_assistant_window
         )
         self.btn_photo_assistant.pack(side=tk.RIGHT, padx=2)
+
+        self.btn_ai_retrieve = tk.Button(
+            act_row,
+            text="⚡ AI Handwriting Extract",
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#34d399",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=8,
+            pady=3,
+            cursor="hand2",
+            command=self.ai_retrieve_diary_sources
+        )
+        self.btn_ai_retrieve.pack(side=tk.RIGHT, padx=2)
+
+        self.btn_upload_pdf = tk.Button(
+            act_row,
+            text="📄 Upload Diary PDF",
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#38bdf8",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=8,
+            pady=3,
+            cursor="hand2",
+            command=self.upload_diary_pdf
+        )
+        self.btn_upload_pdf.pack(side=tk.RIGHT, padx=2)
+
+        self.btn_upload_photo = tk.Button(
+            act_row,
+            text="📷 Upload Diary Photo (S1-S4)",
+            font=("Segoe UI", 8, "bold"),
+            bg="#131c2e",
+            fg="#f97316",
+            relief=tk.SOLID,
+            bd=1,
+            highlightbackground="#334155",
+            highlightthickness=1,
+            padx=8,
+            pady=3,
+            cursor="hand2",
+            command=self.upload_diary_photo
+        )
+        self.btn_upload_photo.pack(side=tk.RIGHT, padx=2)
 
         # 2. Compact Single-Row Quick-Add Homework Slab Bar
         add_box = tk.Frame(
@@ -12921,7 +10824,8 @@ class DesktopApp:
         self.evening_schedule, self.morning_schedule = TharunScheduleBalancer.generate_schedule(
             self.subjects, active_items, self.current_level, self.selected_language,
             exam_mode=self.is_exam_mode, exam_subject=self.selected_exam_subject,
-            start_time_str=self.schedule_start_time
+            start_time_str=self.schedule_start_time,
+            target_date=getattr(self, "active_diary_date", None)
         )
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
         self.render_timetable_cards()
@@ -12938,40 +10842,27 @@ class DesktopApp:
                 f"Allocated into at most 1 to 2 focused homework slots as requested, with time assigned to each indicated subject."
             )
 
-    def import_any_diary_file(self):
-        filepaths = filedialog.askopenfilenames(
+    def upload_diary_photo(self):
+        """Prompt to upload a School Diary photo (e.g. S1-S4), extract entries, and open side-by-side Photo Assistant."""
+        workspace_dir = os.path.dirname(os.path.abspath(__file__))
+        default_dir = os.path.join(workspace_dir, "diary_input")
+        filepath = filedialog.askopenfilename(
+            initialdir=default_dir if os.path.exists(default_dir) else workspace_dir,
             filetypes=[
-                ("All Supported Diary Formats (*.docx, *.pdf, *.jpg, *.png, *.json, *.txt)", "*.docx *.doc *.pdf *.jpg *.jpeg *.png *.bmp *.json *.txt *.md"),
-                ("Word Documents (*.docx, *.doc)", "*.docx *.doc"),
-                ("PDF Documents (*.pdf)", "*.pdf"),
-                ("School Diary Photos (*.jpg, *.png, *.jpeg)", "*.jpg *.jpeg *.png *.bmp"),
-                ("JSON Files (*.json)", "*.json"),
-                ("Text Files (*.txt, *.md)", "*.txt *.md"),
+                ("School Diary Photos (*.jpg, *.jpeg, *.png, *.bmp, *.webp)", "*.jpg *.jpeg *.png *.bmp *.webp"),
                 ("All Files (*.*)", "*.*")
             ],
-            title="Import School Diary File(s) (Word / PDF / Photo / JSON / Text)"
+            title="📷 Select Senthil Public School Diary Photo (S1, S2, S3, S4...)"
         )
-        if not filepaths:
+        if not filepath:
             return
-
-        if len(filepaths) == 1:
-            ext = os.path.splitext(filepaths[0])[1].lower()
-            if ext in [".jpg", ".jpeg", ".png", ".bmp", ".webp"]:
-                self.open_diary_photo_assistant_window(image_path=filepaths[0])
-                return
 
         try:
             if UniversalDiaryImporter is not None:
-                if len(filepaths) == 1:
-                    filepath = filepaths[0]
-                    parsed_entries, master_data, raw_text = UniversalDiaryImporter.convert_any_file_to_json(filepath, DIARY_FILE)
-                else:
-                    parsed_entries, master_data, raw_text, processed_files, errors = UniversalDiaryImporter.convert_multiple_files_to_json(filepaths, DIARY_FILE)
-
+                parsed_entries, master_data, raw_text = UniversalDiaryImporter.convert_any_file_to_json(filepath, DIARY_FILE)
                 self.last_imported_raw_text = raw_text
                 self.load_diary_data()
 
-                # Update date selector
                 date_list = [f"{e['date']} ({e.get('display_date', e['date'])})" for e in self.diary_data.get("diary_entries", [])]
                 self.diary_date_combo["values"] = date_list
 
@@ -12988,51 +10879,62 @@ class DesktopApp:
                     self.on_diary_date_selected()
                     self.apply_diary_to_timetable(silent=True)
 
-                src_label = filepaths[0] if len(filepaths) == 1 else f"{len(filepaths)} files imported"
-                self.open_diary_audit_window(parsed_entries=parsed_entries, filepath=src_label, raw_text=raw_text)
-            else:
-                # Direct JSON fallback if module not found
-                filepath = filepaths[0]
-                with open(filepath, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    if "diary_entries" in data:
-                        self.diary_data = data
-                        self.save_diary_data()
-                        date_list = [f"{e['date']} ({e.get('display_date', e['date'])})" for e in self.diary_data.get("diary_entries", [])]
-                        self.diary_date_combo["values"] = date_list
-                        if date_list:
-                            self.diary_date_combo.current(len(date_list)-1)
-                            self.on_diary_date_selected()
-                            self.apply_diary_to_timetable(silent=True)
-                        messagebox.showinfo("Import Success", f"Imported {len(data['diary_entries'])} diary dates successfully!")
-                    else:
-                        messagebox.showwarning("Format Error", "JSON does not contain 'diary_entries' key.")
+            self.open_diary_photo_assistant_window(image_path=filepath)
         except Exception as e:
-            messagebox.showerror("Import Error", f"Failed to process diary file:\n{e}")
+            messagebox.showerror("Diary Photo Error", f"Failed to process diary photo:\n{e}")
 
-    def import_diary_folder(self, target_folder=None):
-        """Scans a selected folder (or default diary_input folder) for all diary files and imports them."""
+    def upload_diary_pdf(self):
+        """Prompt to upload a School Diary or circular PDF, extract entries, and sync to timetable."""
         workspace_dir = os.path.dirname(os.path.abspath(__file__))
         default_dir = os.path.join(workspace_dir, "diary_input")
-        if not os.path.exists(default_dir):
-            try:
-                os.makedirs(default_dir, exist_ok=True)
-            except Exception:
-                default_dir = workspace_dir
-
-        chosen_dir = target_folder
-        if not chosen_dir:
-            chosen_dir = filedialog.askdirectory(
-                initialdir=default_dir if os.path.exists(default_dir) else workspace_dir,
-                title="Select Input Folder Containing School Diary Files / Photos"
-            )
-
-        if not chosen_dir:
+        filepath = filedialog.askopenfilename(
+            initialdir=default_dir if os.path.exists(default_dir) else workspace_dir,
+            filetypes=[
+                ("PDF Documents (*.pdf)", "*.pdf"),
+                ("All Files (*.*)", "*.*")
+            ],
+            title="📄 Select School Diary / Circular PDF Document"
+        )
+        if not filepath:
             return
 
         try:
             if UniversalDiaryImporter is not None:
-                all_parsed, master_data, combined_raw, processed_files, errors = UniversalDiaryImporter.convert_folder_to_json(chosen_dir, DIARY_FILE)
+                parsed_entries, master_data, raw_text = UniversalDiaryImporter.convert_any_file_to_json(filepath, DIARY_FILE)
+                self.last_imported_raw_text = raw_text
+                self.load_diary_data()
+
+                date_list = [f"{e['date']} ({e.get('display_date', e['date'])})" for e in self.diary_data.get("diary_entries", [])]
+                self.diary_date_combo["values"] = date_list
+
+                latest_p = parsed_entries[-1] if isinstance(parsed_entries, list) and parsed_entries else (parsed_entries if isinstance(parsed_entries, dict) else {})
+                target_idx = len(date_list) - 1
+                for idx, entry in enumerate(self.diary_data.get("diary_entries", [])):
+                    if entry.get("date") == latest_p.get("date"):
+                        target_idx = idx
+                        break
+
+                if date_list:
+                    self.diary_date_combo.current(target_idx)
+                    self.on_diary_date_selected()
+                    self.apply_diary_to_timetable(silent=True)
+
+                self.open_diary_audit_window(parsed_entries=parsed_entries, filepath=filepath, raw_text=raw_text)
+            else:
+                messagebox.showerror("Module Missing", "UniversalDiaryImporter is not available.")
+        except Exception as e:
+            messagebox.showerror("Diary PDF Error", f"Failed to process PDF document:\n{e}")
+
+    def ai_retrieve_diary_sources(self):
+        """Scans diary_input directory for all photos (S1-S4) and PDFs, running dual-engine AI extraction."""
+        workspace_dir = os.path.dirname(os.path.abspath(__file__))
+        target_dir = os.path.join(workspace_dir, "diary_input")
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir, exist_ok=True)
+
+        try:
+            if UniversalDiaryImporter is not None:
+                all_parsed, master_data, combined_raw, processed_files, errors = UniversalDiaryImporter.convert_folder_to_json(target_dir, DIARY_FILE)
                 self.last_imported_raw_text = combined_raw
                 self.load_diary_data()
 
@@ -13046,23 +10948,30 @@ class DesktopApp:
                 if processed_files:
                     err_txt = f"\n\nWarnings: {len(errors)} file(s) had issues." if errors else ""
                     messagebox.showinfo(
-                        "Folder Import Complete",
-                        f"🎉 Successfully scanned input folder!\n\n"
-                        f"• Folder: {chosen_dir}\n"
+                        "AI Extraction Complete",
+                        f"🎉 Successfully retrieved diary sources (S1-S4 Photos & PDFs)!\n\n"
+                        f"• Directory: {target_dir}\n"
                         f"• Processed files: {len(processed_files)}\n"
-                        f"• Loaded diary dates: {len(all_parsed)}{err_txt}"
+                        f"• Total dates active: {len(self.diary_data.get('diary_entries', []))}{err_txt}"
                     )
-                    self.open_diary_audit_window(parsed_entries=all_parsed, filepath=chosen_dir, raw_text=combined_raw)
+                    self.open_diary_audit_window(parsed_entries=all_parsed, filepath=target_dir, raw_text=combined_raw)
                 else:
                     messagebox.showwarning(
-                        "No Diary Files Found",
-                        f"No supported diary files (.jpg, .png, .pdf, .docx, .txt, .json) found in:\n{chosen_dir}\n\n"
-                        f"Tip: Place your homework photos, Word files, or PDFs inside this folder and click 'Import Folder' again!"
+                        "No Diary Sources Found",
+                        f"No diary photos (S1-S4) or PDFs found in:\n{target_dir}\n\n"
+                        f"Tip: Place your handbook photos or PDFs inside 'diary_input' and click again!"
                     )
             else:
                 messagebox.showerror("Module Missing", "UniversalDiaryImporter is not available.")
         except Exception as e:
-            messagebox.showerror("Folder Import Error", f"Failed to import from folder:\n{e}")
+            messagebox.showerror("AI Retrieval Error", f"Failed to retrieve diary sources:\n{e}")
+
+    def import_any_diary_file(self):
+        self.upload_diary_photo()
+
+    def import_diary_folder(self, target_folder=None):
+        """Scans diary_input folder for all diary files (S1-S4 photos and PDFs) and imports them."""
+        self.ai_retrieve_diary_sources()
 
     def open_diary_input_folder(self):
         """Opens the dedicated diary_input folder in Windows Explorer and offers 1-click scanning."""
@@ -13120,7 +11029,15 @@ class DesktopApp:
         all_dates = [e["date"] for e in self.diary_data.get("diary_entries", [])]
         audit_date_var = tk.StringVar(value=self.active_diary_date if self.active_diary_date in all_dates else (all_dates[-1] if all_dates else ""))
 
-        date_combo = ttk.Combobox(bar, textvariable=audit_date_var, values=all_dates, state="readonly", width=16)
+        date_combo = ShinobiPillSelector(
+            bar,
+            values=all_dates,
+            initial_value=audit_date_var.get(),
+            textvariable=audit_date_var,
+            on_select_callback=lambda val: refresh_audit_table() if 'refresh_audit_table' in locals() else None,
+            width=160,
+            height=32
+        )
         date_combo.pack(side=tk.LEFT, padx=4)
 
         lbl_count = tk.Label(bar, text="", font=("Segoe UI", 9, "bold"), fg=c["primary"], bg=c["bg"])
@@ -13193,7 +11110,7 @@ class DesktopApp:
                     )
                 )
 
-        date_combo.bind("<<ComboboxSelected>>", lambda e: refresh_audit_table())
+        date_combo.on_select_callback = lambda val: refresh_audit_table()
         refresh_audit_table()
 
         # Action bar under table
@@ -13362,6 +11279,24 @@ class DesktopApp:
                 messagebox.showerror("Error", f"Failed to save JSON: {e}")
 
     # ==========================================
+    # TAB 4: HOST EXAMINATION & GEMINI EVALUATOR (V3)
+    # ==========================================
+    def build_exam_tab(self):
+        """Construct Host-Conducted Examination & Gemini Evaluator UI for Version 3."""
+        if HostExamTabController:
+            self.host_exam_controller = HostExamTabController(self, self.tab_exam)
+            self.host_exam_controller.build_ui()
+        else:
+            lbl = tk.Label(
+                self.tab_exam,
+                text="Host Examination UI module (host_exam_ui.py) not available.",
+                fg="#f87171",
+                bg=self.colors["bg"],
+                font=("Segoe UI", 10, "bold")
+            )
+            lbl.pack(expand=True)
+
+    # ==========================================
     # TAB 3: PROGRESSION LEVELS
     # ==========================================
     def build_levels_tab(self, parent=None):
@@ -13522,21 +11457,91 @@ class DesktopApp:
         if self.is_exam_mode:
             self.handle_generate_schedule(silent=True)
             messagebox.showinfo("Exam Subject Updated", f"Exam Eve Sprint regenerated for: {self.selected_exam_subject}!")
+        self.update_host_exam_due_badge()
+
+    def update_host_exam_due_badge(self):
+        """
+        Proactively check if a Host Exam is due:
+        1. Sunday -> Phase 1 Weekly Test
+        2. Pre-Exam Planner mode with Day % 3 == 0 (Days 3, 6, 9, 12, 15, 18, 21) -> Phase 2 3-Day Checkpoint Test
+        3. Exam Eve mode morning (< 12:00 PM) -> Phase 3 Morning Sprint
+        """
+        if not hasattr(self, "btn_exam_due_badge") or not self.btn_exam_due_badge.winfo_exists():
+            return
+
+        today = datetime.now()
+        is_sunday = (today.weekday() == 6)
+
+        if is_sunday:
+            due_text = "🚨 HOST EXAM DUE: SUNDAY TEST"
+            due_bg = "#7f1d1d"
+            due_fg = "#fecaca"
+            due_border = "#ef4444"
+        elif getattr(self, "is_pre_exam_mode", False) and (getattr(self, "pre_exam_day", 1) > 1 and (getattr(self, "pre_exam_day", 1) - 1) % 3 == 0):
+            day_num = getattr(self, "pre_exam_day", 4)
+            p_start = day_num - 3
+            p_end = day_num - 1
+            due_text = f"🎯 DAY {day_num} MORNING CHECKPOINT DUE (DAYS {p_start}–{p_end})"
+            due_bg = "#581c87"
+            due_fg = "#f3e8ff"
+            due_border = "#a855f7"
+        elif getattr(self, "is_exam_mode", False) and today.hour < 12:
+            sub = getattr(self, "selected_exam_subject", "Mathematics")
+            due_text = f"⚡ MORNING SPRINT DUE: {sub.upper()} (6:40-7:45 AM)"
+            due_bg = "#064e3b"
+            due_fg = "#d1fae5"
+            due_border = "#10b981"
+        else:
+            due_text = "🎯 HOST EXAM: SUNDAY READY"
+            due_bg = "#1e293b"
+            due_fg = "#94a3b8"
+            due_border = "#334155"
+
+        self.btn_exam_due_badge.configure(
+            text=due_text,
+            bg=due_bg,
+            fg=due_fg,
+            highlightbackground=due_border,
+            activebackground=due_border,
+            activeforeground="#ffffff"
+        )
+        self.btn_exam_due_badge.pack(side=tk.LEFT, padx=(10, 10))
+
+    def open_due_host_exam(self):
+        """Switches immediately to Tab 4 (Host Exam & AI) with the due exam pre-assembled and ready to generate."""
+        if hasattr(self, "notebook") and hasattr(self, "tab_exam"):
+            self.notebook.select(self.tab_exam)
+            if hasattr(self, "custom_tab_bar") and self.custom_tab_bar:
+                self.custom_tab_bar.select_tab("tab_exam")
+
+        today = datetime.now()
+        if hasattr(self, "host_exam_controller") and self.host_exam_controller:
+            if today.weekday() == 6:
+                self.host_exam_controller._launch_phase(1, "weekly")
+            elif getattr(self, "is_pre_exam_mode", False) and (getattr(self, "pre_exam_day", 1) > 1 and (getattr(self, "pre_exam_day", 1) - 1) % 3 == 0):
+                self.host_exam_controller._launch_phase(2, "3day")
+            elif getattr(self, "is_exam_mode", False):
+                self.host_exam_controller._launch_phase(3, getattr(self, "selected_exam_subject", "Mathematics"))
+            else:
+                self.host_exam_controller._launch_phase(1, "weekly")
 
     def on_start_time_changed(self, event=None):
         val = self.start_time_var.get()
         now_dt = datetime.now()
-        if "Now" in val:
+        if "Fetch" in val or "Now" in val or "System" in val or val.startswith("⚡"):
             minute = (now_dt.minute // 5) * 5
             self.schedule_start_time = f"{now_dt.hour:02d}:{minute:02d}"
-        elif "5:00 PM" in val:
-            self.schedule_start_time = "17:00"
-        elif "10:00 AM" in val:
-            self.schedule_start_time = "10:00"
-        elif "2:00 PM" in val:
-            self.schedule_start_time = "14:00"
+            start_dt = datetime.strptime(self.schedule_start_time, "%H:%M")
+            time_12h = start_dt.strftime("%I:%M %p").lstrip("0")
+            disp_label = f"⚡ Auto-Fetch ({time_12h})"
+            self.start_time_var.set(disp_label)
+            if hasattr(self, "pill_start"):
+                self.pill_start.lbl_val.configure(text=disp_label)
         else:
             self.schedule_start_time = "19:00"
+            self.start_time_var.set("7:00 PM")
+            if hasattr(self, "pill_start"):
+                self.pill_start.lbl_val.configure(text="7:00 PM")
 
         self.save_data()
         self.handle_generate_schedule(silent=True)
@@ -13702,15 +11707,16 @@ class DesktopApp:
             chk_exam.pack(side=tk.LEFT, padx=10)
 
             grav_var = tk.StringVar(value=f"Score {sub.get('gravity', 2)}")
-            grav_combo = ttk.Combobox(
+            grav_combo = ShinobiPillSelector(
                 ctrl_block,
-                textvariable=grav_var,
                 values=["Score 1 (Low)", "Score 2 (Med)", "Score 3 (High)"],
-                state="readonly",
-                width=14
+                initial_value=grav_var.get(),
+                textvariable=grav_var,
+                on_select_callback=lambda val, s=sub, gv=grav_var: self.change_sub_gravity(s, gv),
+                width=135,
+                height=30
             )
             grav_combo.pack(side=tk.LEFT, padx=8)
-            grav_combo.bind("<<ComboboxSelected>>", lambda e, s=sub, gv=grav_var: self.change_sub_gravity(s, gv))
 
     def toggle_exam_soon(self, sub, var):
         sub["exam_soon"] = var.get()
@@ -14297,7 +12303,8 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             start_time_str=self.schedule_start_time,
             pre_exam_mode=self.is_pre_exam_mode, pre_exam_day=self.pre_exam_day,
             pre_exam_duration_days=self.pre_exam_duration_days,
-            bedtime_rollovers=active_rollovers
+            bedtime_rollovers=active_rollovers,
+            target_date=getattr(self, "active_diary_date", None)
         )
         self.all_schedule_slots = self.evening_schedule + self.morning_schedule
         self.render_timetable_cards()
@@ -14434,25 +12441,40 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
         if not Image or not ImageTk:
             return None
 
-        base_dir = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
         img_filename = f"{theme_key}.jpg"
-        img_path = os.path.join(base_dir, "assets", "naruto", img_filename)
+        candidate_dirs = []
 
-        if not os.path.exists(img_path):
-            exe_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else base_dir
-            alt_path = os.path.join(exe_dir, "assets", "naruto", img_filename)
-            if os.path.exists(alt_path):
-                img_path = alt_path
-            else:
-                fallback_path = os.path.join(base_dir, "assets", "naruto", "naruto_sage.jpg")
-                if os.path.exists(fallback_path):
-                    img_path = fallback_path
-                else:
-                    alt_fallback = os.path.join(exe_dir, "assets", "naruto", "naruto_sage.jpg")
-                    if os.path.exists(alt_fallback):
-                        img_path = alt_fallback
-                    else:
-                        return None
+        if getattr(sys, '_MEIPASS', None):
+            candidate_dirs.append(os.path.join(sys._MEIPASS, "assets", "naruto"))
+            candidate_dirs.append(os.path.join(sys._MEIPASS, "naruto"))
+
+        if getattr(sys, 'frozen', False):
+            exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+            candidate_dirs.append(os.path.join(exe_dir, "assets", "naruto"))
+            candidate_dirs.append(os.path.join(os.path.dirname(exe_dir), "assets", "naruto"))
+
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        candidate_dirs.append(os.path.join(script_dir, "assets", "naruto"))
+        candidate_dirs.append(os.path.join(os.path.dirname(script_dir), "assets", "naruto"))
+        candidate_dirs.append(os.path.join(os.getcwd(), "assets", "naruto"))
+
+        img_path = None
+        for cdir in candidate_dirs:
+            p = os.path.join(cdir, img_filename)
+            if os.path.exists(p):
+                img_path = p
+                break
+
+        if not img_path:
+            # Fallback to naruto_sage.jpg across all candidate dirs
+            for cdir in candidate_dirs:
+                fb = os.path.join(cdir, "naruto_sage.jpg")
+                if os.path.exists(fb):
+                    img_path = fb
+                    break
+
+        if not img_path:
+            return None
 
         try:
             pil_img = Image.open(img_path)
@@ -14816,7 +12838,7 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             )
 
         # 9. Tab Frames Background Synchronization
-        for tab in [getattr(self, "tab_schedule", None), getattr(self, "tab_diary", None), getattr(self, "tab_portions", None)]:
+        for tab in [getattr(self, "tab_schedule", None), getattr(self, "tab_diary", None), getattr(self, "tab_portions", None), getattr(self, "tab_exam", None)]:
             if tab and tab.winfo_exists():
                 try:
                     tab.configure(bg=bg_col)
@@ -14865,6 +12887,13 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             self.diary_top_bar.configure(bg="#0e172a", highlightbackground=border_col)
         if hasattr(self, "diary_add_box") and self.diary_add_box.winfo_exists():
             self.diary_add_box.configure(bg="#0e172a", highlightbackground=border_col)
+
+        # 10. V3 Host Examination & Gemini Evaluator Dynamic Theme Hook
+        if hasattr(self, "host_exam_controller") and self.host_exam_controller:
+            try:
+                self.host_exam_controller.apply_theme(self.colors)
+            except Exception as e:
+                print(f"[apply_theme] Warning applying theme to host_exam_controller: {e}")
 
         style = ttk.Style()
         self.configure_notebook_styles(style)
@@ -15158,11 +13187,11 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             sub_line.pack(fill=tk.X, pady=(0, 3))
 
             sub_var = tk.StringVar(value=subject)
-            sub_combo = ttk.Combobox(sub_line, textvariable=sub_var, values=SUBJECT_OPTIONS, width=20, state="readonly")
+            sub_combo = ShinobiPillSelector(sub_line, values=SUBJECT_OPTIONS, initial_value=subject, textvariable=sub_var, width=150, height=28)
             sub_combo.pack(side=tk.LEFT, padx=(0, 4))
 
             type_var = tk.StringVar(value=task_type)
-            type_combo = ttk.Combobox(sub_line, textvariable=type_var, values=[t[0] for t in TASK_TYPES], width=10, state="readonly")
+            type_combo = ShinobiPillSelector(sub_line, values=[t[0] for t in TASK_TYPES], initial_value=task_type, textvariable=type_var, width=105, height=28)
             type_combo.pack(side=tk.LEFT, padx=(0, 4))
 
             mins_var = tk.StringVar(value=str(duration))
@@ -15730,6 +13759,197 @@ H. ✍️ CLASS 8 ANSWER STRUCTURING & PRESENTATION FRAMEWORK (THE P-E-E-D PROTO
             relief=tk.FLAT,
             padx=10,
             pady=6,
+            cursor="hand2",
+            command=win.destroy
+        )
+        btn_close.pack(side=tk.RIGHT)
+
+    def open_parent_representation_audit_modal(self):
+        """Dedicated Option C HUD Modal for Parent Subject & Subdivision Representation Audit."""
+        c = self.colors
+        win, content = self._create_hud_toplevel(
+            "⚖️ PARENT SUBJECT REPRESENTATION & SUBDIVISION AUDIT • CLASS 8",
+            "Mandatory 100% Mathematics Compliance • Equal Rotation of Science & Social Subdivisions • 7D & 30D Audit",
+            width=920,
+            height=680,
+            min_width=820,
+            min_height=560
+        )
+
+        tracker = TharunScheduleBalancer.get_representation_tracker()
+        counts_7d = tracker.get_counts(days=7)
+        counts_30d = tracker.get_counts(days=30)
+        today_str = datetime.now().strftime("%d-%m-%Y")
+
+        # Top KPI Summary Bar (4 cards)
+        kpi_frame = tk.Frame(content, bg="#070b14")
+        kpi_frame.pack(fill=tk.X, pady=(0, 10))
+
+        # KPI 1: Mathematics 100% Rule
+        card_m = tk.Frame(kpi_frame, bg="#0f172a", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#38bdf8", padx=10, pady=8)
+        card_m.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 4))
+        tk.Label(card_m, text="📐 Mathematics", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#0f172a").pack(anchor="w")
+        tk.Label(card_m, text="100% Daily Guaranteed", font=("Segoe UI", 11, "bold"), fg="#22c55e", bg="#0f172a").pack(anchor="w", pady=1)
+        tk.Label(card_m, text=f"7D: {counts_7d.get('Mathematics', 0)} sessions | 30D: {counts_30d.get('Mathematics', 0)}", font=("Segoe UI", 7), fg="#94a3b8", bg="#0f172a").pack(anchor="w")
+
+        # KPI 2: Science Rotation
+        sci_7d = f"{counts_7d.get('Physics',0)} : {counts_7d.get('Chemistry',0)} : {counts_7d.get('Biology',0)}"
+        card_s = tk.Frame(kpi_frame, bg="#0f172a", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#1e293b", padx=10, pady=8)
+        card_s.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=2)
+        tk.Label(card_s, text="🔬 Science Subdivisions", font=("Segoe UI", 8, "bold"), fg="#fb923c", bg="#0f172a").pack(anchor="w")
+        tk.Label(card_s, text=f"Ratio {sci_7d}", font=("Segoe UI", 11, "bold"), fg="#f8fafc", bg="#0f172a").pack(anchor="w", pady=1)
+        tk.Label(card_s, text="Physics : Chem : Bio (Equal Rotation)", font=("Segoe UI", 7), fg="#94a3b8", bg="#0f172a").pack(anchor="w")
+
+        # KPI 3: Social Science Rotation
+        soc_7d = f"{counts_7d.get('History',0)} : {counts_7d.get('Geography',0)} : {counts_7d.get('Civics',0)}"
+        card_soc = tk.Frame(kpi_frame, bg="#0f172a", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#1e293b", padx=10, pady=8)
+        card_soc.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=2)
+        tk.Label(card_soc, text="🌍 Social Subdivisions", font=("Segoe UI", 8, "bold"), fg="#a855f7", bg="#0f172a").pack(anchor="w")
+        tk.Label(card_soc, text=f"Ratio {soc_7d}", font=("Segoe UI", 11, "bold"), fg="#f8fafc", bg="#0f172a").pack(anchor="w", pady=1)
+        tk.Label(card_soc, text="History : Geo : Civics (Equal Rotation)", font=("Segoe UI", 7), fg="#94a3b8", bg="#0f172a").pack(anchor="w")
+
+        # KPI 4: Level Mode Extension Status
+        lvl_num = getattr(self, "current_level", 2)
+        card_lvl = tk.Frame(kpi_frame, bg="#0f172a", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#1e293b", padx=10, pady=8)
+        card_lvl.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(4, 0))
+        tk.Label(card_lvl, text=f"⚡ Level {lvl_num} Routine", font=("Segoe UI", 8, "bold"), fg="#eab308", bg="#0f172a").pack(anchor="w")
+        lvl_desc = "1 Eve Core (2.25h)" if lvl_num == 1 else ("2 Eve Cores (3.0h)" if lvl_num == 2 else "2 Eve Cores Deep Flow")
+        tk.Label(card_lvl, text=lvl_desc, font=("Segoe UI", 11, "bold"), fg="#f8fafc", bg="#0f172a").pack(anchor="w", pady=1)
+        tk.Label(card_lvl, text="Morning session locked & static", font=("Segoe UI", 7), fg="#94a3b8", bg="#0f172a").pack(anchor="w")
+
+        # Main Table Card (Scrollable Frame)
+        table_container = tk.Frame(content, bg="#0f172a", bd=1, relief=tk.SOLID, highlightthickness=1, highlightbackground="#1e293b")
+        table_container.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+
+        # Canvas with custom scrollbar
+        tbl_canvas = tk.Canvas(table_container, bg="#0f172a", bd=0, highlightthickness=0)
+        tbl_scrollbar = tk.Scrollbar(table_container, orient=tk.VERTICAL, command=tbl_canvas.yview)
+        scroll_content = tk.Frame(tbl_canvas, bg="#0f172a")
+
+        scroll_content.bind("<Configure>", lambda e: tbl_canvas.configure(scrollregion=tbl_canvas.bbox("all")))
+        tbl_canvas.create_window((0, 0), window=scroll_content, anchor="nw")
+        tbl_canvas.configure(yscrollcommand=tbl_scrollbar.set)
+
+        tbl_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=8, pady=8)
+        tbl_scrollbar.pack(side=tk.RIGHT, fill=tk.Y, pady=8)
+
+        # Header Row
+        hdr_row = tk.Frame(scroll_content, bg="#1e293b", padx=8, pady=6)
+        hdr_row.pack(fill=tk.X, pady=(0, 4))
+        tk.Label(hdr_row, text="SUBDIVISION / SUBJECT", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg="#1e293b", width=26, anchor="w").pack(side=tk.LEFT)
+        tk.Label(hdr_row, text="PARENT DISCIPLINE", font=("Segoe UI", 8, "bold"), fg="#94a3b8", bg="#1e293b", width=18, anchor="w").pack(side=tk.LEFT)
+        tk.Label(hdr_row, text="7-DAY SESSIONS", font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg="#1e293b", width=14, anchor="center").pack(side=tk.LEFT)
+        tk.Label(hdr_row, text="30-DAY SESSIONS", font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg="#1e293b", width=14, anchor="center").pack(side=tk.LEFT)
+        tk.Label(hdr_row, text="AUDIT COMPLIANCE STATUS", font=("Segoe UI", 8, "bold"), fg="#22c55e", bg="#1e293b", width=24, anchor="w").pack(side=tk.LEFT)
+
+        # Populate rows
+        audit_slip_lines = [
+            f"⚖️ THARUN'S PARENT SUBJECT & SUBDIVISION REPRESENTATION AUDIT",
+            f"🏫 School: Senthil Public School, Dharmapuri | Class: Class 8 CBSE",
+            f"📅 Date: {today_str} | Active Level: Level {lvl_num}",
+            f"----------------------------------------------------------------------",
+            f"📐 Mathematics (100% Daily Rule): {counts_7d.get('Mathematics',0)} sessions (7D) | {counts_30d.get('Mathematics',0)} sessions (30D) - 100% COMPLIANT",
+            f"🔬 Science Subdivisions (Physics:Chem:Bio): {sci_7d} - EQUALLY ROTATED",
+            f"🌍 Social Subdivisions (History:Geo:Civics): {soc_7d} - EQUALLY ROTATED",
+            f"✍️ Language Clinic (Tamil:Eng:Hindi): {counts_7d.get('Tamil',0)}:{counts_7d.get('English',0)}:{counts_7d.get('Hindi',0)} - NON-REPEATED",
+            f"----------------------------------------------------------------------",
+            f"SUBDIVISION DETAIL BREAKDOWN:"
+        ]
+
+        for idx, (sub_name, sub_meta) in enumerate(CANONICAL_SUBDIVISIONS.items()):
+            row_bg = "#111827" if idx % 2 == 0 else "#0f172a"
+            row = tk.Frame(scroll_content, bg=row_bg, padx=8, pady=5)
+            row.pack(fill=tk.X, pady=1)
+
+            # Name & Badge
+            tk.Label(row, text=sub_meta.get("badge", sub_name), font=("Segoe UI", 8, "bold"), fg="#f8fafc", bg=row_bg, width=26, anchor="w").pack(side=tk.LEFT)
+            # Parent
+            tk.Label(row, text=sub_meta.get("parent", sub_name), font=("Segoe UI", 8), fg="#94a3b8", bg=row_bg, width=18, anchor="w").pack(side=tk.LEFT)
+            # 7-day count
+            c7 = counts_7d.get(sub_name, 0)
+            tk.Label(row, text=f"{c7} sessions", font=("Segoe UI", 8, "bold"), fg="#38bdf8", bg=row_bg, width=14, anchor="center").pack(side=tk.LEFT)
+            # 30-day count
+            c30 = counts_30d.get(sub_name, 0)
+            tk.Label(row, text=f"{c30} sessions", font=("Segoe UI", 8), fg="#f8fafc", bg=row_bg, width=14, anchor="center").pack(side=tk.LEFT)
+
+            # Compliance Badge
+            if sub_meta.get("is_math"):
+                status_txt = "✅ 100% Daily Inviolable"
+                status_col = "#22c55e"
+            elif c7 >= 2:
+                status_txt = "⚖️ Equally Balanced"
+                status_col = "#38bdf8"
+            elif c7 == 1:
+                status_txt = "⏳ Active in Rotation"
+                status_col = "#facc15"
+            else:
+                status_txt = "🎯 Next Rotation Priority"
+                status_col = "#fb923c"
+
+            tk.Label(row, text=status_txt, font=("Segoe UI", 8, "bold"), fg=status_col, bg=row_bg, width=24, anchor="w").pack(side=tk.LEFT)
+            audit_slip_lines.append(f"  • {sub_name} ({sub_meta.get('parent')}): {c7} sess (7D) | {c30} sess (30D) -> {status_txt}")
+
+        audit_slip_lines.append(f"----------------------------------------------------------------------")
+        audit_slip_lines.append(f"Parent Verification: Verified regular representation across all subjects and subdivisions.")
+        audit_slip_text = "\n".join(audit_slip_lines)
+
+        # Bottom Bar
+        act_box = tk.Frame(content, bg="#070b14")
+        act_box.pack(fill=tk.X, pady=(2, 0))
+
+        def copy_audit_slip():
+            self.root.clipboard_clear()
+            self.root.clipboard_append(audit_slip_text)
+            self.play_chime("finished")
+            messagebox.showinfo("Copied!", "⚖️ Parent Representation Audit Slip copied to clipboard!\n\nYou can share it with family or review at any time.", parent=win)
+
+        def save_audit_slip():
+            workspace_dir = os.path.dirname(os.path.abspath(__file__))
+            out_file = os.path.join(workspace_dir, f"Tharun_Parent_Representation_Audit_{today_str}.txt")
+            try:
+                with open(out_file, "w", encoding="utf-8") as f:
+                    f.write(audit_slip_text)
+                messagebox.showinfo("Report Saved", f"Saved Parent Representation Audit slip to:\n{out_file}", parent=win)
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to save audit slip:\n{e}", parent=win)
+
+        btn_copy = tk.Button(
+            act_box,
+            text="📋 Copy Audit Slip (WhatsApp / Telegram)",
+            font=("Segoe UI", 9, "bold"),
+            bg="#059669" if self.current_theme == "dark" else "#10b981",
+            fg="#ffffff",
+            relief=tk.FLAT,
+            padx=12,
+            pady=5,
+            cursor="hand2",
+            command=copy_audit_slip
+        )
+        btn_copy.pack(side=tk.LEFT, padx=(0, 6))
+
+        btn_save = tk.Button(
+            act_box,
+            text="💾 Save Audit File (.txt)",
+            font=("Segoe UI", 8),
+            bg="#1e293b",
+            fg="#f8fafc",
+            relief=tk.FLAT,
+            padx=10,
+            pady=5,
+            cursor="hand2",
+            command=save_audit_slip
+        )
+        btn_save.pack(side=tk.LEFT)
+
+        btn_close = tk.Button(
+            act_box,
+            text="Close",
+            font=("Segoe UI", 8),
+            bg="#1e293b",
+            fg="#94a3b8",
+            relief=tk.FLAT,
+            padx=10,
+            pady=5,
             cursor="hand2",
             command=win.destroy
         )

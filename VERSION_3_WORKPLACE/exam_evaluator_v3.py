@@ -23,7 +23,31 @@ if sys.stdout is not None and hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+def get_persistent_base_dir() -> str:
+    """Return persistent directory on disk, avoiding ephemeral sys._MEIPASS."""
+    if getattr(sys, 'frozen', False):
+        exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+        if os.path.exists(os.path.join(exe_dir, "EXAM_SYSTEM_V3")):
+            return exe_dir
+        v3_dir = os.path.join(exe_dir, "VERSION_3_WORKPLACE")
+        if os.path.exists(os.path.join(v3_dir, "EXAM_SYSTEM_V3")):
+            return v3_dir
+        parent_dir = os.path.dirname(exe_dir)
+        if os.path.exists(os.path.join(parent_dir, "EXAM_SYSTEM_V3")):
+            return parent_dir
+        return exe_dir
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if os.path.exists(os.path.join(script_dir, "EXAM_SYSTEM_V3")):
+        return script_dir
+    cwd = os.getcwd()
+    if os.path.exists(os.path.join(cwd, "EXAM_SYSTEM_V3")):
+        return cwd
+    parent_dir = os.path.dirname(script_dir)
+    if os.path.exists(os.path.join(parent_dir, "EXAM_SYSTEM_V3")):
+        return parent_dir
+    return script_dir
+
+BASE_DIR = get_persistent_base_dir()
 EXAM_SYS_DIR = os.path.join(BASE_DIR, "EXAM_SYSTEM_V3")
 QUESTION_PAPERS_DIR = os.path.join(EXAM_SYS_DIR, "03_GENERATED_QUESTION_PAPERS")
 ANSWER_SHEETS_DIR = os.path.join(EXAM_SYS_DIR, "04_UPLOADED_ANSWER_SHEETS")
@@ -32,6 +56,8 @@ TOPPER_GUIDES_DIR = os.path.join(EXAM_SYS_DIR, "06_MODEL_ANSWER_REFERENCES")
 LEDGER_FILE = os.path.join(EXAM_SYS_DIR, "01_SUBJECT_HOMEWORK_LOGS", "subject_study_ledger.json")
 ERROR_BANK_FILE = os.path.join(BASE_DIR, "student_error_bank.json")
 
+os.makedirs(QUESTION_PAPERS_DIR, exist_ok=True)
+os.makedirs(ANSWER_SHEETS_DIR, exist_ok=True)
 os.makedirs(CORRECTED_COPIES_DIR, exist_ok=True)
 os.makedirs(TOPPER_GUIDES_DIR, exist_ok=True)
 

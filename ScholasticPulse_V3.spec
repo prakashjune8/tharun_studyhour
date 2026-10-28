@@ -5,8 +5,13 @@ a = Analysis(
     ['VERSION_3_WORKPLACE\\study_balancer.py'],
     pathex=[],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[
+        ('assets', 'assets'),
+        ('DOCUMENTATION', 'DOCUMENTATION'),
+        ('SCHOLASTICPULSE_COMPLETE_USER_MANUAL.md', '.'),
+        ('SCHOLASTICPULSE_MASTER_FLOWCHART_AND_COMPONENT_DIRECTORY.md', '.')
+    ],
+    hiddenimports=['user_guide_ui', 'glider_help_ui'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

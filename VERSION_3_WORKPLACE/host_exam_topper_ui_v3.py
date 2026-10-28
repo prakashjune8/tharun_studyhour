@@ -235,11 +235,18 @@ class HostExamTopperView:
             try:
                 self.active_record = CBSEEvaluatorV3.evaluate_exam(exam_id)
             except Exception as e:
-                messagebox.showerror("Evaluation Error", f"Could not evaluate {exam_id}: {e}")
+                # Silently log and clear active record instead of an unhandled blocking popup on app launch
+                print(f"[TopperView] Evaluation record not found or unready for {exam_id}: {e}")
+                self.active_record = None
                 return
         else:
-            with open(eval_file, "r", encoding="utf-8") as f:
-                self.active_record = json.load(f)
+            try:
+                with open(eval_file, "r", encoding="utf-8") as f:
+                    self.active_record = json.load(f)
+            except Exception as e:
+                print(f"[TopperView] Error reading {eval_file}: {e}")
+                self.active_record = None
+                return
 
         # Update KPI Header
         if self.active_record:
